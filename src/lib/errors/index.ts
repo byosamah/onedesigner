@@ -106,17 +106,3 @@ export const createValidationError = (message: string) =>
 
 export const createApiError = (message: string, statusCode?: number, code?: string) =>
   new AppError(message, ErrorType.API, code, statusCode)
-
-// Error boundary helper for React components
-export const withErrorBoundary = <T extends Record<string, any>>(
-  Component: React.ComponentType<T>
-): React.ComponentType<T> => {
-  const WrappedComponent = (props: T) => {
-    // This would typically be implemented with react-error-boundary
-    // For now, just return the component as-is
-    return <Component {...props} />
-  }
-  
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
-  return WrappedComponent
-}
