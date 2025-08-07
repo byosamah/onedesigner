@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,ts,tsx,md,json}\"",
     "db:push": "prisma db push",
-    "db:generate": "prisma generate"
+    "db:generate": "prisma generate",
+    "check-env": "node scripts/check-env-production.mjs",
+    "deploy": "./deploy.sh",
+    "postbuild": "echo '✅ Build completed successfully!'"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
