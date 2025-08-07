@@ -1,9 +1,27 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { performanceMiddleware, performanceMonitorPaths } from '@/middleware/performance'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  
+  // Public routes that don't need authentication
+  const publicRoutes = [
+    '/',
+    '/brief',
+    '/designer/apply',
+    '/designer/login',
+    '/admin',
+    '/auth/verify',
+    '/favicon.ico',
+    '/logo.svg',
+    '/icon.svg'
+  ]
+  
+  // Skip middleware for public routes
+  if (publicRoutes.some(route => pathname === route || pathname.startsWith('/test-redesign'))) {
+    return NextResponse.next()
+  }
   
   // Apply performance monitoring to specific API routes
   if (performanceMonitorPaths.some(path => pathname.startsWith(path))) {
