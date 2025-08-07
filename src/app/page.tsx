@@ -5,6 +5,9 @@ import Link from 'next/link'
 import { Logo, ThemeToggle } from '@/components/shared'
 import { getTheme } from '@/lib/design-system'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default function HomePage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   const theme = getTheme(isDarkMode)

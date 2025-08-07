@@ -9,6 +9,11 @@ const nextConfig = {
     // Disable TypeScript errors during builds
     ignoreBuildErrors: true,
   },
+  experimental: {
+    // Disable problematic static generation
+    workerThreads: false,
+    cpus: 1
+  },
   images: {
     domains: ['localhost', 'onedesigner.app', 'onedesigner.io'],
     remotePatterns: [
