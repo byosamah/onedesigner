@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['localhost', 'onedesigner.io'],
+    domains: ['localhost', 'onedesigner.app', 'onedesigner.io'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -11,6 +11,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'uploadthing.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.onedesigner.app',
       },
     ],
   },
