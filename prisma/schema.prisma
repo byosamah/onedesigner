@@ -1,0 +1,234 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Designer {
+  id              String    @id @default(uuid())
+  // Public fields (always visible)
+  firstName       String
+  lastInitial     String
+  title           String
+  city            String
+  country         String
+  yearsExperience Int
+  rating          Float     @default(4.5)
+  totalProjects   Int       @default(0)
+  avatarUrl       String?
+  
+  // Protected fields (require payment)
+  lastName        String
+  email           String    @unique
+  phone           String?
+  websiteUrl      String?
+  calendarUrl     String?
+  linkedinUrl     String?
+  
+  // Profile data
+  bio             String?
+  styles          String[]
+  industries      String[]
+  tools           String[]
+  hourlyRate      Float?
+  availability    String?   @default("available")
+  responseTime    String?   @default("24 hours")
+  timezone        String?
+  
+  // Privacy settings
+  isContactable   Boolean   @default(true)
+  hidePhone       Boolean   @default(false)
+  isVerified      Boolean   @default(false)
+  
+  // Subscription
+  subscriptionTier String   @default("free") // free, pro, studio
+  subscriptionEnd  DateTime?
+  
+  // System fields
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastActiveAt    DateTime  @default(now())
+  
+  // Relations
+  portfolios      Portfolio[]
+  requests        DesignerRequest[]
+  matches         Match[]
+  
+  @@index([email])
+  @@index([availability, rating])
+}
+
+model Portfolio {
+  id          String   @id @default(uuid())
+  designerId  String
+  designer    Designer @relation(fields: [designerId], references: [id])
+  
+  title       String
+  description String?
+  imageUrl    String
+  projectType String
+  industry    String?
+  client      String?
+  
+  // Protected fields
+  caseStudyUrl String?
+  
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([designerId])
+}
+
+model Client {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  
+  // Profile (optional)
+  name          String?
+  company       String?
+  website       String?
+  
+  // Payment
+  customerId    String?  // Lemon Squeezy customer ID
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  briefs        Brief[]
+  matches       Match[]
+  unlocks       MatchUnlock[]
+  
+  @@index([email])
+}
+
+model Brief {
+  id          String   @id @default(uuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  
+  // Project details
+  projectType String
+  industry    String
+  timeline    String
+  budget      String?
+  
+  // Style preferences
+  styles      String[]
+  inspiration String?
+  requirements String?
+  
+  // Matching preferences
+  timezone    String?
+  communication String[] // email, slack, zoom
+  
+  status      String   @default("active") // active, matched, expired
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  matches     Match[]
+  
+  @@index([clientId, status])
+}
+
+model Match {
+  id          String   @id @default(uuid())
+  
+  briefId     String
+  brief       Brief    @relation(fields: [briefId], references: [id])
+  
+  designerId  String
+  designer    Designer @relation(fields: [designerId], references: [id])
+  
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  
+  // Match data
+  score       Float
+  reasons     Json     // Array of match reasons
+  personalizedReasons Json // Custom match bullets
+  
+  // Status
+  status      String   @default("pending") // pending, viewed, unlocked, connected
+  
+  createdAt   DateTime @default(now())
+  viewedAt    DateTime?
+  unlockedAt  DateTime?
+  
+  // Relations
+  unlock      MatchUnlock?
+  request     DesignerRequest?
+  
+  @@unique([briefId, designerId])
+  @@index([clientId, status])
+  @@index([designerId, status])
+}
+
+model MatchUnlock {
+  id          String   @id @default(uuid())
+  
+  matchId     String   @unique
+  match       Match    @relation(fields: [matchId], references: [id])
+  
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  
+  // Payment info
+  paymentId   String   // Lemon Squeezy payment ID
+  amount      Float
+  
+  unlockedAt  DateTime @default(now())
+  
+  @@index([clientId])
+}
+
+model DesignerRequest {
+  id          String   @id @default(uuid())
+  
+  matchId     String   @unique
+  match       Match    @relation(fields: [matchId], references: [id])
+  
+  designerId  String
+  designer    Designer @relation(fields: [designerId], references: [id])
+  
+  // Request status
+  status      String   @default("pending") // pending, viewed, accepted, declined, expired
+  
+  // Timestamps
+  sentAt      DateTime @default(now())
+  viewedAt    DateTime?
+  respondedAt DateTime?
+  expiresAt   DateTime
+  
+  // Response
+  response    String?  // accept, decline, question
+  message     String?
+  
+  @@index([designerId, status])
+}
+
+model AuthToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  type      String   // otp, magic-link
+  
+  expiresAt DateTime
+  usedAt    DateTime?
+  
+  createdAt DateTime @default(now())
+  
+  @@index([email, type])
+  @@index([token])
+}

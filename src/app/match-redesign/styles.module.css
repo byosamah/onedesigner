@@ -1,0 +1,28 @@
+.shipfastPage {
+  font-family: var(--font-bricolage), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Yellow accent color matching ShipFast */
+.yellowAccent {
+  background-color: #FFBE18;
+}
+
+.yellowAccentHover:hover {
+  background-color: #FFB000;
+}
+
+/* Smooth animations */
+.smoothTransition {
+  transition: all 0.2s ease;
+}
+
+/* Custom shadow for cards */
+.cardShadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cardShadowHover:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
