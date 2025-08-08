@@ -50,20 +50,21 @@ export default function DesignerApplyPage() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode) || {
-    bg: '#0A0A0B',
-    cardBg: '#111113',
-    nestedBg: '#18181B',
-    border: '#27272A',
-    accent: '#f0ad4e',
+  const theme = getTheme ? getTheme(isDarkMode) : null
+  const defaultTheme = {
+    bg: '#212121',
+    cardBg: '#323232',
+    nestedBg: '#212121',
+    border: '#374151',
+    accent: 'rgb(245, 193, 71)',
     success: '#10B981',
     error: '#EF4444',
     text: {
-      primary: '#FFFFFF',
-      secondary: '#A1A1AA',
-      muted: '#71717A'
+      primary: '#cfcfcf',
+      secondary: '#9CA3AF',
+      muted: '#6B7280'
     },
-    tagBg: '#18181B'
+    tagBg: '#1A1A1A'
   }
 
   const toggleTheme = () => {
@@ -857,21 +858,7 @@ export default function DesignerApplyPage() {
   }
 
   // Ensure theme is always defined
-  const safeTheme = theme || {
-    bg: '#212121',
-    cardBg: '#323232',
-    nestedBg: '#212121',
-    border: '#374151',
-    accent: 'rgb(245, 193, 71)',
-    success: '#10B981',
-    error: '#EF4444',
-    text: {
-      primary: '#cfcfcf',
-      secondary: '#9CA3AF',
-      muted: '#6B7280'
-    },
-    tagBg: '#1A1A1A'
-  }
+  const safeTheme = theme || defaultTheme
 
   return (
     <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: safeTheme.bg }}>
