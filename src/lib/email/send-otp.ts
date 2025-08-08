@@ -1,4 +1,8 @@
 export async function sendOTPEmail(email: string, otp: string) {
+  console.log('Attempting to send OTP email to:', email)
+  console.log('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>')
+  console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+  
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -32,9 +36,16 @@ export async function sendOTPEmail(email: string, otp: string) {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      console.error('Resend API error:', error)
-      throw new Error(error.message || 'Failed to send email')
+      const errorText = await response.text()
+      console.error('Resend API error response:', response.status, errorText)
+      
+      try {
+        const error = JSON.parse(errorText)
+        console.error('Parsed error:', error)
+        throw new Error(error.message || error.error || 'Failed to send email')
+      } catch (e) {
+        throw new Error(`Resend API error (${response.status}): ${errorText}`)
+      }
     }
 
     const data = await response.json()
