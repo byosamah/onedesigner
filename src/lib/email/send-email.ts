@@ -31,7 +31,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'OneDesigner <noreply@onedesigner.com>',
+            from: process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>',
             to,
             subject,
             html,

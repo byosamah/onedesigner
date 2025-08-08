@@ -8,6 +8,7 @@ import {
   Brief, 
   ClientPreferences 
 } from '@/lib/matching/enhanced-scoring'
+import { sendEmail } from '@/lib/email/send-email'
 import { 
   generateMatchExplanation, 
   generateKeyStrengths,
@@ -42,10 +43,10 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Get the brief
+    // Get the brief with client info
     const { data: brief, error: briefError } = await supabase
       .from('briefs')
-      .select('*')
+      .select('*, client:clients(*)')
       .eq('id', briefId)
       .single()
 
@@ -290,6 +291,95 @@ export async function POST(request: NextRequest) {
       
       if (requestError) {
         console.error('Error creating designer request:', requestError)
+      } else {
+        // Send email notification to designer
+        try {
+          await sendEmail({
+            to: bestMatch.designer.email,
+            subject: 'New project match on OneDesigner! 🎨',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #f0ad4e; margin: 0;">OneDesigner</h1>
+                </div>
+                <h2 style="color: #333;">You've been matched with a new project!</h2>
+                <p style="color: #666; font-size: 16px;">
+                  Great news! You've been selected as the perfect match for a ${brief.project_type} project.
+                </p>
+                <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                  <h3 style="color: #333; margin-top: 0;">Project Details:</h3>
+                  <ul style="color: #666;">
+                    <li><strong>Type:</strong> ${brief.project_type}</li>
+                    <li><strong>Industry:</strong> ${brief.industry}</li>
+                    <li><strong>Timeline:</strong> ${brief.timeline}</li>
+                    <li><strong>Match Score:</strong> ${bestMatch.score}%</li>
+                  </ul>
+                </div>
+                <p style="color: #666;">
+                  The client is excited to work with you! Please respond within 48 hours to maintain your response rate.
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard" 
+                     style="background: #f0ad4e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                    View Project Details
+                  </a>
+                </div>
+                <p style="color: #999; font-size: 14px; text-align: center;">
+                  This request will expire in 7 days if not responded to.
+                </p>
+              </div>
+            `,
+            text: `You've been matched with a new ${brief.project_type} project on OneDesigner! Match score: ${bestMatch.score}%. Please respond within 48 hours. View details at: ${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+          })
+          console.log('Designer notification email sent')
+        } catch (emailError) {
+          console.error('Failed to send designer notification:', emailError)
+        }
+      }
+    }
+
+    // Send email notification to client
+    if (finalMatch && brief.client?.email) {
+      try {
+        await sendEmail({
+          to: brief.client.email,
+          subject: 'We found your perfect designer match! 🎯',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #f0ad4e; margin: 0;">OneDesigner</h1>
+              </div>
+              <h2 style="color: #333;">We found the perfect designer for your project!</h2>
+              <p style="color: #666; font-size: 16px;">
+                Our AI has analyzed hundreds of designers and found an exceptional match for your ${brief.project_type} project.
+              </p>
+              <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">Your Match:</h3>
+                <p style="color: #666; margin: 10px 0;">
+                  <strong>Designer:</strong> ${bestMatch.designer.first_name} ${bestMatch.designer.last_name[0]}.<br>
+                  <strong>Match Score:</strong> ${bestMatch.score}%<br>
+                  <strong>Specialties:</strong> ${bestMatch.designer.skills?.slice(0, 3).join(', ') || 'Various design skills'}
+                </p>
+              </div>
+              <p style="color: #666;">
+                ${bestMatch.personalizedReasons?.[0] || bestMatch.reasons?.[0] || 'This designer has the perfect combination of skills and experience for your project.'}
+              </p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}" 
+                   style="background: #f0ad4e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+                  View Your Match
+                </a>
+              </div>
+              <p style="color: #999; font-size: 14px; text-align: center;">
+                Unlock this designer's contact details with just 1 credit.
+              </p>
+            </div>
+          `,
+          text: `We found the perfect designer for your ${brief.project_type} project! Match score: ${bestMatch.score}%. View your match at: ${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}`
+        })
+        console.log('Client notification email sent')
+      } catch (emailError) {
+        console.error('Failed to send client notification:', emailError)
       }
     }
 
