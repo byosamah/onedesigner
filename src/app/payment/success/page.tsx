@@ -83,11 +83,11 @@ export default function PaymentSuccessPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/match" 
+                href="/client/dashboard" 
                 className="font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                 style={{ backgroundColor: theme.accent, color: '#000' }}
               >
-                View Current Match ✨
+                View Your Matches ✨
               </Link>
               <Link 
                 href="/client/dashboard" 

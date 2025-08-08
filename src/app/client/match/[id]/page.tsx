@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
-import { LoadingButton } from '@/components/forms'
+import { LoadingButton, LoadingSpinner } from '@/components/forms'
 import { toast } from '@/lib/toast'
 import { getTheme } from '@/lib/design-system'
 
-interface Designer {
+interface EnhancedDesigner {
   id: string
-  first_name: string
-  last_initial: string
+  firstName: string
+  lastName: string
+  lastInitial: string
   title: string
   city: string
   country: string
@@ -18,317 +19,463 @@ interface Designer {
   phone?: string
   website?: string
   bio: string
-  years_experience: number
+  yearsExperience: number
   rating: number
-  total_projects: number
+  totalProjects: number
   styles: string[]
   industries: string[]
+  // Enhanced fields
+  designPhilosophy: string
+  primaryCategories: string[]
+  styleKeywords: string[]
+  avgClientSatisfaction: number
+  onTimeDeliveryRate: number
+  collaborationStyle?: string
+  turnaroundTimes?: Record<string, number>
 }
 
-interface Match {
+interface EnhancedMatch {
   id: string
   score: number
   status: string
+  confidence: string
+  matchSummary: string
   reasons: string[]
-  personalized_reasons: string[]
+  personalizedReasons: string[]
+  uniqueValue: string
+  potentialChallenges: string[]
+  riskLevel: string
+  scoreBreakdown: {
+    categoryMatch: number
+    styleAlignment: number
+    budgetCompatibility: number
+    timelineCompatibility: number
+    experienceLevel: number
+    industryFamiliarity: number
+  }
   created_at: string
-  designer: Designer
+  designer: EnhancedDesigner
   brief: {
-    project_type: string
-    company_name: string
+    designCategory: string
+    company_name?: string
     budget: string
     timeline: string
-    details: string
+    description: string
+    styleKeywords?: string[]
+    targetAudience?: string
   }
 }
 
 export default function MatchDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [match, setMatch] = useState<Match | null>(null)
+  const [match, setMatch] = useState<EnhancedMatch | null>(null)
   const [loading, setLoading] = useState(true)
   const [unlocking, setUnlocking] = useState(false)
   const [credits, setCredits] = useState(0)
+  const [isDarkMode, setIsDarkMode] = useState(true)
+  const theme = getTheme(isDarkMode)
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode)
+  }
 
   useEffect(() => {
     fetchMatch()
-    fetchCredits()
   }, [params.id])
 
   const fetchMatch = async () => {
     try {
       const response = await fetch(`/api/client/matches/${params.id}`)
-      if (!response.ok) throw new Error('Failed to fetch match')
       
+      if (response.status === 401) {
+        router.push(`/auth/signin?redirect=/client/match/${params.id}`)
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch match')
+      }
+
       const data = await response.json()
       setMatch(data.match)
+      setCredits(data.credits || 0)
     } catch (error) {
       console.error('Error fetching match:', error)
       toast.error('Failed to load match details')
-      router.push('/client/dashboard')
     } finally {
       setLoading(false)
     }
   }
 
-  const fetchCredits = async () => {
-    try {
-      const response = await fetch('/api/auth/session')
-      const data = await response.json()
-      setCredits(data.client?.match_credits || 0)
-    } catch (error) {
-      console.error('Error fetching credits:', error)
-    }
-  }
-
   const handleUnlock = async () => {
-    if (credits < 1) {
-      router.push('/client/purchase')
-      return
-    }
+    if (!match || credits < 1) return
 
     setUnlocking(true)
     try {
-      const response = await fetch(`/api/client/matches/${params.id}/unlock`, {
+      const response = await fetch(`/api/client/matches/${match.id}/unlock`, {
         method: 'POST',
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to unlock match')
+        throw new Error(error.message || 'Failed to unlock')
       }
 
       const data = await response.json()
-      toast.success('Match unlocked successfully!')
-      
-      // Refresh match data
-      await fetchMatch()
-      await fetchCredits()
+      setMatch(data.match)
+      setCredits(data.credits)
+      toast.success('Designer contact unlocked!')
     } catch (error) {
-      console.error('Error unlocking match:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to unlock match')
+      console.error('Unlock error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to unlock designer')
     } finally {
       setUnlocking(false)
     }
   }
 
-  const handlePurchaseCredits = () => {
-    router.push('/client/purchase')
+  const handleContactDesigner = () => {
+    if (match?.designer.email) {
+      window.location.href = `mailto:${match.designer.email}`
+    }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading match details...</p>
+      <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+        <Navigation 
+          theme={theme} 
+          isDarkMode={isDarkMode} 
+          toggleTheme={toggleTheme}
+        />
+        <div className="flex items-center justify-center h-[60vh]">
+          <LoadingSpinner size="large" />
         </div>
-      </div>
+      </main>
     )
   }
 
   if (!match) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">Match not found</p>
-          <button
-            onClick={() => router.push('/client/dashboard')}
-            className="mt-4 text-black hover:underline"
-          >
-            Back to dashboard
-          </button>
+      <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+        <Navigation 
+          theme={theme} 
+          isDarkMode={isDarkMode} 
+          toggleTheme={toggleTheme}
+        />
+        <div className="max-w-7xl mx-auto px-8 py-12">
+          <div className="text-center py-12">
+            <div className="text-6xl mb-6">❌</div>
+            <h2 className="text-3xl font-bold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              Match Not Found
+            </h2>
+            <p className="text-lg mb-8 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+              This match doesn't exist or you don't have access to it.
+            </p>
+            <button
+              onClick={() => router.push('/client/dashboard')}
+              className="font-semibold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+              style={{ backgroundColor: theme.accent, color: '#000' }}
+            >
+              Back to Dashboard
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     )
   }
 
+  const isUnlocked = match.status === 'unlocked' || match.status === 'completed'
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={() => router.push('/client/dashboard')}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              ← Back to Dashboard
-            </button>
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Your Credits</p>
-              <p className="text-lg font-semibold">{credits}</p>
+    <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+      <Navigation 
+        theme={theme} 
+        isDarkMode={isDarkMode} 
+        toggleTheme={toggleTheme}
+        showBackButton={true}
+        onBack={() => router.push('/client/dashboard')}
+      />
+
+      <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Match Score Header */}
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-6 mb-6">
+            <div className="text-6xl">🎯</div>
+            <div>
+              <h1 className="text-7xl font-extrabold transition-colors duration-300" style={{ color: theme.accent }}>
+                {match.score}%
+              </h1>
+              <p className="text-lg font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                Match Score
+              </p>
             </div>
           </div>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <span className="px-4 py-2 rounded-full text-sm font-medium" 
+              style={{ 
+                backgroundColor: theme.success + '20',
+                color: theme.success
+              }}>
+              {match.confidence} Confidence
+            </span>
+            <span className="px-4 py-2 rounded-full text-sm font-medium" 
+              style={{ 
+                backgroundColor: match.riskLevel === 'Low' ? theme.success + '20' : theme.accent + '20',
+                color: match.riskLevel === 'Low' ? theme.success : theme.accent
+              }}>
+              {match.riskLevel} Risk
+            </span>
+          </div>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm p-8">
-          {/* Designer Info */}
-          <div className="mb-8">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-2xl font-bold mb-2">
-                  {match.designer.first_name} {match.designer.last_initial}.
-                </h1>
-                <p className="text-lg text-gray-600">
-                  {match.designer.title} • {match.designer.city}, {match.designer.country}
+        {/* Designer Info */}
+        <div className="rounded-3xl p-8 mb-8 transition-all duration-300" 
+          style={{ 
+            backgroundColor: theme.cardBg,
+            border: `1px solid ${theme.border}`
+          }}>
+          <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
+            <div>
+              <h2 className="text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                {isUnlocked ? `${match.designer.firstName} ${match.designer.lastName}` : `Designer ${match.designer.firstName}***`}
+              </h2>
+              <p className="text-xl mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                {match.designer.title} • {match.designer.city}, {match.designer.country}
+              </p>
+              <div className="flex items-center gap-6 text-sm flex-wrap">
+                <span style={{ color: theme.text.muted }}>
+                  {match.designer.yearsExperience} years experience
+                </span>
+                <span style={{ color: theme.text.muted }}>
+                  ⭐ {match.designer.rating}/5 rating
+                </span>
+                <span style={{ color: theme.text.muted }}>
+                  {match.designer.totalProjects} projects completed
+                </span>
+                {match.designer.avgClientSatisfaction && (
+                  <span style={{ color: theme.text.muted }}>
+                    {match.designer.avgClientSatisfaction}% client satisfaction
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {!isUnlocked && (
+              <div className="text-center">
+                <p className="text-sm mb-3" style={{ color: theme.text.secondary }}>
+                  You have <strong>{credits}</strong> matches available
                 </p>
-                <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                  <span>{match.designer.years_experience} years experience</span>
-                  <span>•</span>
-                  <span>⭐ {match.designer.rating}/5</span>
-                  <span>•</span>
-                  <span>{match.designer.total_projects} projects</span>
+                <LoadingButton
+                  onClick={handleUnlock}
+                  isLoading={unlocking}
+                  disabled={credits < 1}
+                  className="font-bold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50"
+                  style={{ backgroundColor: theme.accent, color: '#000' }}
+                >
+                  Unlock Contact (1 match)
+                </LoadingButton>
+              </div>
+            )}
+          </div>
+
+          {/* Why They're a Great Match */}
+          <div className="rounded-2xl p-6 mb-6" 
+            style={{ 
+              backgroundColor: theme.nestedBg,
+              border: `1px solid ${theme.border}`
+            }}>
+            <h3 className="font-bold text-lg mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              Why they're perfect for your project:
+            </h3>
+            <p className="mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+              {match.matchSummary}
+            </p>
+            <ul className="space-y-2">
+              {match.personalizedReasons.map((reason, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="text-green-500 mt-0.5">✓</span>
+                  <span className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                    {reason}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Design Philosophy */}
+          {match.designer.designPhilosophy && (
+            <div className="rounded-2xl p-6 mb-6" 
+              style={{ 
+                backgroundColor: theme.nestedBg,
+                border: `1px solid ${theme.border}`
+              }}>
+              <h3 className="font-bold text-lg mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                Design Philosophy:
+              </h3>
+              <p className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                {match.designer.designPhilosophy}
+              </p>
+            </div>
+          )}
+
+          {/* Categories & Style */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {match.designer.primaryCategories && match.designer.primaryCategories.length > 0 && (
+              <div className="rounded-2xl p-6" 
+                style={{ 
+                  backgroundColor: theme.nestedBg,
+                  border: `1px solid ${theme.border}`
+                }}>
+                <h3 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                  Specializes In:
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {match.designer.primaryCategories.map((cat) => (
+                    <span key={cat} className="px-3 py-1 rounded-full text-sm"
+                      style={{ 
+                        backgroundColor: theme.accent + '20',
+                        color: theme.accent
+                      }}>
+                      {cat}
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-green-600">{match.score}%</p>
-                <p className="text-sm text-gray-500">Match Score</p>
-              </div>
-            </div>
+            )}
 
-            {/* Bio */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2">About</h3>
-              <p className="text-gray-600">{match.designer.bio}</p>
-            </div>
-
-            {/* Skills */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <h3 className="font-semibold mb-2">Design Styles</h3>
+            {match.designer.styleKeywords && match.designer.styleKeywords.length > 0 && (
+              <div className="rounded-2xl p-6" 
+                style={{ 
+                  backgroundColor: theme.nestedBg,
+                  border: `1px solid ${theme.border}`
+                }}>
+                <h3 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                  Design Style:
+                </h3>
                 <div className="flex flex-wrap gap-2">
-                  {match.designer.styles.map((style) => (
-                    <span
-                      key={style}
-                      className="px-3 py-1 bg-gray-100 rounded-full text-sm"
-                    >
+                  {match.designer.styleKeywords.map((style) => (
+                    <span key={style} className="px-3 py-1 rounded-full text-sm"
+                      style={{ 
+                        backgroundColor: theme.tagBg,
+                        color: theme.text.secondary
+                      }}>
                       {style}
                     </span>
                   ))}
                 </div>
               </div>
-              <div>
-                <h3 className="font-semibold mb-2">Industries</h3>
-                <div className="flex flex-wrap gap-2">
-                  {match.designer.industries.map((industry) => (
-                    <span
-                      key={industry}
-                      className="px-3 py-1 bg-gray-100 rounded-full text-sm"
-                    >
-                      {industry}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+            )}
+          </div>
 
-            {/* Match Reasons */}
-            <div className="bg-green-50 rounded-lg p-6 mb-6">
-              <h3 className="font-semibold mb-2">Why they're perfect for your project</h3>
-              <p className="text-gray-700">{match.personalized_reasons.join(' ')}</p>
-            </div>
-
-            {/* Contact Info or Unlock */}
-            {match.status === 'pending' ? (
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <h3 className="text-lg font-semibold mb-2">Ready to connect?</h3>
-                <p className="text-gray-600 mb-4">
-                  Unlock this designer's contact information to start your project
-                </p>
-                {credits >= 1 ? (
-                  <button
-                    onClick={handleUnlock}
-                    disabled={unlocking}
-                    className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 disabled:opacity-50"
-                  >
-                    {unlocking ? 'Unlocking...' : 'Unlock Contact (1 Credit)'}
-                  </button>
-                ) : (
-                  <div>
-                    <p className="text-red-600 mb-4">You need at least 1 credit to unlock</p>
-                    <button
-                      onClick={handlePurchaseCredits}
-                      className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
-                    >
-                      Purchase Credits
-                    </button>
+          {/* Contact Information */}
+          {isUnlocked && (
+            <div className="rounded-2xl p-6" 
+              style={{ 
+                backgroundColor: theme.success + '10',
+                border: `1px solid ${theme.success + '40'}`
+              }}>
+              <h3 className="font-bold text-lg mb-4 transition-colors duration-300" style={{ color: theme.success }}>
+                Contact Information
+              </h3>
+              <div className="space-y-3">
+                {match.designer.email && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium" style={{ color: theme.text.primary }}>Email:</span>
+                    <a href={`mailto:${match.designer.email}`} 
+                      className="transition-colors duration-300 hover:opacity-80"
+                      style={{ color: theme.accent }}>
+                      {match.designer.email}
+                    </a>
+                  </div>
+                )}
+                {match.designer.phone && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium" style={{ color: theme.text.primary }}>Phone:</span>
+                    <span style={{ color: theme.text.secondary }}>{match.designer.phone}</span>
+                  </div>
+                )}
+                {match.designer.website && (
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium" style={{ color: theme.text.primary }}>Portfolio:</span>
+                    <a href={match.designer.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="transition-colors duration-300 hover:opacity-80"
+                      style={{ color: theme.accent }}>
+                      {match.designer.website}
+                    </a>
                   </div>
                 )}
               </div>
-            ) : match.status === 'unlocked' ? (
-              <div className="bg-blue-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-3">Waiting for designer response</h3>
-                <p className="text-gray-600">
-                  We've notified {match.designer.first_name} about your interest. 
-                  They typically respond within 24-48 hours.
-                </p>
-              </div>
-            ) : match.status === 'accepted' && match.designer.email ? (
-              <div className="bg-green-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-3">Designer Contact Information</h3>
-                <div className="space-y-2">
-                  <p>
-                    <span className="font-medium">Email:</span>{' '}
-                    <a href={`mailto:${match.designer.email}`} className="text-blue-600 hover:underline">
-                      {match.designer.email}
-                    </a>
-                  </p>
-                  {match.designer.phone && (
-                    <p>
-                      <span className="font-medium">Phone:</span>{' '}
-                      <a href={`tel:${match.designer.phone}`} className="text-blue-600 hover:underline">
-                        {match.designer.phone}
-                      </a>
-                    </p>
-                  )}
-                  {match.designer.website && (
-                    <p>
-                      <span className="font-medium">Website:</span>{' '}
-                      <a
-                        href={match.designer.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        {match.designer.website}
-                      </a>
-                    </p>
-                  )}
+              <button
+                onClick={handleContactDesigner}
+                className="mt-6 font-bold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                style={{ backgroundColor: theme.success, color: '#FFF' }}
+              >
+                Contact Designer →
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Match Analysis */}
+        <div className="rounded-3xl p-8 transition-all duration-300" 
+          style={{ 
+            backgroundColor: theme.cardBg,
+            border: `1px solid ${theme.border}`
+          }}>
+          <h3 className="font-bold text-xl mb-6 transition-colors duration-300" style={{ color: theme.text.primary }}>
+            Match Analysis
+          </h3>
+          
+          {/* Score Breakdown */}
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            {Object.entries(match.scoreBreakdown).map(([key, value]) => {
+              const label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())
+              return (
+                <div key={key} className="flex items-center justify-between p-4 rounded-xl"
+                  style={{ backgroundColor: theme.nestedBg }}>
+                  <span style={{ color: theme.text.secondary }}>{label}:</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-32 h-2 rounded-full overflow-hidden"
+                      style={{ backgroundColor: theme.border }}>
+                      <div className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${value}%`,
+                          backgroundColor: value >= 80 ? theme.success : value >= 60 ? theme.accent : theme.error
+                        }} />
+                    </div>
+                    <span className="font-medium" style={{ color: theme.text.primary }}>{value}%</span>
+                  </div>
                 </div>
-                <p className="mt-4 text-sm text-gray-600">
-                  🎉 You can now contact {match.designer.first_name} directly to discuss your project!
-                </p>
-              </div>
-            ) : match.status === 'declined' ? (
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h3 className="font-semibold mb-2">Designer Unavailable</h3>
-                <p className="text-gray-600">
-                  Unfortunately, {match.designer.first_name} is unable to take on your project at this time.
-                  Your credit was not used for this match.
-                </p>
-                <button
-                  onClick={() => router.push('/client/dashboard')}
-                  className="mt-4 bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
-                >
-                  View Other Matches
-                </button>
-              </div>
-            ) : null}
+              )
+            })}
           </div>
 
-          {/* Project Brief Summary */}
-          <div className="border-t pt-6">
-            <h3 className="font-semibold mb-3">Your Project Brief</h3>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p><span className="font-medium">Company:</span> {match.brief.company_name}</p>
-              <p><span className="font-medium">Project Type:</span> {match.brief.project_type}</p>
-              <p><span className="font-medium">Budget:</span> {match.brief.budget}</p>
-              <p><span className="font-medium">Timeline:</span> {match.brief.timeline}</p>
+          {/* Potential Challenges */}
+          {match.potentialChallenges && match.potentialChallenges.length > 0 && (
+            <div className="rounded-2xl p-6" 
+              style={{ 
+                backgroundColor: theme.accent + '10',
+                border: `1px solid ${theme.accent + '40'}`
+              }}>
+              <h4 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                Things to Consider:
+              </h4>
+              <ul className="space-y-2">
+                {match.potentialChallenges.map((challenge, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <span style={{ color: theme.accent }}>⚠️</span>
+                    <span className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                      {challenge}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
+          )}
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   )
 }
