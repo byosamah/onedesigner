@@ -52,7 +52,7 @@ interface BriefData {
   description: string
 }
 
-export default function EnhancedMatchPage() {
+export default function MatchPage() {
   const params = useParams()
   const briefId = params.briefId as string
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -71,7 +71,7 @@ export default function EnhancedMatchPage() {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/match/enhanced', {
+      const response = await fetch('/api/match', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ export default function EnhancedMatchPage() {
                 className="text-2xl font-bold"
                 style={{ color: theme.text.primary }}
               >
-                Your Enhanced Matches
+                Your Perfect Match
               </h1>
               {briefData && (
                 <p 
@@ -227,7 +227,7 @@ export default function EnhancedMatchPage() {
               className="text-lg"
               style={{ color: theme.text.secondary }}
             >
-              We couldn't find any designers matching your enhanced criteria.
+              We couldn't find any designers matching your criteria.
             </p>
           </div>
         ) : (
@@ -254,7 +254,7 @@ export default function EnhancedMatchPage() {
                 className="text-sm font-medium"
                 style={{ color: theme.text.muted }}
               >
-                ✨ Enhanced matching powered by AI analysis of 15+ compatibility factors
+                ✨ AI-powered matching analyzing 15+ compatibility factors
               </p>
             </div>
           </div>

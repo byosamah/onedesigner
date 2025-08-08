@@ -36,8 +36,8 @@ export default function BriefPage() {
     try {
       console.log('Submitting enhanced brief:', data)
 
-      // Submit enhanced brief using the enhanced API endpoint
-      const briefResponse = await fetch('/api/briefs/enhanced', {
+      // Submit brief using the API endpoint
+      const briefResponse = await fetch('/api/briefs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,8 +55,8 @@ export default function BriefPage() {
 
       console.log('✅ Brief submitted successfully:', briefId)
 
-      // Find enhanced matches using the enhanced matching endpoint
-      const matchResponse = await fetch('/api/match/enhanced', {
+      // Find matches using the matching endpoint
+      const matchResponse = await fetch('/api/match', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,8 +72,8 @@ export default function BriefPage() {
       const matchResult = await matchResponse.json()
       console.log('✅ Enhanced matches found:', matchResult.matches?.length)
 
-      // Redirect to enhanced match results page  
-      router.push(`/match/enhanced/${briefId}`)
+      // Redirect to match results page  
+      router.push(`/match/${briefId}`)
 
     } catch (error) {
       console.error('Enhanced brief submission error:', error)

@@ -64,7 +64,7 @@ export default function DesignerProfilePage() {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/designer/profile/enhanced', {
+      const response = await fetch('/api/designer/profile', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export default function DesignerProfilePage() {
       setError(null)
       setSuccessMessage(null)
 
-      const response = await fetch('/api/designer/profile/enhanced', {
+      const response = await fetch('/api/designer/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

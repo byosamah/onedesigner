@@ -167,6 +167,13 @@ NEXT_PUBLIC_SUPABASE_URL=https://frwchtwxpnrlpzksupgm.supabase.co
 **Cause**: Middleware blocking public routes
 **Solution**: Added public routes whitelist in middleware.ts
 
+### Issue: Auth emails showing localhost URLs in production
+**Cause**: Supabase Site URL configured for development (http://localhost:3000)
+**Solution**: Updated Supabase Auth configuration via MCP:
+- Site URL: `http://localhost:3000` → `https://onedesigner.app`
+- URI Allow List: Added production domains for secure redirects
+- Changes effective immediately for all new auth emails
+
 ### Issue: Build failing with TypeScript/ESLint errors
 **Solution**: Disabled checks in next.config.js:
 ```javascript
@@ -268,6 +275,15 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
   - Production URL: https://www.onedesigner.app
   - Build completed with warnings but no errors
   - All API routes properly configured as serverless functions
+- **Fixed Supabase Auth Configuration (Aug 8, 2025 - Evening)**:
+  - **Issue**: Auth emails (password reset, magic links, confirmations) showing localhost:3000 URLs instead of production domain
+  - **Root Cause**: Supabase Site URL still configured for development (http://localhost:3000)
+  - **Solution**: Used Supabase MCP to update auth configuration directly:
+    - Changed Site URL from `http://localhost:3000` to `https://onedesigner.app`
+    - Updated URI Allow List to include production domains: `https://onedesigner.app/*`, `https://www.onedesigner.app/*`
+    - Secured redirect handling to only allow production domains
+  - **Result**: All new auth emails now use production URLs - effective immediately
+  - **Impact**: Users can now properly use password reset, email confirmation, and magic link features in production
 
 ### Previous Session (Aug 7, 2025) - Design System Update
 - **Updated client/purchase page** to match test mode design

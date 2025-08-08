@@ -1,150 +1,152 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { validateSession } from '@/lib/auth/session-handlers'
 
 export async function PUT(request: NextRequest) {
   try {
-    // Check designer session
-    const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('designer-session')
-    
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+    // Validate designer session
+    const { valid, session } = await validateSession('DESIGNER')
+    if (!valid || !session?.designerId) {
+      return apiResponse.unauthorized('Please log in as a designer')
     }
 
-    let session
-    try {
-      session = JSON.parse(sessionCookie.value)
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      )
-    }
-
-    const { designerId } = session
-    if (!designerId) {
-      return NextResponse.json(
-        { error: 'Invalid session data' },
-        { status: 401 }
-      )
-    }
-
-    // Get the updated profile data
     const profileData = await request.json()
-    
-    // Extract arrays for separate tables
-    const { styles, project_types, industries, ...designerData } = profileData
+    console.log('Enhanced profile update:', profileData)
 
     const supabase = createServiceClient()
-    
-    // Start a transaction by updating the designer first
-    const { error: updateError } = await supabase
+
+    // Update designer profile with enhanced fields
+    const { data: designer, error } = await supabase
       .from('designers')
       .update({
-        first_name: designerData.first_name,
-        last_name: designerData.last_name,
-        last_initial: designerData.last_name?.charAt(0).toUpperCase(),
-        email: designerData.email,
-        phone: designerData.phone,
-        title: designerData.title,
-        years_experience: designerData.years_experience,
-        website_url: designerData.website_url,
-        hourly_rate: designerData.hourly_rate,
-        city: designerData.city,
-        country: designerData.country,
-        timezone: designerData.timezone,
-        bio: designerData.bio,
-        is_available: designerData.is_available,
-        calendly_url: designerData.calendly_url,
-        linkedin_url: designerData.linkedin_url,
+        design_philosophy: profileData.design_philosophy,
+        primary_categories: profileData.primary_categories || [],
+        secondary_categories: profileData.secondary_categories || [],
+        style_keywords: profileData.style_keywords || [],
+        preferred_industries: profileData.preferred_industries || [],
+        preferred_project_sizes: profileData.preferred_project_sizes || [],
+        expert_tools: profileData.expert_tools || [],
+        special_skills: profileData.special_skills || [],
+        turnaround_times: profileData.turnaround_times || {},
+        revision_rounds_included: profileData.revision_rounds_included || 3,
+        collaboration_style: profileData.collaboration_style,
+        current_availability: profileData.current_availability,
+        ideal_client_types: profileData.ideal_client_types || [],
+        dream_project_description: profileData.dream_project_description,
+        portfolio_link: profileData.portfolio_link,
         updated_at: new Date().toISOString()
       })
-      .eq('id', designerId)
+      .eq('id', session.designerId)
+      .select()
+      .single()
 
-    if (updateError) {
-      console.error('Error updating designer:', updateError)
-      return NextResponse.json(
-        { error: 'Failed to update profile' },
-        { status: 500 }
-      )
+    if (error) {
+      console.error('Error updating designer profile:', error)
+      return apiResponse.serverError('Failed to update profile', error)
     }
 
-    // Update styles
-    if (styles) {
-      // Delete existing styles
-      await supabase
-        .from('designer_styles')
-        .delete()
-        .eq('designer_id', designerId)
+    console.log('✅ Designer profile updated:', designer.id)
 
-      // Insert new styles
-      if (styles.length > 0) {
-        const styleRecords = styles.map(style => ({
-          designer_id: designerId,
-          style
-        }))
-        
-        await supabase
-          .from('designer_styles')
-          .insert(styleRecords)
-      }
-    }
-
-    // Update project types
-    if (project_types) {
-      // Delete existing project types
-      await supabase
-        .from('designer_project_types')
-        .delete()
-        .eq('designer_id', designerId)
-
-      // Insert new project types
-      if (project_types.length > 0) {
-        const projectTypeRecords = project_types.map(project_type => ({
-          designer_id: designerId,
-          project_type
-        }))
-        
-        await supabase
-          .from('designer_project_types')
-          .insert(projectTypeRecords)
-      }
-    }
-
-    // Update industries
-    if (industries) {
-      // Delete existing industries
-      await supabase
-        .from('designer_industries')
-        .delete()
-        .eq('designer_id', designerId)
-
-      // Insert new industries
-      if (industries.length > 0) {
-        const industryRecords = industries.map(industry => ({
-          designer_id: designerId,
-          industry
-        }))
-        
-        await supabase
-          .from('designer_industries')
-          .insert(industryRecords)
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
+    return apiResponse.success({
+      designer: {
+        id: designer.id,
+        design_philosophy: designer.design_philosophy,
+        primary_categories: designer.primary_categories,
+        secondary_categories: designer.secondary_categories,
+        style_keywords: designer.style_keywords,
+        preferred_industries: designer.preferred_industries,
+        preferred_project_sizes: designer.preferred_project_sizes,
+        expert_tools: designer.expert_tools,
+        special_skills: designer.special_skills,
+        turnaround_times: designer.turnaround_times,
+        revision_rounds_included: designer.revision_rounds_included,
+        collaboration_style: designer.collaboration_style,
+        current_availability: designer.current_availability,
+        ideal_client_types: designer.ideal_client_types,
+        dream_project_description: designer.dream_project_description,
+        portfolio_link: designer.portfolio_link,
+        updated_at: designer.updated_at
+      },
       message: 'Profile updated successfully'
     })
+
   } catch (error) {
-    console.error('Profile update error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'designer/profile/enhanced')
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    // Validate designer session
+    const { valid, session } = await validateSession('DESIGNER')
+    if (!valid || !session?.designerId) {
+      return apiResponse.unauthorized('Please log in as a designer')
+    }
+
+    const supabase = createServiceClient()
+
+    // Get enhanced designer profile
+    const { data: designer, error } = await supabase
+      .from('designers')
+      .select(`
+        id, first_name, last_name, email, title, city, country,
+        years_experience, design_philosophy, primary_categories,
+        secondary_categories, style_keywords, preferred_industries,
+        preferred_project_sizes, expert_tools, special_skills,
+        turnaround_times, revision_rounds_included, collaboration_style,
+        current_availability, ideal_client_types, dream_project_description,
+        portfolio_link, is_approved, is_verified, created_at, updated_at
+      `)
+      .eq('id', session.designerId)
+      .single()
+
+    if (error || !designer) {
+      console.error('Error fetching designer profile:', error)
+      return apiResponse.notFound('Designer profile')
+    }
+
+    // Get portfolio images
+    const { data: portfolioImages } = await supabase
+      .from('designer_portfolio_images')
+      .select('*')
+      .eq('designer_id', session.designerId)
+      .order('display_order', { ascending: true })
+
+    return apiResponse.success({
+      designer: {
+        id: designer.id,
+        firstName: designer.first_name,
+        lastName: designer.last_name,
+        email: designer.email,
+        title: designer.title,
+        city: designer.city,
+        country: designer.country,
+        yearsExperience: designer.years_experience,
+        designPhilosophy: designer.design_philosophy,
+        primaryCategories: designer.primary_categories,
+        secondaryCategories: designer.secondary_categories,
+        styleKeywords: designer.style_keywords,
+        preferredIndustries: designer.preferred_industries,
+        preferredProjectSizes: designer.preferred_project_sizes,
+        expertTools: designer.expert_tools,
+        specialSkills: designer.special_skills,
+        turnaroundTimes: designer.turnaround_times,
+        revisionRoundsIncluded: designer.revision_rounds_included,
+        collaborationStyle: designer.collaboration_style,
+        currentAvailability: designer.current_availability,
+        idealClientTypes: designer.ideal_client_types,
+        dreamProjectDescription: designer.dream_project_description,
+        portfolioLink: designer.portfolio_link,
+        isApproved: designer.is_approved,
+        isVerified: designer.is_verified,
+        createdAt: designer.created_at,
+        updatedAt: designer.updated_at
+      },
+      portfolioImages: portfolioImages || []
+    })
+
+  } catch (error) {
+    return handleApiError(error, 'designer/profile/enhanced GET')
   }
 }

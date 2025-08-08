@@ -21,6 +21,15 @@ interface Designer {
   bio?: string
   styles?: string[]
   project_types?: string[]
+  // Enhanced fields
+  design_philosophy?: string
+  primary_categories?: string[]
+  style_keywords?: string[]
+  preferred_industries?: string[]
+  turnaround_times?: Record<string, number>
+  collaboration_style?: string
+  ideal_client_types?: string[]
+  portfolio_images?: any[]
 }
 
 interface Stats {
@@ -376,6 +385,19 @@ export default function AdminDashboardPage() {
                           {designer.bio}
                         </p>
                       )}
+                      {designer.primary_categories && designer.primary_categories.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {designer.primary_categories.map((cat) => (
+                            <span 
+                              key={cat}
+                              className="text-xs px-2 py-1 rounded-full"
+                              style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}
+                            >
+                              {cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -498,6 +520,58 @@ export default function AdminDashboardPage() {
                   >
                     {selectedDesigner.website_url}
                   </a>
+                </div>
+              )}
+              
+              {selectedDesigner.design_philosophy && (
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Design Philosophy</p>
+                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                    {selectedDesigner.design_philosophy}
+                  </p>
+                </div>
+              )}
+              
+              {selectedDesigner.primary_categories && selectedDesigner.primary_categories.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Primary Categories</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDesigner.primary_categories.map((cat) => (
+                      <span 
+                        key={cat}
+                        className="px-3 py-1 rounded-full text-sm"
+                        style={{ backgroundColor: theme.accent + '20', color: theme.accent }}
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {selectedDesigner.style_keywords && selectedDesigner.style_keywords.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Style Keywords</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedDesigner.style_keywords.map((style) => (
+                      <span 
+                        key={style}
+                        className="px-2 py-1 rounded-full text-xs"
+                        style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}
+                      >
+                        {style}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {selectedDesigner.collaboration_style && (
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Collaboration Style</p>
+                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                    {selectedDesigner.collaboration_style.charAt(0).toUpperCase() + selectedDesigner.collaboration_style.slice(1)}
+                  </p>
                 </div>
               )}
               
