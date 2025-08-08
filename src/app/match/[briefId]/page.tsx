@@ -55,9 +55,15 @@ export default function EnhancedMatchPage() {
 
   const fetchProgressiveMatches = async () => {
     try {
+      console.log('🎯 Starting match fetch for briefId:', briefId)
       setIsLoading(true)
       setError(null)
       startTime.current = Date.now()
+
+      // Validate briefId
+      if (!briefId || briefId === 'undefined') {
+        throw new Error('Invalid brief ID')
+      }
 
       // Simulate progressive loading while fetching
       setTimeout(() => setCurrentPhase('instant'), 500)
@@ -65,6 +71,7 @@ export default function EnhancedMatchPage() {
       setTimeout(() => setCurrentPhase('final'), 2500)
 
       // Use regular API with AI matching
+      console.log('📡 Making API request to /api/match with briefId:', briefId)
       const response = await fetch('/api/match', {
         method: 'POST',
         headers: {
@@ -73,9 +80,12 @@ export default function EnhancedMatchPage() {
         body: JSON.stringify({ briefId }),
       })
 
+      console.log('📡 Response status:', response.status)
+      
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to fetch matches')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('❌ API Error:', errorData)
+        throw new Error(errorData.error || errorData.message || 'Failed to fetch matches')
       }
 
       const data = await response.json()

@@ -17,29 +17,68 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceClient()
+    let clientId: string
 
-    // Create a temporary client ID for anonymous submissions
-    const tempClientId = uuidv4()
+    // Check if a client_email is provided (from OTP flow)
+    if (briefData.client_email) {
+      console.log('📧 Client email provided, creating/finding client:', briefData.client_email)
+      
+      // Check if client already exists
+      let { data: existingClient, error: findError } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('email', briefData.client_email)
+        .single()
 
-    // First create a temporary client record
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
-      .insert({
-        id: tempClientId,
-        email: `temp_${Date.now()}@temp.com`,
-        match_credits: 1 // Give them 1 free match for testing
-      })
-      .select()
-      .single()
+      if (existingClient) {
+        clientId = existingClient.id
+        console.log('✅ Using existing client:', clientId)
+      } else {
+        // Create new client
+        const { data: newClient, error: clientError } = await supabase
+          .from('clients')
+          .insert({
+            email: briefData.client_email,
+            match_credits: 3 // Give new clients 3 free matches
+          })
+          .select()
+          .single()
 
-    if (clientError) {
-      console.error('Error creating temp client:', clientError)
-      return apiResponse.serverError('Failed to create temporary client', clientError)
+        if (clientError) {
+          console.error('Error creating client:', clientError)
+          return apiResponse.serverError('Failed to create client', clientError)
+        }
+
+        clientId = newClient.id
+        console.log('✅ Created new client:', clientId)
+      }
+    } else {
+      // Create a temporary client ID for anonymous submissions
+      const tempClientId = uuidv4()
+      console.log('👤 Creating temporary client for anonymous submission')
+
+      // First create a temporary client record
+      const { data: client, error: clientError } = await supabase
+        .from('clients')
+        .insert({
+          id: tempClientId,
+          email: `temp_${Date.now()}@temp.com`,
+          match_credits: 1 // Give them 1 free match for testing
+        })
+        .select()
+        .single()
+
+      if (clientError) {
+        console.error('Error creating temp client:', clientError)
+        return apiResponse.serverError('Failed to create temporary client', clientError)
+      }
+
+      clientId = tempClientId
     }
 
     // Create brief record with only fields that exist in the original schema
     const briefInsert: any = {
-      client_id: tempClientId,
+      client_id: clientId,
       project_type: briefData.design_category || 'web-mobile',
       industry: briefData.target_audience || briefData.industry_sector || 'General',
       timeline: briefData.timeline_type || 'standard',
@@ -74,13 +113,15 @@ export async function POST(request: NextRequest) {
     return apiResponse.success({
       brief: {
         id: brief.id,
-        design_category: brief.design_category,
-        timeline_type: brief.timeline_type,
-        budget_range: brief.budget_range,
+        client_id: brief.client_id,
+        design_category: brief.project_type,
+        timeline_type: brief.timeline,
+        budget_range: brief.budget,
         created_at: brief.created_at
       },
       message: 'Brief submitted successfully',
-      tempClientId // Return this so the frontend knows it's a temporary submission
+      clientId: clientId,
+      briefId: brief.id // Make sure briefId is included
     })
 
   } catch (error) {

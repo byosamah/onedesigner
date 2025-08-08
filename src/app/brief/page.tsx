@@ -86,6 +86,7 @@ export default function BriefPage() {
       }
 
       // Then submit brief with email
+      console.log('📝 Submitting brief data:', briefData)
       const briefResponse = await fetch('/api/briefs/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -95,14 +96,24 @@ export default function BriefPage() {
         }),
       })
 
+      console.log('📝 Brief response status:', briefResponse.status)
+      
       if (!briefResponse.ok) {
         const errorData = await briefResponse.json()
-        throw new Error(errorData.message || 'Failed to submit brief')
+        console.error('❌ Brief submission error:', errorData)
+        throw new Error(errorData.message || errorData.error || 'Failed to submit brief')
       }
 
       const briefResult = await briefResponse.json()
-      const briefId = briefResult.brief.id
+      console.log('✅ Brief created successfully:', briefResult)
+      const briefId = briefResult.briefId || briefResult.brief?.id
 
+      if (!briefId) {
+        console.error('❌ No briefId in response:', briefResult)
+        throw new Error('Brief created but no ID returned')
+      }
+
+      console.log('🎯 Redirecting to match page with briefId:', briefId)
       // Redirect to AI matching page
       router.push(`/match/${briefId}`)
 
