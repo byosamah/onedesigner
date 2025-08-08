@@ -1,12 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { useTheme } from '@/hooks/useTheme'
+import { useState, useEffect } from 'react'
+import { getTheme } from '@/lib/design-system'
 import { EnhancedClientBrief } from '@/components/forms/EnhancedClientBrief'
 
 export default function TestBriefPage() {
-  const { theme, isDarkMode } = useTheme()
+  const [isDarkMode, setIsDarkMode] = useState(false)
   const [result, setResult] = useState<any>(null)
+  
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme')
+    setIsDarkMode(savedTheme === 'dark')
+  }, [])
+  
+  const theme = getTheme(isDarkMode)
 
   const handleSubmit = async (data: any) => {
     console.log('Form submitted with data:', data)
