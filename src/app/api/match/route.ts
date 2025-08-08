@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     console.log(`Analyzing ${availableDesigners.length} designers with AI...`)
     
     const ai = createAIProvider()
-    const matches = []
+    let matches = []
 
     // Analyze each designer with AI
     for (const designer of availableDesigners.slice(0, 5)) { // Limit to top 5 for performance
