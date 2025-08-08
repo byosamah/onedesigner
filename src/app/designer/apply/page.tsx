@@ -8,6 +8,8 @@ import { LoadingButton } from '@/components/forms'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
 import { useTheme } from '@/lib/hooks/useTheme'
 
+export const dynamic = 'force-dynamic'
+
 export default function DesignerApplyPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
@@ -379,7 +381,7 @@ export default function DesignerApplyPage() {
                         checked={formData.availability === option.value}
                         onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
                         className="w-5 h-5 accent-current"
-                        style={{ accentColor: theme.accent }}
+                        style={{ accentColor: theme?.accent || '#f0ad4e' }}
                       />
                       <span style={{ color: theme.text.primary }}>{option.label}</span>
                     </label>
