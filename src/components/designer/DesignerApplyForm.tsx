@@ -1,42 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { LoadingSpinner } from '@/components/shared'
-
-// Define theme type
-interface Theme {
-  bg: string
-  cardBg: string
-  nestedBg: string
-  border: string
-  accent: string
-  success: string
-  error: string
-  text: {
-    primary: string
-    secondary: string
-    muted: string
-  }
-  tagBg: string
-}
-
-// Default theme values
-const defaultTheme: Theme = {
-  bg: '#1a1a1a',
-  cardBg: '#212121',
-  nestedBg: '#2a2a2a',
-  border: '#333333',
-  accent: '#f0ad4e',
-  success: '#22c55e',
-  error: '#ef4444',
-  text: {
-    primary: '#cfcfcf',
-    secondary: '#9CA3AF',
-    muted: '#6B7280'
-  },
-  tagBg: '#333333'
-}
+import { useTheme } from '@/lib/hooks/useTheme'
 
 interface FormData {
   // Basic info
@@ -131,10 +98,10 @@ const industries = [
 
 export default function DesignerApplyForm() {
   const router = useRouter()
+  const { theme } = useTheme()
   const [currentStep, setCurrentStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [theme] = useState(defaultTheme)
   
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -226,13 +193,13 @@ export default function DesignerApplyForm() {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="John"
                 />
               </div>
@@ -244,13 +211,13 @@ export default function DesignerApplyForm() {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="Doe"
                 />
               </div>
@@ -264,13 +231,13 @@ export default function DesignerApplyForm() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{ 
                   backgroundColor: theme.nestedBg, 
                   color: theme.text.primary,
                   borderColor: theme.border,
-                  borderWidth: '1px'
-                }}
+                  '--tw-ring-color': theme.accent
+                } as any}
                 placeholder="john@example.com"
               />
             </div>
@@ -284,13 +251,13 @@ export default function DesignerApplyForm() {
                   type="text"
                   value={formData.country}
                   onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="United States"
                 />
               </div>
@@ -302,13 +269,13 @@ export default function DesignerApplyForm() {
                   type="text"
                   value={formData.timezone}
                   onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="EST"
                 />
               </div>
@@ -328,12 +295,11 @@ export default function DesignerApplyForm() {
                   <button
                     key={level}
                     onClick={() => setFormData({ ...formData, experience: level })}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
                     style={{
                       backgroundColor: formData.experience === level ? theme.accent : theme.nestedBg,
                       color: formData.experience === level ? '#000' : theme.text.primary,
-                      borderColor: theme.border,
-                      borderWidth: '1px'
+                      borderColor: formData.experience === level ? theme.accent : theme.border
                     }}
                   >
                     {level}
@@ -350,13 +316,13 @@ export default function DesignerApplyForm() {
                 type="url"
                 value={formData.portfolioUrl}
                 onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{ 
                   backgroundColor: theme.nestedBg, 
                   color: theme.text.primary,
                   borderColor: theme.border,
-                  borderWidth: '1px'
-                }}
+                  '--tw-ring-color': theme.accent
+                } as any}
                 placeholder="https://yourportfolio.com"
               />
             </div>
@@ -370,26 +336,26 @@ export default function DesignerApplyForm() {
                   type="url"
                   value={formData.linkedinUrl}
                   onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="LinkedIn URL"
                 />
                 <input
                   type="url"
                   value={formData.behanceUrl}
                   onChange={(e) => setFormData({ ...formData, behanceUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="Behance URL"
                 />
               </div>
@@ -407,13 +373,13 @@ export default function DesignerApplyForm() {
               <textarea
                 value={formData.designPhilosophy}
                 onChange={(e) => setFormData({ ...formData, designPhilosophy: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                 style={{ 
                   backgroundColor: theme.nestedBg, 
                   color: theme.text.primary,
                   borderColor: theme.border,
-                  borderWidth: '1px'
-                }}
+                  '--tw-ring-color': theme.accent
+                } as any}
                 rows={4}
                 placeholder="Describe your design philosophy and approach..."
               />
@@ -440,12 +406,11 @@ export default function DesignerApplyForm() {
                         })
                       }
                     }}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
                     style={{
                       backgroundColor: formData.categories.includes(category) ? theme.accent : theme.nestedBg,
                       color: formData.categories.includes(category) ? '#000' : theme.text.primary,
-                      borderColor: theme.border,
-                      borderWidth: '1px'
+                      borderColor: formData.categories.includes(category) ? theme.accent : theme.border
                     }}
                   >
                     {category}
@@ -475,12 +440,11 @@ export default function DesignerApplyForm() {
                         })
                       }
                     }}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
                     style={{
                       backgroundColor: formData.tools.includes(tool) ? theme.accent : theme.nestedBg,
                       color: formData.tools.includes(tool) ? '#000' : theme.text.primary,
-                      borderColor: theme.border,
-                      borderWidth: '1px'
+                      borderColor: formData.tools.includes(tool) ? theme.accent : theme.border
                     }}
                   >
                     {tool}
@@ -506,13 +470,13 @@ export default function DesignerApplyForm() {
                     ...formData, 
                     budgetRange: { ...formData.budgetRange, min: parseInt(e.target.value) || 0 } 
                   })}
-                  className="flex-1 px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="flex-1 px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="Min"
                 />
                 <span style={{ color: theme.text.secondary }}>to</span>
@@ -523,13 +487,13 @@ export default function DesignerApplyForm() {
                     ...formData, 
                     budgetRange: { ...formData.budgetRange, max: parseInt(e.target.value) || 0 } 
                   })}
-                  className="flex-1 px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="flex-1 px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="Max"
                 />
               </div>
@@ -544,12 +508,11 @@ export default function DesignerApplyForm() {
                   <button
                     key={time}
                     onClick={() => setFormData({ ...formData, responseTime: time })}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
                     style={{
                       backgroundColor: formData.responseTime === time ? theme.accent : theme.nestedBg,
                       color: formData.responseTime === time ? '#000' : theme.text.primary,
-                      borderColor: theme.border,
-                      borderWidth: '1px'
+                      borderColor: formData.responseTime === time ? theme.accent : theme.border
                     }}
                   >
                     {time}
@@ -565,13 +528,13 @@ export default function DesignerApplyForm() {
               <textarea
                 value={formData.collaborationStyle}
                 onChange={(e) => setFormData({ ...formData, collaborationStyle: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                 style={{ 
                   backgroundColor: theme.nestedBg, 
                   color: theme.text.primary,
                   borderColor: theme.border,
-                  borderWidth: '1px'
-                }}
+                  '--tw-ring-color': theme.accent
+                } as any}
                 rows={3}
                 placeholder="How do you prefer to work with clients?"
               />
@@ -598,12 +561,11 @@ export default function DesignerApplyForm() {
                         })
                       }
                     }}
-                    className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                    className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
                     style={{
                       backgroundColor: formData.preferredIndustries.includes(industry) ? theme.accent : theme.nestedBg,
                       color: formData.preferredIndustries.includes(industry) ? '#000' : theme.text.primary,
-                      borderColor: theme.border,
-                      borderWidth: '1px'
+                      borderColor: formData.preferredIndustries.includes(industry) ? theme.accent : theme.border
                     }}
                   >
                     {industry}
@@ -624,13 +586,13 @@ export default function DesignerApplyForm() {
               <textarea
                 value={formData.uniqueApproach}
                 onChange={(e) => setFormData({ ...formData, uniqueApproach: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                 style={{ 
                   backgroundColor: theme.nestedBg, 
                   color: theme.text.primary,
                   borderColor: theme.border,
-                  borderWidth: '1px'
-                }}
+                  '--tw-ring-color': theme.accent
+                } as any}
                 rows={4}
                 placeholder="What sets you apart from other designers?"
               />
@@ -640,7 +602,7 @@ export default function DesignerApplyForm() {
               <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
                 Showcase a Project (Optional)
               </label>
-              <div className="space-y-3 p-4 rounded-xl" style={{ backgroundColor: theme.nestedBg }}>
+              <div className="space-y-3 p-4 rounded-xl border" style={{ backgroundColor: theme.nestedBg, borderColor: theme.border }}>
                 <input
                   type="text"
                   value={formData.projectShowcase[0]?.title || ''}
@@ -649,13 +611,13 @@ export default function DesignerApplyForm() {
                     showcase[0] = { ...showcase[0], title: e.target.value }
                     setFormData({ ...formData, projectShowcase: showcase })
                   }}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.bg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   placeholder="Project Title"
                 />
                 <textarea
@@ -665,13 +627,13 @@ export default function DesignerApplyForm() {
                     showcase[0] = { ...showcase[0], description: e.target.value }
                     setFormData({ ...formData, projectShowcase: showcase })
                   }}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                   style={{ 
                     backgroundColor: theme.bg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   rows={3}
                   placeholder="Project Description"
                 />
@@ -682,13 +644,13 @@ export default function DesignerApplyForm() {
                     showcase[0] = { ...showcase[0], outcome: e.target.value }
                     setFormData({ ...formData, projectShowcase: showcase })
                   }}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                   style={{ 
                     backgroundColor: theme.bg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px'
-                  }}
+                    '--tw-ring-color': theme.accent
+                  } as any}
                   rows={2}
                   placeholder="Project Outcome"
                 />
@@ -700,7 +662,7 @@ export default function DesignerApplyForm() {
       case 6:
         return (
           <div className="space-y-6">
-            <div className="p-6 rounded-xl" style={{ backgroundColor: theme.nestedBg }}>
+            <div className="p-6 rounded-xl border" style={{ backgroundColor: theme.nestedBg, borderColor: theme.border }}>
               <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
                 Review Your Application
               </h3>
@@ -788,12 +750,11 @@ export default function DesignerApplyForm() {
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   currentStep >= step.id ? 'scale-110' : ''
-                }`}
+                } ${currentStep >= step.id ? 'border-0' : 'border'}`}
                 style={{
                   backgroundColor: currentStep >= step.id ? theme.accent : theme.nestedBg,
                   color: currentStep >= step.id ? '#000' : theme.text.secondary,
-                  borderColor: theme.border,
-                  borderWidth: currentStep >= step.id ? '0' : '1px'
+                  borderColor: theme.border
                 }}
               >
                 {step.id}
@@ -828,12 +789,11 @@ export default function DesignerApplyForm() {
         {currentStep > 1 && (
           <button
             onClick={handleBack}
-            className="px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+            className="px-6 py-3 rounded-xl border text-sm font-medium transition-all duration-300 hover:opacity-80"
             style={{
               backgroundColor: theme.nestedBg,
               color: theme.text.primary,
-              borderColor: theme.border,
-              borderWidth: '1px'
+              borderColor: theme.border
             }}
           >
             Back
