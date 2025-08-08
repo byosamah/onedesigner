@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
       // Check if the brief has incomplete data that might be causing low scores
       const hasIncompleteData = !brief.industry || brief.industry.length <= 3 || 
                                !brief.styles || brief.styles.length === 0 ||
-                               !brief.requirements || brief.requirements.length < 20
+                               !brief.description || brief.description.length < 20
       
       if (hasIncompleteData && eligibleDesigners.length > 0) {
         console.log('Brief appears to have incomplete data - using fallback matching with relaxed criteria')

@@ -47,8 +47,10 @@ export async function GET(
       (brief.industry && brief.industry.length <= 3) ||
       !brief.styles || brief.styles.length === 0 ||
       (brief.description && brief.description.length < 20) ||
+      (brief.requirements && brief.requirements.length < 20) ||
+      (brief.project_description && brief.project_description.length < 20) ||
       !brief.industry ||
-      !brief.description
+      (!brief.description && !brief.requirements && !brief.project_description)
     )
 
     // 5. Get sample designers to see what's available
@@ -63,14 +65,14 @@ export async function GET(
     return NextResponse.json({
       briefId,
       brief: {
-        id: brief.id,
-        project_type: brief.project_type,
-        industry: brief.industry,
-        description: brief.description,
-        styles: brief.styles,
-        budget: brief.budget,
-        timeline: brief.timeline,
-        created_at: brief.created_at
+        ...brief,
+        // Show specific fields we care about
+        has_description: !!brief.description,
+        has_requirements: !!brief.requirements,
+        has_project_description: !!brief.project_description,
+        description_length: brief.description ? brief.description.length : 0,
+        requirements_length: brief.requirements ? brief.requirements.length : 0,
+        project_description_length: brief.project_description ? brief.project_description.length : 0
       },
       counts: {
         availableDesigners,
@@ -82,8 +84,13 @@ export async function GET(
           shortIndustry: brief.industry && brief.industry.length <= 3,
           noStyles: !brief.styles || brief.styles.length === 0,
           shortDescription: brief.description && brief.description.length < 20,
+          shortRequirements: brief.requirements && brief.requirements.length < 20,
+          shortProjectDescription: brief.project_description && brief.project_description.length < 20,
           noIndustry: !brief.industry,
-          noDescription: !brief.description
+          noDescription: !brief.description,
+          noRequirements: !brief.requirements,
+          noProjectDescription: !brief.project_description,
+          noAnyDescription: !brief.description && !brief.requirements && !brief.project_description
         }
       },
       sampleDesigners,
