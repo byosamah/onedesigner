@@ -31,18 +31,68 @@ interface ClientBriefData {
 export default function BriefPage() {
   const router = useRouter()
   const { theme, isDarkMode, toggleTheme } = useTheme()
+  const [showAuth, setShowAuth] = useState(false)
+  const [briefData, setBriefData] = useState<ClientBriefData | null>(null)
+  const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [otpSent, setOtpSent] = useState(false)
 
   const handleBriefSubmit = async (data: ClientBriefData) => {
-    try {
-      console.log('Submitting enhanced brief:', data)
+    // Store brief data and show authentication
+    setBriefData(data)
+    setShowAuth(true)
+  }
 
-      // Submit brief using the public API endpoint (no auth required)
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email) return
+    
+    try {
+      const response = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send OTP')
+      }
+
+      setOtpSent(true)
+    } catch (error) {
+      console.error('Error sending OTP:', error)
+      alert('Failed to send verification code. Please try again.')
+    }
+  }
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!otp || !briefData) return
+    
+    setIsVerifying(true)
+    
+    try {
+      // First verify OTP
+      const authResponse = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, token: otp }),
+      })
+
+      if (!authResponse.ok) {
+        const data = await authResponse.json()
+        throw new Error(data.error || 'Invalid code')
+      }
+
+      // Then submit brief with email
       const briefResponse = await fetch('/api/briefs/public', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...briefData,
+          client_email: email
+        }),
       })
 
       if (!briefResponse.ok) {
@@ -53,31 +103,13 @@ export default function BriefPage() {
       const briefResult = await briefResponse.json()
       const briefId = briefResult.brief.id
 
-      console.log('✅ Brief submitted successfully:', briefId)
-
-      // Find matches using the matching endpoint
-      const matchResponse = await fetch('/api/match', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ briefId }),
-      })
-
-      if (!matchResponse.ok) {
-        const errorData = await matchResponse.json()
-        throw new Error(errorData.message || 'Failed to find matches')
-      }
-
-      const matchResult = await matchResponse.json()
-      console.log('✅ Enhanced matches found:', matchResult.matches?.length)
-
-      // Redirect to match results page  
+      // Redirect to AI matching page
       router.push(`/match/${briefId}`)
 
     } catch (error) {
-      console.error('Enhanced brief submission error:', error)
+      console.error('Error:', error)
       alert(error instanceof Error ? error.message : 'Something went wrong')
+      setIsVerifying(false)
     }
   }
 
@@ -126,13 +158,151 @@ export default function BriefPage() {
           </p>
         </div>
 
-        {/* Enhanced Brief Form */}
-        <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
-          <EnhancedClientBrief
-            isDarkMode={isDarkMode}
-            onSubmit={handleBriefSubmit}
-          />
-        </div>
+        {/* Show authentication after brief completion */}
+        {showAuth ? (
+          <div className="animate-slideUp">
+            <div 
+              className="max-w-xl mx-auto rounded-3xl p-8"
+              style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`
+              }}
+            >
+              <div className="text-center mb-8">
+                <div className="text-6xl mb-4">🔐</div>
+                <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
+                  Last step. Promise.
+                </h2>
+                <p className="text-lg" style={{ color: theme.text.secondary }}>
+                  {!otpSent 
+                    ? "Just need your email to show your match"
+                    : "Check your inbox for the magic code"
+                  }
+                </p>
+              </div>
+
+              {!otpSent ? (
+                <form onSubmit={handleSendOTP} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                      Your email
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="founder@startup.com"
+                      className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-lg"
+                      style={{
+                        backgroundColor: theme.nestedBg,
+                        border: `2px solid ${theme.border}`,
+                        color: theme.text.primary,
+                      }}
+                      autoFocus
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!email}
+                    className="w-full font-bold py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                    style={{
+                      backgroundColor: theme.accent,
+                      color: '#000'
+                    }}
+                  >
+                    Send me the code →
+                  </button>
+
+                  <p className="text-center text-sm" style={{ color: theme.text.muted }}>
+                    No spam. No BS. Just your perfect designer match.
+                  </p>
+                </form>
+              ) : (
+                <form onSubmit={handleVerifyOTP} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                      Enter the 6-digit code from your email
+                    </label>
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="123456"
+                      className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-2xl font-mono text-center tracking-widest"
+                      style={{
+                        backgroundColor: theme.nestedBg,
+                        border: `2px solid ${theme.border}`,
+                        color: theme.text.primary,
+                      }}
+                      autoFocus
+                      required
+                      maxLength={6}
+                    />
+                    <p className="text-sm mt-2" style={{ color: theme.text.muted }}>
+                      Sent to {email}
+                    </p>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={otp.length !== 6 || isVerifying}
+                    className="w-full font-bold py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                    style={{
+                      backgroundColor: theme.accent,
+                      color: '#000'
+                    }}
+                  >
+                    {isVerifying ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="animate-spin">⚡</span>
+                        Finding your perfect designer...
+                      </span>
+                    ) : (
+                      'Show me my match →'
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setOtpSent(false); setOtp('') }}
+                    className="w-full text-sm font-medium transition-colors duration-300"
+                    style={{ color: theme.text.muted }}
+                  >
+                    Wrong email? Go back
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Trust signals */}
+            <div className="mt-16 text-center space-y-6">
+              <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
+                <div className="flex items-center gap-2">
+                  <span>🔒</span>
+                  <span>Bank-level security</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>⚡</span>
+                  <span>Instant matching</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>🎯</span>
+                  <span>94% match accuracy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Enhanced Brief Form */
+          <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
+            <EnhancedClientBrief
+              isDarkMode={isDarkMode}
+              onSubmit={handleBriefSubmit}
+            />
+          </div>
+        )}
       </div>
     </main>
   )

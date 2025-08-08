@@ -4,12 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { OTPInput, LoadingButton, FormInput } from '@/components/forms'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 export default function BriefContactPage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   
   const [formData, setFormData] = useState({
     email: '',
@@ -17,10 +16,6 @@ export default function BriefContactPage() {
     otp: '',
     isVerifying: false,
   })
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,11 +64,38 @@ export default function BriefContactPage() {
         throw new Error(data.error || 'Invalid code')
       }
 
-      // Redirect to match page
-      router.push('/match')
+      // Get brief data from sessionStorage
+      const briefData = sessionStorage.getItem('briefData')
+      if (!briefData) {
+        throw new Error('Brief data not found. Please start again.')
+      }
+
+      // Submit the brief to create a record
+      const briefResponse = await fetch('/api/briefs/public', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...JSON.parse(briefData),
+          client_email: email
+        }),
+      })
+
+      if (!briefResponse.ok) {
+        throw new Error('Failed to submit brief')
+      }
+
+      const briefResult = await briefResponse.json()
+      
+      // Clear sessionStorage
+      sessionStorage.removeItem('briefData')
+      sessionStorage.removeItem('userEmail')
+      sessionStorage.removeItem('briefComplete')
+
+      // Redirect to match page with brief ID
+      router.push(`/match/${briefResult.briefId}`)
     } catch (error) {
       console.error('Error verifying OTP:', error)
-      alert('Invalid code. Please try again.')
+      alert(error instanceof Error ? error.message : 'Invalid code. Please try again.')
       setFormData(prev => ({ ...prev, isVerifying: false }))
     }
   }

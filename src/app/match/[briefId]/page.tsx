@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { EnhancedMatchCard } from '@/components/match/EnhancedMatchCard'
 
 interface MatchResult {
@@ -26,14 +26,13 @@ const loadingMessages = [
 export default function EnhancedMatchPage() {
   const params = useParams()
   const briefId = params.briefId as string
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   const [matches, setMatches] = useState<any[]>([])
   const [briefData, setBriefData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0].message)
   const [currentPhase, setCurrentPhase] = useState<'instant' | 'refined' | 'final' | null>(null)
-  const theme = getTheme(isDarkMode)
 
   useEffect(() => {
     // Update loading messages
@@ -80,17 +79,9 @@ export default function EnhancedMatchPage() {
 
       const data = await response.json()
       
-      // Add matches progressively to simulate streaming
+      // Show only the first match
       if (data.matches && data.matches.length > 0) {
-        // Show first match immediately
         setMatches([data.matches[0]])
-        
-        // Add remaining matches with delay
-        data.matches.slice(1).forEach((match, index) => {
-          setTimeout(() => {
-            setMatches(prev => [...prev, match])
-          }, (index + 1) * 300)
-        })
       }
       
       setBriefData(data.briefData || null)
@@ -231,7 +222,7 @@ export default function EnhancedMatchPage() {
           
           {/* Theme Toggle */}
           <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={toggleTheme}
             className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
             style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
             aria-label="Toggle theme"
@@ -254,12 +245,12 @@ export default function EnhancedMatchPage() {
         {/* Header */}
         <div className="mb-8 text-center animate-slideUp">
           <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
-            {isLoading && matches.length === 0 ? 'Finding Your Perfect Match' : 'Your Perfect Matches'}
+            {isLoading && matches.length === 0 ? 'Finding Your Perfect Match' : 'Your Perfect Match'}
           </h1>
           <p className="text-lg" style={{ color: theme.text.secondary }}>
             {isLoading && matches.length === 0 
               ? 'We\'re analyzing designers to find the best match for your project'
-              : `We found ${matches.length} designer${matches.length > 1 ? 's' : ''} that match your requirements`
+              : 'We found the perfect designer for your project'
             }
           </p>
         </div>

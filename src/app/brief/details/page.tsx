@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { LoadingButton, FormTextarea } from '@/components/forms'
 import { INDUSTRIES, DESIGN_STYLES } from '@/lib/constants'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 const timelines = [
   { value: 'asap', label: 'ASAP (48 hours)', hot: true },
@@ -27,8 +27,7 @@ function BriefDetailsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const projectType = searchParams.get('type') || ''
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   const [formData, setFormData] = useState({
     industry: '',
@@ -37,10 +36,6 @@ function BriefDetailsContent() {
     inspiration: '',
     requirements: '',
   })
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
 
   const handleStyleToggle = (styleId: string) => {
     setFormData(prev => ({

@@ -8,8 +8,21 @@ import { getTheme } from '@/lib/design-system'
 
 const THEME_STORAGE_KEY = 'onedesigner-theme'
 
-export const useTheme = (defaultDarkMode = true) => {
-  const [isDarkMode, setIsDarkMode] = useState(defaultDarkMode)
+export const useTheme = (defaultDarkMode?: boolean) => {
+  // Detect system preference
+  const getSystemPreference = () => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+    }
+    return true // Default to dark if can't detect
+  }
+
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Use provided default if specified
+    if (defaultDarkMode !== undefined) return defaultDarkMode
+    // Otherwise use system preference
+    return getSystemPreference()
+  })
   
   // Load theme from localStorage on mount
   useEffect(() => {
@@ -17,6 +30,9 @@ export const useTheme = (defaultDarkMode = true) => {
       const saved = localStorage.getItem(THEME_STORAGE_KEY)
       if (saved !== null) {
         setIsDarkMode(saved === 'dark')
+      } else {
+        // No saved preference, use system preference
+        setIsDarkMode(getSystemPreference())
       }
     } catch (error) {
       console.warn('Failed to load theme from localStorage:', error)
