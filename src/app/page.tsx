@@ -54,31 +54,32 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8">
           <Link
             href="/brief"
-            className="min-w-[300px] group font-bold py-6 px-12 rounded-2xl transition-all duration-300 hover:scale-[1.02] text-lg"
+            className="min-w-[350px] group font-bold py-8 px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] text-xl shadow-lg hover:shadow-xl"
             style={{ backgroundColor: theme.accent, color: '#000' }}
           >
             I need a designer
-            <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
+            <span className="inline-block transition-transform group-hover:translate-x-2 ml-3 text-2xl">→</span>
           </Link>
           
           <Link
             href="/designer/apply"
-            className="min-w-[300px] group font-semibold py-6 px-12 rounded-2xl transition-all duration-300 hover:scale-[1.02] relative text-lg"
+            className="min-w-[350px] group font-semibold py-8 px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] relative text-xl shadow-lg hover:shadow-xl"
             style={{ 
               backgroundColor: 'transparent',
-              border: '2px solid ' + theme.border,
+              border: '3px solid ' + theme.border,
               color: theme.text.primary
             }}
           >
             I'm a designer
-            <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
+            <span className="inline-block transition-transform group-hover:translate-x-2 ml-3 text-2xl">→</span>
             <span 
-              className="absolute -top-2 -right-2 text-xs font-bold px-2 py-1 rounded-full animate-pulse"
+              className="absolute -top-3 -right-3 text-xs font-bold px-3 py-2 rounded-full animate-pulse"
               style={{ 
-                backgroundColor: isDarkMode ? 'rgba(240, 173, 78, 0.1)' : 'rgba(240, 173, 78, 0.15)',
+                backgroundColor: isDarkMode ? 'rgba(240, 173, 78, 0.15)' : 'rgba(240, 173, 78, 0.2)',
                 color: theme.accent,
-                fontSize: '10px',
-                backdropFilter: 'blur(10px)'
+                fontSize: '11px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.accent}`
               }}
             >
               Apply for free

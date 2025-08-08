@@ -1,465 +1,521 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Navigation } from '@/components/shared'
-import { LoadingButton } from '@/components/forms'
-import { toast } from '@/lib/toast'
 import { getTheme } from '@/lib/design-system'
+import { LoadingSpinner } from '@/components/shared'
 
-// Mock data for demo
-const mockClient = {
-  id: '1',
-  email: 'founder@startup.com',
-  name: 'Alex Chen',
-  match_credits: 7
-}
-
-const mockMatches = [
-  {
-    id: '1',
-    score: 94,
-    status: 'unlocked',
-    reasons: ['Great experience with SaaS', 'Fast turnaround'],
-    personalized_reasons: ['Matches your style preference'],
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    designer: {
-      id: '1',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      lastInitial: 'J',
-      title: 'Senior Product Designer',
-      city: 'San Francisco',
-      country: 'USA',
-      yearsExperience: 8,
-      rating: 4.9,
-      totalProjects: 47,
-      email: 'sarah@design.studio',
-      phone: '+1 (555) 123-4567',
-      website: 'sarahdesigns.com'
-    },
-    brief: {
-      project_type: 'SaaS Dashboard',
-      company_name: 'TechFlow',
-      budget: '$10k-25k'
-    }
-  },
-  {
-    id: '2',
-    score: 87,
-    status: 'unlocked',
-    reasons: ['Mobile app expertise', 'Great communication'],
-    personalized_reasons: ['Worked with similar industries'],
-    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    designer: {
-      id: '2',
-      firstName: 'Marcus',
-      lastName: 'Chen',
-      lastInitial: 'C',
-      title: 'UI/UX Designer',
-      city: 'New York',
-      country: 'USA',
-      yearsExperience: 6,
-      rating: 4.8,
-      totalProjects: 32,
-      email: 'marcus@designstudio.co',
-      phone: '+1 (555) 987-6543',
-      website: 'marcuschen.design'
-    },
-    brief: {
-      project_type: 'Mobile App',
-      company_name: 'FoodieApp',
-      budget: '$5k-10k'
-    }
-  }
-]
-
-interface Client {
-  id: string
-  email: string
-  name: string | null
-  match_credits: number
-}
-
-interface Designer {
-  id: string
-  firstName: string
-  lastName?: string
-  lastInitial: string
-  title: string
-  city: string
-  country: string
-  yearsExperience?: number
-  rating?: number
-  totalProjects?: number
-  email?: string
-  phone?: string
-  website?: string
-}
-
-interface Match {
+interface EnhancedMatch {
   id: string
   score: number
-  status: string
+  confidence: string
+  matchSummary: string
   reasons: string[]
-  personalized_reasons: string[]
+  personalizedReasons: string[]
+  uniqueValue: string
+  potentialChallenges: string[]
+  riskLevel: string
+  status: 'pending' | 'unlocked' | 'completed'
   created_at: string
-  designer: Designer
-  brief: {
-    project_type: string
-    company_name: string
-    budget: string
+  designer: {
+    id: string
+    firstName: string
+    lastName: string
+    lastInitial: string
+    title: string
+    city: string
+    country: string
+    yearsExperience: number
+    rating: number
+    totalProjects: number
+    designPhilosophy: string
+    primaryCategories: string[]
+    styleKeywords: string[]
+    avgClientSatisfaction: number
+    onTimeDeliveryRate: number
   }
+  brief: {
+    designCategory: string
+    timeline: string
+    budget: string
+    description: string
+  }
+}
+
+interface ClientProfile {
+  id: string
+  email: string
+  match_credits: number
+  created_at: string
 }
 
 export default function ClientDashboard() {
   const router = useRouter()
-  const [client, setClient] = useState<Client | null>(null)
-  const [matches, setMatches] = useState<Match[]>([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [activeTab, setActiveTab] = useState<'active' | 'past'>('active')
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [client, setClient] = useState<ClientProfile | null>(null)
+  const [matches, setMatches] = useState<EnhancedMatch[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const theme = getTheme(isDarkMode)
-  
-  // Use mock data for demo - comment out for production
-  const demoClient = mockClient
-  const demoMatches = mockMatches
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
-    
-    if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)} hours ago`
-    } else if (diffInHours < 48) {
-      return 'Yesterday'
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    }
-  }
-
-  const activeMatches = (demoMatches || matches).filter(m => 
-    new Date(m.created_at) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  )
-  const pastMatches = (demoMatches || matches).filter(m => 
-    new Date(m.created_at) <= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-  )
 
   useEffect(() => {
-    checkSession()
-    fetchMatches()
+    fetchDashboardData()
   }, [])
 
-  const checkSession = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include'
-      })
-      const data = await response.json()
-      
-      if (!response.ok || !data.user) {
-        router.push('/')
-        return
+      setIsLoading(true)
+      setError(null)
+
+      // Fetch client session and matches
+      const [sessionResponse, matchesResponse] = await Promise.all([
+        fetch('/api/auth/session', {
+          method: 'GET',
+          credentials: 'include',
+        }),
+        fetch('/api/client/matches', {
+          method: 'GET',
+          credentials: 'include',
+        })
+      ])
+
+      if (!sessionResponse.ok || !matchesResponse.ok) {
+        throw new Error('Failed to fetch dashboard data')
       }
-      
-      setClient(data.client)
-    } catch (error) {
-      console.error('Session check error:', error)
-      router.push('/')
-    }
-  }
 
-  const fetchMatches = async () => {
-    try {
-      const response = await fetch('/api/client/matches', {
-        credentials: 'include'
-      })
-      if (!response.ok) throw new Error('Failed to fetch matches')
-      
-      const data = await response.json()
-      // Only show unlocked and accepted matches
-      const unlockedMatches = (data.matches || []).filter(
-        (match: any) => match.status === 'unlocked' || match.status === 'accepted'
-      )
-      setMatches(unlockedMatches)
+      const sessionData = await sessionResponse.json()
+      const matchesData = await matchesResponse.json()
+
+      setClient(sessionData.client || sessionData.user)
+      setMatches(matchesData.matches || [])
+
     } catch (error) {
-      console.error('Error fetching matches:', error)
-      toast.error('Failed to load matches')
+      console.error('Dashboard error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to load dashboard')
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setIsLoading(false)
     }
   }
 
-  const handleRefresh = () => {
-    setRefreshing(true)
-    // For demo, just simulate refresh
-    setTimeout(() => setRefreshing(false), 1000)
-    // For production, uncomment: fetchMatches()
-  }
+  const handleUnlockMatch = async (matchId: string) => {
+    try {
+      const response = await fetch(`/api/client/matches/${matchId}/unlock`, {
+        method: 'POST',
+        credentials: 'include',
+      })
 
-  const handleNewProject = () => {
-    router.push('/client/brief')
-  }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to unlock match')
+      }
 
-  const handlePurchaseCredits = () => {
-    router.push('/client/purchase')
-  }
-
-  const getMatchStatusBadge = (status: string) => {
-    const labels = {
-      pending: 'Locked',
-      unlocked: 'Unlocked', 
-      accepted: 'Connected',
-      declined: 'Unavailable',
+      // Refresh matches after unlock
+      fetchDashboardData()
+      
+    } catch (error) {
+      console.error('Unlock error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to unlock match')
     }
-    
-    const colors = {
-      pending: '#f59e0b',
-      unlocked: theme.accent,
-      accepted: '#10b981',
-      declined: theme.text.muted,
-    }
-    
+  }
+
+  if (isLoading) {
     return (
-      <span 
-        className="px-3 py-1 rounded-full text-xs font-medium"
-        style={{ 
-          backgroundColor: isDarkMode ? 'rgba(240, 173, 78, 0.1)' : 'rgba(240, 173, 78, 0.15)',
-          color: colors[status as keyof typeof colors] || theme.text.muted
-        }}
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: theme.bg }}
       >
-        {labels[status as keyof typeof labels] || status}
-      </span>
+        <div className="text-center">
+          <LoadingSpinner size="large" />
+          <p 
+            className="mt-4 text-lg animate-pulse"
+            style={{ color: theme.text.secondary }}
+          >
+            Loading your dashboard...
+          </p>
+        </div>
+      </div>
     )
   }
 
-  if (loading) {
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: theme.accent }}></div>
-          <p className="mt-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-            Loading your matches...
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: theme.bg }}
+      >
+        <div className="text-center max-w-md">
+          <div 
+            className="text-6xl mb-4"
+            style={{ color: theme.error }}
+          >
+            ⚠️
+          </div>
+          <h2 
+            className="text-2xl font-bold mb-4"
+            style={{ color: theme.text.primary }}
+          >
+            Dashboard Error
+          </h2>
+          <p 
+            className="mb-6"
+            style={{ color: theme.text.secondary }}
+          >
+            {error}
           </p>
+          <button
+            onClick={() => fetchDashboardData()}
+            className="px-6 py-3 rounded-2xl font-bold transition-all duration-200 hover:scale-105"
+            style={{
+              backgroundColor: theme.accent,
+              color: '#000'
+            }}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
-      {/* Using centralized Navigation */}
-      <div style={{ borderBottom: `1px solid ${theme.border}` }}>
-        <Navigation 
-          theme={theme}
-          isDarkMode={isDarkMode}
-          toggleTheme={toggleTheme}
-          showCredits={true}
-          credits={(demoClient || client)?.match_credits || 0}
-          showDashboardLink={true}
-        />
-      </div>
-
-      <div className="max-w-6xl mx-auto px-8 py-12">
+    <div 
+      className="min-h-screen transition-all duration-300"
+      style={{ backgroundColor: theme.bg }}
+    >
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-12 animate-fadeIn">
-          <h1 className="text-4xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-            Welcome back, {(demoClient || client)?.name || 'there'} 👋
-          </h1>
-          <p className="text-lg transition-colors duration-300" style={{ color: theme.text.secondary }}>
-            Your designer matches are ready
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
-          <div className="rounded-2xl p-6 transition-all duration-300 animate-slideUp" 
-            style={{ 
-              backgroundColor: theme.cardBg,
-              border: `1px solid ${theme.border}`,
-              animationDelay: '0.1s'
-            }}>
-            <div className="text-2xl mb-3">🎯</div>
-            <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>{(demoMatches || matches).length}</div>
-            <div className="text-sm" style={{ color: theme.text.secondary }}>Total Matches</div>
-          </div>
-          
-          <div className="rounded-2xl p-6 transition-all duration-300 animate-slideUp" 
-            style={{ 
-              backgroundColor: theme.cardBg,
-              border: `1px solid ${theme.border}`,
-              animationDelay: '0.2s'
-            }}>
-            <div className="text-2xl mb-3">💳</div>
-            <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>{(demoClient || client)?.match_credits || 0}</div>
-            <div className="text-sm" style={{ color: theme.text.secondary }}>Credits Left</div>
-          </div>
-          
-          <div className="rounded-2xl p-6 transition-all duration-300 animate-slideUp" 
-            style={{ 
-              backgroundColor: theme.cardBg,
-              border: `1px solid ${theme.border}`,
-              animationDelay: '0.3s'
-            }}>
-            <div className="text-2xl mb-3">🚀</div>
-            <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>{activeMatches.length}</div>
-            <div className="text-sm" style={{ color: theme.text.secondary }}>Active Projects</div>
-          </div>
-          
-          <button 
-            onClick={handleRefresh}
-            className="rounded-2xl p-6 transition-all duration-300 animate-slideUp hover:scale-[1.02]" 
-            style={{ 
-              backgroundColor: theme.cardBg,
-              border: `1px solid ${theme.border}`,
-              animationDelay: '0.4s'
-            }}>
-            <div className="text-2xl mb-3">{refreshing ? '⚡' : '🔄'}</div>
-            <div className="text-lg font-semibold mb-1 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              {refreshing ? 'Refreshing...' : 'Refresh'}
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center space-x-4">
+            <img 
+              src="/logo.svg" 
+              alt="OneDesigner" 
+              className="w-8 h-8"
+            />
+            <div>
+              <h1 
+                className="text-3xl font-bold"
+                style={{ color: theme.text.primary }}
+              >
+                My Dashboard
+              </h1>
+              <p 
+                className="text-sm"
+                style={{ color: theme.text.muted }}
+              >
+                Welcome back{client?.email ? `, ${client.email}` : ''}
+              </p>
             </div>
-            <div className="text-sm" style={{ color: theme.text.secondary }}>Update matches</div>
-          </button>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="p-3 rounded-2xl transition-all duration-200 hover:scale-110"
+              style={{
+                backgroundColor: theme.nestedBg,
+                border: `2px solid ${theme.border}`,
+                color: theme.text.primary
+              }}
+            >
+              {isDarkMode ? '☀️' : '🌙'}
+            </button>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={() => setActiveTab('active')}
-            className="font-semibold py-2 px-6 rounded-xl transition-all duration-300"
+        {/* Stats Cards */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          <div 
+            className="p-6 rounded-3xl"
             style={{
-              backgroundColor: activeTab === 'active' ? theme.accent : 'transparent',
-              color: activeTab === 'active' ? '#000' : theme.text.secondary,
-              border: `2px solid ${activeTab === 'active' ? theme.accent : theme.border}`
+              backgroundColor: theme.cardBg,
+              border: `2px solid ${theme.border}`
             }}
           >
-            Recent Matches ({activeMatches.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('past')}
-            className="font-semibold py-2 px-6 rounded-xl transition-all duration-300"
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="text-2xl">💳</span>
+              <h3 
+                className="text-lg font-bold"
+                style={{ color: theme.text.primary }}
+              >
+                Available Matches
+              </h3>
+            </div>
+            <div 
+              className="text-3xl font-extrabold"
+              style={{ color: theme.accent }}
+            >
+              {client?.match_credits || 0}
+            </div>
+            <p 
+              className="text-sm mt-1"
+              style={{ color: theme.text.muted }}
+            >
+              Use to unlock designer contacts
+            </p>
+          </div>
+
+          <div 
+            className="p-6 rounded-3xl"
             style={{
-              backgroundColor: activeTab === 'past' ? theme.accent : 'transparent',
-              color: activeTab === 'past' ? '#000' : theme.text.secondary,
-              border: `2px solid ${activeTab === 'past' ? theme.accent : theme.border}`
+              backgroundColor: theme.cardBg,
+              border: `2px solid ${theme.border}`
             }}
           >
-            Past Matches ({pastMatches.length})
-          </button>
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="text-2xl">🎯</span>
+              <h3 
+                className="text-lg font-bold"
+                style={{ color: theme.text.primary }}
+              >
+                Total Matches
+              </h3>
+            </div>
+            <div 
+              className="text-3xl font-extrabold"
+              style={{ color: theme.accent }}
+            >
+              {matches.length}
+            </div>
+            <p 
+              className="text-sm mt-1"
+              style={{ color: theme.text.muted }}
+            >
+              AI-powered designer matches
+            </p>
+          </div>
+
+          <div 
+            className="p-6 rounded-3xl"
+            style={{
+              backgroundColor: theme.cardBg,
+              border: `2px solid ${theme.border}`
+            }}
+          >
+            <div className="flex items-center space-x-3 mb-2">
+              <span className="text-2xl">✅</span>
+              <h3 
+                className="text-lg font-bold"
+                style={{ color: theme.text.primary }}
+              >
+                Unlocked
+              </h3>
+            </div>
+            <div 
+              className="text-3xl font-extrabold"
+              style={{ color: theme.success }}
+            >
+              {matches.filter(m => m.status === 'unlocked').length}
+            </div>
+            <p 
+              className="text-sm mt-1"
+              style={{ color: theme.text.muted }}
+            >
+              Ready to contact
+            </p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-12">
+          <Link
+            href="/brief"
+            className="flex-1 flex items-center justify-center px-8 py-4 rounded-2xl font-bold transition-all duration-200 hover:scale-[1.02]"
+            style={{
+              backgroundColor: theme.accent,
+              color: '#000'
+            }}
+          >
+            <span className="mr-2">📝</span>
+            Find New Designer
+          </Link>
+          
+          <Link
+            href="/client/purchase"
+            className="flex-1 flex items-center justify-center px-8 py-4 rounded-2xl font-bold transition-all duration-200 hover:scale-[1.02]"
+            style={{
+              backgroundColor: 'transparent',
+              border: `2px solid ${theme.border}`,
+              color: theme.text.primary
+            }}
+          >
+            <span className="mr-2">💳</span>
+            Buy More Matches
+          </Link>
         </div>
 
         {/* Matches List */}
-        <div className="space-y-4">
-          {(activeTab === 'active' ? activeMatches : pastMatches).map((match, index) => (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 
+              className="text-2xl font-bold"
+              style={{ color: theme.text.primary }}
+            >
+              Your Matches
+            </h2>
+          </div>
+
+          {matches.length === 0 ? (
             <div 
-              key={match.id}
-              className="rounded-3xl p-6 transition-all duration-300 hover:scale-[1.01] animate-slideUp"
-              style={{ 
+              className="text-center py-12 rounded-3xl"
+              style={{
                 backgroundColor: theme.cardBg,
-                border: `1px solid ${theme.border}`,
-                boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                animationDelay: `${index * 0.1}s`
+                border: `2px solid ${theme.border}`
               }}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                  {/* Designer Avatar */}
-                  <div 
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold"
-                    style={{ backgroundColor: theme.accent, color: '#000' }}
-                  >
-                    {match.designer.firstName[0]}
-                  </div>
-                  
-                  {/* Designer Info */}
-                  <div>
-                    <h3 className="text-xl font-bold mb-1 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {match.designer.firstName} {match.designer.lastName}
-                    </h3>
-                    <p className="text-sm mb-2 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                      {match.designer.title} • {match.designer.city}
-                    </p>
-                    <div className="flex items-center gap-4 text-sm" style={{ color: theme.text.muted }}>
-                      <span>{match.brief.project_type}</span>
-                      <span>•</span>
-                      <span>{formatDate(match.created_at)}</span>
-                      {match.designer.rating && (
-                        <>
-                          <span>•</span>
-                          <span>⭐ {match.designer.rating}</span>
-                        </>
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 
+                className="text-xl font-bold mb-4"
+                style={{ color: theme.text.primary }}
+              >
+                No matches yet
+              </h3>
+              <p 
+                className="text-lg mb-6"
+                style={{ color: theme.text.secondary }}
+              >
+                Submit your first brief to get matched with perfect designers
+              </p>
+              <Link
+                href="/brief"
+                className="inline-flex px-6 py-3 rounded-2xl font-bold transition-all duration-200 hover:scale-105"
+                style={{
+                  backgroundColor: theme.accent,
+                  color: '#000'
+                }}
+              >
+                Create Your First Brief
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {matches.map((match) => (
+                <div 
+                  key={match.id}
+                  className="p-6 rounded-3xl transition-all duration-200"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    border: `2px solid ${theme.border}`
+                  }}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 
+                        className="text-xl font-bold mb-1"
+                        style={{ color: theme.text.primary }}
+                      >
+                        {match.status === 'unlocked' 
+                          ? `${match.designer.firstName} ${match.designer.lastName}` 
+                          : `Designer ${match.designer.firstName}***`
+                        }
+                      </h3>
+                      <p 
+                        className="text-sm mb-2"
+                        style={{ color: theme.text.secondary }}
+                      >
+                        {match.designer.title} • {match.designer.city}, {match.designer.country}
+                      </p>
+                      <div className="flex items-center space-x-4 text-sm">
+                        <span style={{ color: theme.text.muted }}>
+                          Match Score: <strong style={{ color: theme.accent }}>{match.score}%</strong>
+                        </span>
+                        <span style={{ color: theme.text.muted }}>
+                          Experience: {match.designer.yearsExperience} years
+                        </span>
+                        <span style={{ color: theme.text.muted }}>
+                          Rating: ⭐ {match.designer.rating}/5
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-end space-y-2">
+                      <div 
+                        className="px-3 py-1 rounded-full text-sm font-bold"
+                        style={{
+                          backgroundColor: match.status === 'unlocked' ? theme.success + '20' : 
+                                         match.status === 'pending' ? theme.accent + '20' : theme.text.muted + '20',
+                          color: match.status === 'unlocked' ? theme.success : 
+                                 match.status === 'pending' ? theme.accent : theme.text.muted
+                        }}
+                      >
+                        {match.status === 'unlocked' ? '✅ Unlocked' : 
+                         match.status === 'pending' ? '🔒 Locked' : '✅ Complete'}
+                      </div>
+                      
+                      {match.status === 'pending' && (
+                        <button
+                          onClick={() => handleUnlockMatch(match.id)}
+                          className="px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-105"
+                          style={{
+                            backgroundColor: theme.accent,
+                            color: '#000'
+                          }}
+                        >
+                          Unlock (1 match)
+                        </button>
                       )}
                     </div>
                   </div>
-                </div>
-                
-                {/* Right side */}
-                <div className="flex items-center gap-6">
-                  {/* Match Score */}
-                  <div className="text-center">
-                    <div className="text-3xl font-bold" style={{ color: theme.accent }}>{match.score}%</div>
-                    <div className="text-xs" style={{ color: theme.text.muted }}>Match</div>
-                  </div>
-                  
-                  {/* Contact Info */}
-                  <div className="text-right">
-                    <div className="text-sm mb-2" style={{ color: theme.text.secondary }}>
-                      {match.designer.email}
-                    </div>
-                    <Link 
-                      href={`mailto:${match.designer.email}`}
-                      className="inline-block font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02] text-sm"
-                      style={{ backgroundColor: theme.accent, color: '#000' }}
+
+                  {/* Match Summary */}
+                  <div 
+                    className="p-4 rounded-2xl mb-4"
+                    style={{
+                      backgroundColor: theme.nestedBg,
+                      border: `1px solid ${theme.border}`
+                    }}
+                  >
+                    <h4 
+                      className="font-bold mb-2"
+                      style={{ color: theme.text.primary }}
                     >
-                      Contact Designer →
-                    </Link>
+                      Why this match is perfect:
+                    </h4>
+                    <p 
+                      className="text-sm"
+                      style={{ color: theme.text.secondary }}
+                    >
+                      {match.matchSummary || match.reasons.join(' • ')}
+                    </p>
                   </div>
+
+                  {/* Brief Info */}
+                  <div className="flex justify-between items-center text-sm">
+                    <div style={{ color: theme.text.muted }}>
+                      <span className="font-medium">Project:</span> {match.brief.designCategory} • {match.brief.timeline} • {match.brief.budget}
+                    </div>
+                    <div style={{ color: theme.text.muted }}>
+                      {new Date(match.created_at).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  {/* Contact Info (if unlocked) */}
+                  {match.status === 'unlocked' && (
+                    <div 
+                      className="mt-4 p-4 rounded-2xl"
+                      style={{
+                        backgroundColor: theme.success + '10',
+                        border: `1px solid ${theme.success}40`
+                      }}
+                    >
+                      <h5 
+                        className="font-bold mb-2"
+                        style={{ color: theme.success }}
+                      >
+                        Contact Information:
+                      </h5>
+                      <div className="text-sm space-y-1" style={{ color: theme.text.primary }}>
+                        <p><strong>Email:</strong> {match.designer.firstName.toLowerCase()}@example.com</p>
+                        <p><strong>Portfolio:</strong> {match.designer.firstName.toLowerCase()}designs.com</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-
-        {/* Empty state for past matches */}
-        {activeTab === 'past' && pastMatches.length === 0 && (
-          <div className="text-center py-16 rounded-3xl" style={{ backgroundColor: theme.cardBg }}>
-            <div className="text-5xl mb-6">📭</div>
-            <h3 className="text-xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              No past matches yet
-            </h3>
-            <p className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Your older matches will appear here
-            </p>
-          </div>
-        )}
-
-        {/* Buy More Credits */}
-        {((demoClient || client)?.match_credits || 0) < 3 && (
-          <div className="mt-12 rounded-2xl p-8 text-center" style={{ backgroundColor: theme.nestedBg }}>
-            <h3 className="text-xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              Running low on credits?
-            </h3>
-            <p className="mb-6 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Get more designer matches to find your perfect fit
-            </p>
-            <Link 
-              href="/client/purchase"
-              className="inline-block font-bold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-              style={{ backgroundColor: theme.accent, color: '#000' }}
-            >
-              Buy More Credits →
-            </Link>
-          </div>
-        )}
       </div>
-    </main>
+    </div>
   )
 }
