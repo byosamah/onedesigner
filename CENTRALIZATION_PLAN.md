@@ -1,352 +1,337 @@
-# OneDesigner Centralization & Architecture Plan
+# OneDesigner Centralization Plan - Safe Implementation Guide
 
-## Executive Summary
-This plan outlines a comprehensive approach to centralize and improve the OneDesigner codebase for better maintainability, scalability, and developer experience.
+## Overview
+This plan outlines a safe, phased approach to centralize duplicated code, functions, and features across the OneDesigner codebase without affecting existing functionality, design, or user experience.
 
-## Current State Analysis
+## Core Principles
+1. **No Breaking Changes**: All centralization must be backward compatible
+2. **Incremental Migration**: Replace one instance at a time with testing
+3. **Validation First**: Test each change before proceeding to the next
+4. **Rollback Ready**: Keep original code until all migrations are verified
+5. **Zero User Impact**: No changes to UI, UX, or functionality
 
-### Pain Points Identified
-1. **Duplicated Code**: Similar components and logic across client/designer/admin sections
-2. **Scattered Configuration**: API keys, endpoints, and configs spread across files
-3. **Inconsistent Patterns**: Different approaches for similar features
-4. **Limited Reusability**: Components and utilities not easily shareable
-5. **Type Safety Issues**: Some areas lacking proper TypeScript types
-6. **State Management**: No centralized state management solution
+## Safety Checks Protocol
+Before centralizing any component:
+1. ✅ Identify all files using the component
+2. ✅ Document current behavior and expected outputs
+3. ✅ Create centralized version with same interface
+4. ✅ Test with one file first
+5. ✅ Verify no visual or functional changes
+6. ✅ Gradually migrate remaining files
+7. ✅ Run full test suite after complete migration
 
-## Proposed Centralized Architecture
+## Current State Analysis - Issues Found
 
-### 1. Core Library Structure (`/src/lib`)
-```
-/src/lib/
-├── core/
-│   ├── config/           # All app configuration
-│   ├── constants/        # App-wide constants
-│   ├── types/           # Shared TypeScript types
-│   └── utils/           # Utility functions
-├── features/
-│   ├── auth/            # Authentication logic
-│   ├── matching/        # Match system
-│   ├── payment/         # Payment processing
-│   ├── designer/        # Designer features
-│   ├── client/          # Client features
-│   └── admin/           # Admin features
-├── ui/
-│   ├── components/      # Reusable components
-│   ├── hooks/          # Custom React hooks
-│   ├── layouts/        # Layout components
-│   └── design-system/  # Theme & styling
-└── services/
-    ├── api/            # API client & utilities
-    ├── database/       # Database utilities
-    ├── email/          # Email service
-    └── analytics/      # Analytics tracking
-```
+### 1. **Authentication & Session Management**
+- **Duplicated across**: 37+ files (client, designer, admin auth routes)
+- **Issues**: Nearly identical cookie parsing, session validation, user data fetching
+- **Risk**: Security vulnerabilities from inconsistent implementation
 
-### 2. Centralized Components (`/src/components`)
-```
-/src/components/
-├── common/
-│   ├── Navigation/
-│   ├── Footer/
-│   ├── LoadingStates/
-│   └── ErrorBoundaries/
-├── forms/
-│   ├── Input/
-│   ├── Select/
-│   ├── FileUpload/
-│   └── FormBuilder/
-├── data-display/
-│   ├── Card/
-│   ├── Table/
-│   ├── List/
-│   └── Stats/
-└── feedback/
-    ├── Toast/
-    ├── Modal/
-    ├── Alert/
-    └── Progress/
-```
+### 2. **API Response Patterns**
+- **177+ occurrences** of `NextResponse.json()` with inconsistent formats
+- **Issues**: Different error formats, no standard success responses
+- **Risk**: Client-side parsing errors, poor error handling
 
-### 3. Feature-Based Organization
-```
-/src/features/
-├── matching/
-│   ├── components/      # Match-specific components
-│   ├── hooks/          # Match-specific hooks
-│   ├── services/       # Match API calls
-│   ├── types/          # Match types
-│   └── utils/          # Match utilities
-├── designer/
-│   ├── components/
-│   ├── hooks/
-│   ├── services/
-│   └── types/
-└── [other features...]
-```
+### 3. **Email Templates**
+- **300+ lines duplicated** between client and designer welcome emails
+- **Issues**: Identical HTML structure and CSS styles
+- **Risk**: Maintenance nightmare, inconsistent branding
 
-## Implementation Plan
+### 4. **Database Query Patterns**
+- **37+ files** creating Supabase clients independently
+- **Issues**: No centralized error handling, repeated complex queries
+- **Risk**: Performance issues, connection leaks
 
-### Phase 1: Foundation (Week 1)
-1. **Create Core Structure**
-   - Set up `/src/lib/core` with config, constants, types
-   - Create centralized configuration system
-   - Implement type definitions
+### 5. **Form Components & Styling**
+- **Identical styling logic** across FormInput, FormSelect, FormTextarea
+- **Issues**: Theme props manually passed, duplicated validation
+- **Risk**: Inconsistent user experience
 
-2. **Centralize Configuration**
-   ```typescript
-   // /src/lib/core/config/index.ts
-   export const config = {
-     api: {
-       baseUrl: process.env.NEXT_PUBLIC_API_URL,
-       timeout: 30000,
-     },
-     features: {
-       enableOptimizedMatching: true,
-       enableProgressiveEnhancement: true,
-     },
-     design: {
-       defaultTheme: 'dark',
-       animations: true,
-     }
-   }
-   ```
+### 6. **Constants & Configuration**
+- **Hardcoded values** scattered: API URLs, cookie names, timeouts
+- **Issues**: 'https://api.resend.com/emails', OTP expiry (600000ms) repeated
+- **Risk**: Deployment issues, hard to update values
 
-3. **Create Type System**
-   ```typescript
-   // /src/lib/core/types/index.ts
-   export interface Designer { ... }
-   export interface Client { ... }
-   export interface Match { ... }
-   export interface Brief { ... }
-   ```
+## Phase 1: Constants & Configuration (Day 1) - SAFE START
+**Risk Level**: Very Low
+**Files Affected**: ~20
+**Testing Required**: Minimal
 
-### Phase 2: Component Library (Week 2)
-1. **Build Component System**
-   - Extract common components
-   - Create component documentation
-   - Implement Storybook for component showcase
-
-2. **Design System Enhancement**
-   ```typescript
-   // /src/lib/ui/design-system/theme.ts
-   export const theme = {
-     colors: { ... },
-     spacing: { ... },
-     typography: { ... },
-     animations: { ... },
-     components: {
-       button: { ... },
-       card: { ... },
-       input: { ... }
-     }
-   }
-   ```
-
-3. **Create UI Kit**
-   - Button variants
-   - Form components
-   - Layout components
-   - Feedback components
-
-### Phase 3: Service Layer (Week 3)
-1. **API Client Centralization**
-   ```typescript
-   // /src/lib/services/api/client.ts
-   export class ApiClient {
-     private baseUrl: string
-     private headers: HeadersInit
-     
-     async get<T>(endpoint: string): Promise<T> { ... }
-     async post<T>(endpoint: string, data: any): Promise<T> { ... }
-     async put<T>(endpoint: string, data: any): Promise<T> { ... }
-     async delete(endpoint: string): Promise<void> { ... }
-   }
-   ```
-
-2. **Service Modules**
-   ```typescript
-   // /src/lib/services/api/services/match.service.ts
-   export class MatchService {
-     async findMatch(briefId: string): Promise<Match> { ... }
-     async unlockMatch(matchId: string): Promise<void> { ... }
-     async getMatchHistory(clientId: string): Promise<Match[]> { ... }
-   }
-   ```
-
-3. **State Management**
-   ```typescript
-   // /src/lib/core/state/store.ts
-   import { create } from 'zustand'
-   
-   export const useAppStore = create((set) => ({
-     user: null,
-     theme: 'dark',
-     setUser: (user) => set({ user }),
-     setTheme: (theme) => set({ theme }),
-   }))
-   ```
-
-### Phase 4: Feature Modules (Week 4)
-1. **Refactor Features**
-   - Move feature-specific code to `/src/features`
-   - Create feature facades
-   - Implement feature flags
-
-2. **Create Feature APIs**
-   ```typescript
-   // /src/features/matching/index.ts
-   export { MatchingProvider } from './context'
-   export { useMatching } from './hooks'
-   export { MatchCard, MatchList } from './components'
-   export { matchingService } from './services'
-   ```
-
-### Phase 5: Testing & Documentation (Week 5)
-1. **Testing Infrastructure**
-   - Unit tests for utilities
-   - Component tests
-   - Integration tests
-   - E2E tests
-
-2. **Documentation**
-   - API documentation
-   - Component documentation
-   - Architecture guide
-   - Developer onboarding
-
-## Benefits of Centralization
-
-### 1. **Improved Maintainability**
-- Single source of truth for components
-- Easier to fix bugs and add features
-- Consistent patterns across the app
-
-### 2. **Better Developer Experience**
-- Clear project structure
-- Reusable components and utilities
-- Type safety throughout
-
-### 3. **Performance Optimization**
-- Reduced bundle size through code sharing
-- Better caching strategies
-- Optimized rendering
-
-### 4. **Scalability**
-- Easy to add new features
-- Modular architecture
-- Clear separation of concerns
-
-## Migration Strategy
-
-### Step 1: Parallel Development
-- Keep existing code working
-- Build new centralized versions alongside
-- Test thoroughly before switching
-
-### Step 2: Gradual Migration
-- Migrate one feature at a time
-- Start with low-risk areas
-- Monitor for issues
-
-### Step 3: Cleanup
-- Remove old code
-- Update documentation
-- Train team on new structure
-
-## Code Examples
-
-### Centralized Component Example
+### 1.1 Create Constants File
 ```typescript
-// /src/components/common/Button/Button.tsx
-import { theme } from '@/lib/ui/design-system'
+// @/lib/constants/index.ts
+export const AUTH_COOKIES = {
+  CLIENT: 'client-session',
+  DESIGNER: 'designer-session',
+  ADMIN: 'admin-session'
+} as const
 
-interface ButtonProps {
-  variant?: 'primary' | 'secondary' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  loading?: boolean
-  children: React.ReactNode
-  onClick?: () => void
-}
+export const API_ENDPOINTS = {
+  RESEND: 'https://api.resend.com/emails',
+  LEMONSQUEEZY: 'https://api.lemonsqueezy.com/v1',
+  DEEPSEEK: 'https://api.deepseek.com/v1'
+} as const
 
-export const Button: React.FC<ButtonProps> = ({
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  children,
-  onClick
-}) => {
-  const styles = theme.components.button[variant][size]
+export const OTP_CONFIG = {
+  EXPIRY_TIME: 600000, // 10 minutes
+  LENGTH: 6
+} as const
+
+export const PLACEHOLDER_IMAGES = {
+  DESIGNER_AVATAR: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+  PROJECT_PREVIEW: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'
+} as const
+```
+
+### 1.2 Migration Steps
+1. Create the constants file
+2. Find and replace one usage at a time
+3. Test each replacement
+4. Commit after each successful migration
+
+### 1.3 Validation Checklist
+- [ ] All cookie names match exactly
+- [ ] API endpoints return same responses
+- [ ] OTP still expires after 10 minutes
+- [ ] Images load correctly
+
+## Phase 2: API Response Utilities (Day 2)
+**Risk Level**: Low
+**Files Affected**: 36 API routes
+**Testing Required**: API endpoint testing
+
+### 2.1 Create Response Utilities
+```typescript
+// @/lib/api/responses.ts
+import { NextResponse } from 'next/server'
+
+export const apiResponse = {
+  success: <T>(data: T, status = 200) => 
+    NextResponse.json(data, { status }),
   
-  return (
-    <button
-      className={styles}
-      onClick={onClick}
-      disabled={loading}
-    >
-      {loading ? <Spinner /> : children}
-    </button>
-  )
+  error: (message: string, status = 400, details?: any) => 
+    NextResponse.json({ error: message, ...(details && { details }) }, { status }),
+  
+  unauthorized: (message = 'Unauthorized') => 
+    NextResponse.json({ error: message }, { status: 401 }),
+  
+  notFound: (resource = 'Resource') => 
+    NextResponse.json({ error: `${resource} not found` }, { status: 404 })
 }
 ```
 
-### Centralized Hook Example
+### 2.2 Migration Example
 ```typescript
-// /src/lib/ui/hooks/useTheme.ts
-export const useTheme = () => {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-  
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-    localStorage.setItem('theme', isDarkMode ? 'light' : 'dark')
-  }
-  
-  return { theme, isDarkMode, toggleTheme }
-}
+// Before:
+return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
+
+// After:
+return apiResponse.error('Invalid request', 400)
 ```
 
-### Centralized Service Example
+### 2.3 Testing Protocol
+1. Test one endpoint completely
+2. Compare response format before/after
+3. Verify status codes match
+4. Check error handling paths
+
+## Phase 3: Authentication Session Handlers (Day 3-4)
+**Risk Level**: Medium
+**Files Affected**: 15+ auth endpoints
+**Testing Required**: Full auth flow testing
+
+### 3.1 Create Session Handlers
 ```typescript
-// /src/lib/services/api/base.service.ts
-export abstract class BaseService {
-  protected api: ApiClient
+// @/lib/auth/session-handlers.ts
+import { cookies } from 'next/headers'
+import { createServiceClient } from '@/lib/supabase/service-role'
+import { AUTH_COOKIES } from '@/lib/constants'
+
+export interface SessionData {
+  email: string
+  userId: string
+  userType: 'client' | 'designer' | 'admin'
+}
+
+export async function getSession(type: keyof typeof AUTH_COOKIES): Promise<SessionData | null> {
+  const cookieStore = cookies()
+  const sessionCookie = cookieStore.get(AUTH_COOKIES[type])
   
-  constructor(api: ApiClient) {
-    this.api = api
-  }
+  if (!sessionCookie) return null
   
-  protected handleError(error: any): never {
-    console.error('API Error:', error)
-    throw new ApiError(error.message || 'An error occurred')
+  try {
+    const session = JSON.parse(sessionCookie.value)
+    // Validate session structure
+    if (!session.email || !session.userId) return null
+    return session
+  } catch {
+    return null
   }
 }
+
+export async function createSession(
+  type: keyof typeof AUTH_COOKIES, 
+  data: SessionData
+): Promise<void> {
+  const cookieStore = cookies()
+  cookieStore.set(AUTH_COOKIES[type], JSON.stringify(data), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 60 * 60 * 24 * 7 // 7 days
+  })
+}
 ```
+
+### 3.2 Testing Checklist
+- [ ] Login flow works for all user types
+- [ ] Session persistence across requests
+- [ ] Logout properly clears session
+- [ ] Invalid sessions are rejected
+- [ ] Cookie settings match production requirements
+
+## Phase 4: Database Service Layer (Day 5-6)
+**Risk Level**: Medium
+**Files Affected**: 37+ files
+**Testing Required**: Database query testing
+
+### 4.1 Create Database Services
+```typescript
+// @/lib/database/base.ts
+import { createServiceClient } from '@/lib/supabase/service-role'
+
+export abstract class DatabaseService {
+  protected supabase = createServiceClient()
+  
+  protected handleError(error: any, operation: string) {
+    console.error(`Database error in ${operation}:`, error)
+    throw new Error(`Failed to ${operation}`)
+  }
+}
+
+// @/lib/database/designer-service.ts
+export class DesignerService extends DatabaseService {
+  async getDesignerProfile(designerId: string) {
+    const { data, error } = await this.supabase
+      .from('designers')
+      .select(`
+        *,
+        designer_project_types (project_type),
+        designer_industries (industry),
+        designer_styles (style)
+      `)
+      .eq('id', designerId)
+      .single()
+    
+    if (error) this.handleError(error, 'get designer profile')
+    return data
+  }
+}
+
+// Export singleton instance
+export const designerService = new DesignerService()
+```
+
+### 4.2 Migration Strategy
+1. Create service for one domain (e.g., designers)
+2. Test with read operations first
+3. Migrate write operations after validation
+4. Monitor for performance changes
+
+## Phase 5: Email Template System (Day 7)
+**Risk Level**: Low
+**Files Affected**: 4 email templates
+**Testing Required**: Email rendering tests
+
+### 5.1 Create Base Template
+```typescript
+// @/lib/email/template-base.ts
+export interface EmailTemplateProps {
+  title: string
+  preheader: string
+  content: {
+    greeting?: string
+    mainText: string
+    ctaButton?: {
+      text: string
+      href: string
+    }
+  }
+}
+
+export function createEmailTemplate(props: EmailTemplateProps): string {
+  // Shared HTML structure
+  return `<!DOCTYPE html>
+    <html>
+      <head>
+        <title>${props.title}</title>
+        <!-- Common styles -->
+      </head>
+      <body>
+        ${props.content.greeting ? `<h1>${props.content.greeting}</h1>` : ''}
+        <p>${props.content.mainText}</p>
+        ${props.content.ctaButton ? `
+          <a href="${props.content.ctaButton.href}">
+            ${props.content.ctaButton.text}
+          </a>
+        ` : ''}
+      </body>
+    </html>`
+}
+```
+
+### 5.2 Validation Steps
+1. Compare rendered HTML before/after
+2. Test email delivery
+3. Verify all dynamic content appears correctly
+4. Check responsive design
+
+## Implementation Timeline
+- **Week 1**: Phases 1-3 (Constants, API responses, Auth)
+- **Week 2**: Phases 4-5 (Database, Email)
+- **Week 3**: Testing & Documentation
+- **Week 4**: Cleanup & Training
+
+## Rollback Plan
+For each phase:
+1. Keep original code commented
+2. Tag git commits for easy rollback
+3. Document any configuration changes
+4. Test rollback procedure
 
 ## Success Metrics
+- ✅ Zero user-reported issues
+- ✅ No increase in error rates
+- ✅ API response times unchanged
+- ✅ All existing tests pass
+- ✅ No visual regressions
+- ✅ 40% reduction in code duplication
 
-1. **Code Reduction**: 30-40% less duplicated code
-2. **Development Speed**: 2x faster feature development
-3. **Bug Reduction**: 50% fewer bugs from consistency
-4. **Type Coverage**: 100% type safety
-5. **Test Coverage**: 80%+ test coverage
+## Important Safety Notes
 
-## Timeline
+### Before Starting Any Centralization:
+1. **Create a feature branch**: `git checkout -b centralization-phase-1`
+2. **Run existing tests**: Ensure all current functionality works
+3. **Document current behavior**: Screenshot UI, save API responses
+4. **Set up monitoring**: Track error rates before changes
+5. **Have rollback plan ready**: Tag commits for easy revert
 
-- **Week 1**: Foundation & Configuration
-- **Week 2**: Component Library
-- **Week 3**: Service Layer
-- **Week 4**: Feature Modules
-- **Week 5**: Testing & Documentation
-- **Week 6**: Migration & Cleanup
+### During Implementation:
+1. **Test after each file change**: Don't batch multiple changes
+2. **Keep old code commented**: Until migration is verified
+3. **Use feature flags**: For gradual rollout if needed
+4. **Monitor production**: Watch for any anomalies
+5. **Get peer review**: For each phase completion
 
-## Next Steps
-
-1. Review and approve this plan
-2. Set up development branch
-3. Begin Phase 1 implementation
-4. Schedule weekly progress reviews
-5. Prepare team training materials
+### After Each Phase:
+1. **Run full regression tests**: Manual and automated
+2. **Compare performance metrics**: Response times, bundle size
+3. **Check error logs**: Look for new exceptions
+4. **Validate user flows**: Test critical paths
+5. **Document changes**: Update technical documentation
 
 ---
 
-This centralization will transform OneDesigner into a more maintainable, scalable, and developer-friendly codebase while preserving all existing functionality.
+## Centralization Complete!
+
+This plan provides a safe, incremental approach to centralizing the OneDesigner codebase. By following the safety protocols and testing at each step, we can achieve significant code reduction and improved maintainability without risking the user experience or functionality.

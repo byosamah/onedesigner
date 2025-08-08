@@ -106,6 +106,32 @@ export const STYLES = {
   }
 } as const
 
+// Authentication constants
+export const AUTH_COOKIES = {
+  CLIENT: 'client-session',
+  DESIGNER: 'designer-session',
+  ADMIN: 'admin-session'
+} as const
+
+// API endpoints
+export const API_ENDPOINTS = {
+  RESEND: 'https://api.resend.com/emails',
+  LEMONSQUEEZY: 'https://api.lemonsqueezy.com/v1',
+  DEEPSEEK: 'https://api.deepseek.com/v1'
+} as const
+
+// OTP configuration
+export const OTP_CONFIG = {
+  EXPIRY_TIME: 600000, // 10 minutes in milliseconds
+  LENGTH: 6
+} as const
+
+// Placeholder images
+export const PLACEHOLDER_IMAGES = {
+  DESIGNER_AVATAR: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+  PROJECT_PREVIEW: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'
+} as const
+
 // Type exports for type safety
 export type PricingPackage = typeof PRICING_PACKAGES[number]
 export type DesignStyle = typeof DESIGN_STYLES[number]

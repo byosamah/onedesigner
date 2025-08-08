@@ -1,16 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createCustomOTP } from '@/lib/auth/custom-otp'
 import { sendOTPEmail } from '@/lib/email/send-otp'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
 
 export async function POST(request: NextRequest) {
   try {
     const { email } = await request.json()
 
     if (!email) {
-      return NextResponse.json(
-        { error: 'Email is required' },
-        { status: 400 }
-      )
+      return apiResponse.error('Email is required')
     }
 
     // Generate and store OTP
@@ -19,12 +17,12 @@ export async function POST(request: NextRequest) {
     // Send OTP email (in dev, this logs to console)
     await sendOTPEmail(email, otp)
 
-    return NextResponse.json({ success: true })
+    return apiResponse.success({ success: true })
   } catch (error) {
     console.error('Error sending OTP:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to send OTP' },
-      { status: 500 }
-    )
+    if (error instanceof Error) {
+      return apiResponse.serverError(error.message)
+    }
+    return handleApiError(error, 'auth/send-otp')
   }
 }

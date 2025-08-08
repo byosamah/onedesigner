@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { PRODUCTS } from '@/lib/lemonsqueezy/client'
+import { AUTH_COOKIES, API_ENDPOINTS } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     // Get client session
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     console.log('Session cookie exists:', !!sessionCookie)
     
     if (!sessionCookie) {
@@ -146,7 +147,7 @@ export async function POST(request: NextRequest) {
 
     let response
     try {
-      response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+      response = await fetch(`${API_ENDPOINTS.LEMONSQUEEZY}/checkouts`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,

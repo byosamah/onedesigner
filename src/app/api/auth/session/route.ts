@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
   try {
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
       return NextResponse.json(

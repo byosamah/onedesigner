@@ -1,29 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
-import { cookies } from 'next/headers'
 import { sendEmail } from '@/lib/email/send-email'
 import { welcomeClientEmail } from '@/lib/email/templates/welcome-client'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { createSession } from '@/lib/auth/session-handlers'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, token } = await request.json()
 
     if (!email || !token) {
-      return NextResponse.json(
-        { error: 'Email and token are required' },
-        { status: 400 }
-      )
+      return apiResponse.error('Email and token are required')
     }
 
     // Verify OTP using our custom system
     const isValid = await verifyCustomOTP(email, token)
 
     if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid or expired code' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized('Invalid or expired code')
     }
 
     // Create or update client record
@@ -62,20 +57,15 @@ export async function POST(request: NextRequest) {
       await sendEmail({ to: email, subject, html, text })
     }
 
-    // Set session cookie
-    const cookieStore = cookies()
-    cookieStore.set('client-session', JSON.stringify({
+    // Set session using centralized handler
+    await createSession('CLIENT', {
       email,
+      userId: client?.id,
       clientId: client?.id,
-      authenticatedAt: new Date().toISOString()
-    }), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      userType: 'client'
     })
 
-    return NextResponse.json({ 
+    return apiResponse.success({ 
       success: true, 
       user: {
         id: client?.id,
@@ -85,9 +75,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error verifying OTP:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to verify OTP' },
-      { status: 500 }
-    )
+    if (error instanceof Error) {
+      return apiResponse.serverError(error.message)
+    }
+    return handleApiError(error, 'auth/verify-otp')
   }
 }

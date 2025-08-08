@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(
   request: NextRequest,
@@ -10,13 +12,10 @@ export async function POST(
   try {
     // Check admin session
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('admin-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.ADMIN)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized()
     }
 
     const session = JSON.parse(sessionCookie.value)
@@ -40,10 +39,7 @@ export async function POST(
       console.error('Error approving designer:', error)
       console.error('Designer ID:', params.id)
       console.error('Admin ID:', session.adminId)
-      return NextResponse.json(
-        { error: 'Failed to approve designer' },
-        { status: 500 }
-      )
+      return apiResponse.serverError('Failed to approve designer', error)
     }
 
     console.log(`✅ Designer approved successfully:`, designer.id)
@@ -80,7 +76,7 @@ export async function POST(
       // Don't fail the approval if email fails
     }
 
-    return NextResponse.json({
+    return apiResponse.success({
       success: true,
       designer: {
         id: designer.id,
@@ -89,10 +85,6 @@ export async function POST(
       }
     })
   } catch (error) {
-    console.error('Error in approve route:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'admin/designers/approve')
   }
 }

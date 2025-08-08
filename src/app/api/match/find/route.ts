@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { createAIProvider } from '@/lib/ai'
 import { AI_CONFIG } from '@/lib/ai/config'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { 
   calculateEnhancedRelevanceScore, 
   Designer, 
@@ -35,10 +36,7 @@ export async function POST(request: NextRequest) {
     const { briefId, streaming = false } = body
 
     if (!briefId) {
-      return NextResponse.json(
-        { error: 'Brief ID is required' },
-        { status: 400 }
-      )
+      return apiResponse.error('Brief ID is required')
     }
 
     const supabase = createServiceClient()
@@ -51,10 +49,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (briefError || !brief) {
-      return NextResponse.json(
-        { error: 'Brief not found' },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Brief')
     }
 
     // Get all previously matched designers for this client (including pending ones)
@@ -108,24 +103,10 @@ export async function POST(request: NextRequest) {
       
       if (totalApproved > 0 && excludedDesignerIds.length >= totalApproved) {
         // Client has unlocked all approved designers
-        return NextResponse.json(
-          { 
-            error: 'ALL_DESIGNERS_UNLOCKED',
-            message: 'You have already unlocked all approved designers.',
-            userMessage: 'You\'ve unlocked all available designers! Check your dashboard to see all your matches.'
-          },
-          { status: 404 }
-        )
+        return apiResponse.notFound('Designers')
       } else {
         // No approved designers available (they haven't been approved yet)
-        return NextResponse.json(
-          { 
-            error: 'NO_APPROVED_DESIGNERS',
-            message: 'No approved designers are currently available.',
-            userMessage: 'No designers are available right now. Our team is reviewing new applications. Please try again later.'
-          },
-          { status: 404 }
-        )
+        return apiResponse.notFound('Designers')
       }
     }
 
@@ -151,14 +132,7 @@ export async function POST(request: NextRequest) {
       aiProvider = createAIProvider()
     } catch (error: any) {
       console.error('AI provider initialization failed:', error.message)
-      return NextResponse.json(
-        { 
-          error: 'AI_NOT_CONFIGURED',
-          message: 'AI matching service is not configured',
-          userMessage: 'Our matching service is currently unavailable. Please contact support.'
-        },
-        { status: 503 }
-      )
+      return apiResponse.serverError('AI matching service is not configured')
     }
     
     // Analyze matches with AI - no rate limits on DeepSeek
@@ -209,14 +183,7 @@ export async function POST(request: NextRequest) {
     if (matchResults.length === 0) {
       console.log('No suitable matches found after AI analysis')
       
-      return NextResponse.json(
-        { 
-          error: 'NO_SUITABLE_MATCHES',
-          message: 'No designers scored high enough for your specific requirements after AI analysis',
-          userMessage: 'We analyzed all available designers but couldn\'t find any that closely match your specific requirements. This might be due to:\n\n• Very specialized project requirements\n• Limited designer availability in your industry\n• Budget and timeline constraints\n\nPlease consider adjusting your requirements or contact our support team for assistance.'
-        },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Suitable matches')
     }
     
     // Sort by final score and get the best match
@@ -447,7 +414,7 @@ export async function POST(request: NextRequest) {
     const quickStats = generateQuickStats(bestMatch.designer, brief)
 
     // Return the enhanced match
-    return NextResponse.json({
+    return apiResponse.success({
       success: true,
       match: {
         id: finalMatch?.id || 'temp-id',
@@ -496,10 +463,6 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in match API:', error)
-    return NextResponse.json(
-      { error: 'Failed to find match' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'match/find')
   }
 }

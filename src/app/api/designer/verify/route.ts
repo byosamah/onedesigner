@@ -4,26 +4,22 @@ import { verifyCustomOTP } from '@/lib/auth/custom-otp'
 import { cookies } from 'next/headers'
 import { sendEmail } from '@/lib/email/send-email'
 import { welcomeDesignerEmail } from '@/lib/email/templates/welcome-designer'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, token, applicationData } = await request.json()
 
     if (!email || !token || !applicationData) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return apiResponse.error('Missing required fields')
     }
 
     // Verify OTP
     const isValid = await verifyCustomOTP(email, token)
 
     if (!isValid) {
-      return NextResponse.json(
-        { error: 'Invalid or expired code' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized('Invalid or expired code')
     }
 
     const supabase = createServiceClient()
@@ -56,10 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating designer:', error)
-      return NextResponse.json(
-        { error: 'Failed to create designer profile' },
-        { status: 500 }
-      )
+      return apiResponse.serverError('Failed to create designer profile', error)
     }
 
     // Insert styles, project types, and industries into separate tables
@@ -95,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // Set session cookie for designer
     const cookieStore = cookies()
-    cookieStore.set('designer-session', JSON.stringify({
+    cookieStore.set(AUTH_COOKIES.DESIGNER, JSON.stringify({
       email,
       designerId: designer.id,
       authenticatedAt: new Date().toISOString()
@@ -106,7 +99,7 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24 * 30, // 30 days
     })
 
-    return NextResponse.json({ 
+    return apiResponse.success({ 
       success: true, 
       designer: {
         id: designer.id,
@@ -116,10 +109,6 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error verifying designer:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to verify' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'designer/verify')
   }
 }

@@ -1,10 +1,12 @@
+import { API_ENDPOINTS } from '@/lib/constants'
+
 export async function sendOTPEmail(email: string, otp: string) {
   console.log('Attempting to send OTP email to:', email)
   console.log('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>')
   console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
   
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch(API_ENDPOINTS.RESEND, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,

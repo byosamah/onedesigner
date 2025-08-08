@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function GET(
   request: NextRequest,
@@ -9,23 +11,17 @@ export async function GET(
   try {
     // Get client session
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized()
     }
 
     const session = JSON.parse(sessionCookie.value)
     const { clientId } = session
 
     if (!clientId) {
-      return NextResponse.json(
-        { error: 'Client ID not found' },
-        { status: 400 }
-      )
+      return apiResponse.error('Client ID not found')
     }
 
     const supabase = createServiceClient()
@@ -71,10 +67,7 @@ export async function GET(
 
     if (error || !match) {
       console.error('Error fetching match:', error)
-      return NextResponse.json(
-        { error: 'Match not found' },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Match')
     }
 
     // Hide contact info for locked matches
@@ -87,15 +80,11 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({
+    return apiResponse.success({
       success: true,
       match
     })
   } catch (error) {
-    console.error('Error in match detail API:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch match' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'client/matches/[id]')
   }
 }

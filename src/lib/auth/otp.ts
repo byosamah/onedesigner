@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { OTP_CONFIG } from '@/lib/constants'
 
-export async function generateOTP(length: number = 6): Promise<string> {
+export async function generateOTP(length: number = OTP_CONFIG.LENGTH): Promise<string> {
   const digits = '0123456789'
   let otp = ''
   for (let i = 0; i < length; i++) {
@@ -12,7 +13,7 @@ export async function generateOTP(length: number = 6): Promise<string> {
 export async function createOTPToken(email: string): Promise<{ token: string; expiresAt: Date }> {
   const supabase = createServiceClient()
   const token = await generateOTP()
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+  const expiresAt = new Date(Date.now() + OTP_CONFIG.EXPIRY_TIME) // 10 minutes
 
   // Clean up old tokens for this email
   await supabase

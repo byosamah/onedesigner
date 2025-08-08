@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(
   request: NextRequest,
@@ -11,23 +13,17 @@ export async function POST(
     
     // Get client session
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized()
     }
 
     const session = JSON.parse(sessionCookie.value)
     const { clientId } = session
 
     if (!clientId) {
-      return NextResponse.json(
-        { error: 'Client ID not found' },
-        { status: 400 }
-      )
+      return apiResponse.error('Client ID not found')
     }
 
     const supabase = createServiceClient()
@@ -40,19 +36,13 @@ export async function POST(
       .single()
 
     if (clientError || !client) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Client')
     }
 
     console.log('📊 Client credits:', client.match_credits)
     
     if (!client.match_credits || client.match_credits < 1) {
-      return NextResponse.json(
-        { error: 'Insufficient credits. Please purchase more credits.' },
-        { status: 400 }
-      )
+      return apiResponse.error('Insufficient credits. Please purchase more credits.')
     }
 
     // Verify the match belongs to this client and is pending
@@ -67,16 +57,13 @@ export async function POST(
       console.error('❌ Match not found:', matchError)
       console.error('❌ Match ID:', params.id)
       console.error('❌ Client ID:', clientId)
-      return NextResponse.json(
-        { error: 'Match not found' },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Match')
     }
 
     console.log('🔍 Match status:', match.status)
     
     if (match.status === 'unlocked' || match.status === 'accepted') {
-      return NextResponse.json({
+      return apiResponse.success({
         success: true,
         message: 'Match is already unlocked',
         remainingCredits: client.match_credits,
@@ -85,10 +72,7 @@ export async function POST(
     }
     
     if (match.status !== 'pending') {
-      return NextResponse.json(
-        { error: 'Match unavailable' },
-        { status: 400 }
-      )
+      return apiResponse.error('Match unavailable')
     }
 
     // Start transaction: deduct credit and unlock match
@@ -131,16 +115,12 @@ export async function POST(
       console.error('Error recording unlock:', unlockError)
     }
 
-    return NextResponse.json({
+    return apiResponse.success({
       success: true,
       message: 'Match unlocked successfully',
       remainingCredits: client.match_credits - 1
     })
   } catch (error) {
-    console.error('Error unlocking match:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to unlock match' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'client/matches/[id]/unlock')
   }
 }

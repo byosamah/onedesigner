@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { API_ENDPOINTS } from '@/lib/constants'
 
 interface EmailOptions {
   to: string
@@ -24,7 +25,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       
       // Fallback: Use Resend API if available
       if (process.env.RESEND_API_KEY) {
-        const response = await fetch('https://api.resend.com/emails', {
+        const response = await fetch(API_ENDPOINTS.RESEND, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,

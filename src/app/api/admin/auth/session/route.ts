@@ -1,37 +1,28 @@
-import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function GET() {
   try {
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('admin-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.ADMIN)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'No session found' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized('No session found')
     }
 
     let session
     try {
       session = JSON.parse(sessionCookie.value)
     } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized('Invalid session')
     }
 
-    return NextResponse.json({
+    return apiResponse.success({
       admin: session,
       authenticated: true
     })
   } catch (error) {
-    console.error('Session check error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'admin/auth/session')
   }
 }

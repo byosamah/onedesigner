@@ -1,28 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function GET(request: NextRequest) {
   try {
     // Get client session
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized()
     }
 
     const session = JSON.parse(sessionCookie.value)
     const { clientId } = session
 
     if (!clientId) {
-      return NextResponse.json(
-        { error: 'Client ID not found' },
-        { status: 400 }
-      )
+      return apiResponse.error('Client ID not found')
     }
 
     const supabase = createServiceClient()
@@ -45,10 +41,7 @@ export async function GET(request: NextRequest) {
     
     if (error) {
       console.error('Error fetching matches:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch matches' },
-        { status: 500 }
-      )
+      return apiResponse.serverError('Failed to fetch matches', error)
     }
 
     // Fetch designers and briefs separately
@@ -108,22 +101,18 @@ export async function GET(request: NextRequest) {
         return match
       })
       
-      return NextResponse.json({
+      return apiResponse.success({
         success: true,
         matches: finalMatches
       })
     }
 
     // No matches found
-    return NextResponse.json({
+    return apiResponse.success({
       success: true,
       matches: []
     })
   } catch (error) {
-    console.error('Error in matches API:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to fetch matches' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'client/matches')
   }
 }

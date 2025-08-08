@@ -1,8 +1,9 @@
 import { AIProvider, MatchResult } from '../types'
+import { API_ENDPOINTS } from '@/lib/constants'
 
 export class DeepSeekProvider implements AIProvider {
   private apiKey: string
-  private baseURL = 'https://api.deepseek.com/v1'
+  private baseURL = API_ENDPOINTS.DEEPSEEK
   private model = 'deepseek-chat' // Using chat model for better matching capabilities
 
   constructor() {

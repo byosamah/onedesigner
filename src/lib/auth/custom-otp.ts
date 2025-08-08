@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
+import { OTP_CONFIG } from '@/lib/constants'
 
 // Generate a 6-digit OTP
 export function generateOTP(): string {
@@ -10,7 +11,7 @@ export function generateOTP(): string {
 export async function createCustomOTP(email: string) {
   const supabase = createServiceClient()
   const otp = generateOTP()
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+  const expiresAt = new Date(Date.now() + OTP_CONFIG.EXPIRY_TIME) // 10 minutes
 
   // Clean up old OTPs for this email
   await supabase

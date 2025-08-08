@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { apiResponse } from '@/lib/api/responses'
 
 export async function GET() {
-  return NextResponse.json({ 
+  return apiResponse.success({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
     message: 'OneDesigner API is running'

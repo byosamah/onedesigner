@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
     // Get client session from cookie
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('client-session')
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return apiResponse.unauthorized()
     }
 
     const session = JSON.parse(sessionCookie.value)
@@ -23,10 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!briefData.projectType || !briefData.industry || !briefData.timeline) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return apiResponse.error('Missing required fields')
     }
 
     const supabase = createServiceClient()
@@ -44,10 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!finalClientId) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+      return apiResponse.notFound('Client')
     }
 
     // Create the brief
@@ -93,15 +86,11 @@ export async function POST(request: NextRequest) {
       // Don't fail the whole request if matching fails
     }
 
-    return NextResponse.json({ 
+    return apiResponse.success({ 
       success: true, 
       brief 
     })
   } catch (error) {
-    console.error('Error in create brief:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create brief' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'briefs/create')
   }
 }

@@ -1,52 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { validateSession } from '@/lib/auth/session-handlers'
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('designer-session')
+    // Use centralized session validation
+    const result = await validateSession('DESIGNER')
     
-    if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'No session found' },
-        { status: 401 }
-      )
+    if (!result.valid || !result.session || !result.user) {
+      return apiResponse.unauthorized('No valid session found')
     }
 
-    let session
-    try {
-      session = JSON.parse(sessionCookie.value)
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid session' },
-        { status: 401 }
-      )
-    }
+    const designer = result.user
+    const { designerId } = result.session as any
 
-    const { designerId } = session
-    if (!designerId) {
-      return NextResponse.json(
-        { error: 'Invalid session data' },
-        { status: 401 }
-      )
-    }
-
-    // Fetch designer data from database
+    // Fetch designer data is already done by validateSession
     const supabase = createServiceClient()
-    const { data: designer, error } = await supabase
-      .from('designers')
-      .select('*')
-      .eq('id', designerId)
-      .single()
-
-    if (error || !designer) {
-      console.error('Error fetching designer:', error)
-      return NextResponse.json(
-        { error: 'Designer not found' },
-        { status: 404 }
-      )
-    }
 
     // Try to fetch related data separately (in case tables don't exist yet)
     let styles = []
@@ -91,19 +61,15 @@ export async function GET(request: NextRequest) {
       industries
     }
 
-    return NextResponse.json({
+    return apiResponse.success({
       designer: transformedDesigner,
       session: {
-        designerId,
+        designerId: designer.id,
         email: designer.email,
         name: `${designer.first_name} ${designer.last_name}`
       }
     })
   } catch (error) {
-    console.error('Session check error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'designer/auth/session')
   }
 }
