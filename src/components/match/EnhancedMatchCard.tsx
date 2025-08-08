@@ -37,6 +37,7 @@ interface MatchData {
     primaryCategories?: string[]
     styleKeywords?: string[]
     portfolioProjects?: any[]
+    portfolioImages?: string[]
     avgClientSatisfaction?: number
     onTimeDeliveryRate?: number
   }
@@ -164,20 +165,15 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = fa
         {/* Match Score Circle */}
         <div className="text-center">
           <div 
-            className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold mb-2 relative"
+            className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold mb-2 relative overflow-hidden"
             style={{
               backgroundColor: theme.accent + '20',
-              color: theme.accent,
               border: `3px solid ${theme.accent}`
             }}
           >
-            {match.score}%
-            <div 
-              className="absolute inset-0 rounded-full border-3"
-              style={{
-                background: `conic-gradient(${theme.accent} ${match.score * 3.6}deg, transparent ${match.score * 3.6}deg)`
-              }}
-            />
+            <span className="relative z-10" style={{ color: theme.accent }}>
+              {match.score}%
+            </span>
           </div>
           <div className="space-y-1">
             <p className="text-xs font-medium" style={{ color: theme.text.secondary }}>
@@ -197,24 +193,39 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = fa
       </div>
 
       {/* Portfolio Preview */}
-      {match.designer.portfolioProjects && match.designer.portfolioProjects.length > 0 && (
+      {(match.designer.portfolioImages && match.designer.portfolioImages.length > 0) && (
         <div className="mb-6">
           <h4 className="font-medium mb-3 flex items-center gap-2" style={{ color: theme.text.primary }}>
             <span>🎨</span>
             Recent Work
           </h4>
           <div className="grid grid-cols-3 gap-3">
-            {match.designer.portfolioProjects.slice(0, 3).map((project, index) => (
+            {match.designer.portfolioImages.slice(0, 3).map((imageUrl, index) => (
               <div 
                 key={index} 
                 className="aspect-square rounded-2xl overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
                 onClick={() => setShowFullProfile(true)}
+                style={{ backgroundColor: theme.nestedBg }}
               >
                 <img 
-                  src={project.image_url || project.url} 
-                  alt={project.title}
+                  src={imageUrl} 
+                  alt={`Portfolio ${index + 1}`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
+              </div>
+            ))}
+            {/* Show placeholder if less than 3 images */}
+            {Array.from({ length: 3 - (match.designer.portfolioImages?.length || 0) }, (_, index) => (
+              <div 
+                key={`placeholder-${index}`}
+                className="aspect-square rounded-2xl flex items-center justify-center"
+                style={{ backgroundColor: theme.nestedBg, border: `1px solid ${theme.border}` }}
+              >
+                <div className="text-center">
+                  <div className="text-2xl mb-1" style={{ color: theme.text.muted }}>📸</div>
+                  <p className="text-xs" style={{ color: theme.text.muted }}>More work</p>
+                </div>
               </div>
             ))}
           </div>

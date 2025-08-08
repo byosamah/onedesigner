@@ -242,81 +242,94 @@ export default function EnhancedMatchPage() {
       </nav>
 
       <div className="max-w-4xl mx-auto px-8 py-12">
-        {/* Header */}
-        <div className="mb-8 text-center animate-slideUp">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
-            {isLoading && matches.length === 0 ? 'Finding Your Perfect Match' : 'Your Perfect Match'}
-          </h1>
-          <p className="text-lg" style={{ color: theme.text.secondary }}>
-            {isLoading && matches.length === 0 
-              ? 'We\'re analyzing designers to find the best match for your project'
-              : 'We found the perfect designer for your project'
-            }
-          </p>
-        </div>
+        {/* Header with match counter - Only show when matches are found */}
+        {!isLoading && matches.length > 0 && (
+          <div className="mb-8 text-center animate-slideUp">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="px-4 py-2 rounded-full text-sm font-bold"
+                  style={{
+                    backgroundColor: theme.accent + '20',
+                    color: theme.accent
+                  }}
+                >
+                  You have {matches.length} match{matches.length !== 1 ? 'es' : ''}
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => window.location.href = '/client/dashboard'}
+                className="text-sm font-medium hover:underline transition-colors duration-300"
+                style={{ color: theme.text.secondary }}
+              >
+                Previous matches →
+              </button>
+            </div>
+            
+            <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
+              Your Perfect Match
+            </h1>
+            <p className="text-lg" style={{ color: theme.text.secondary }}>
+              We found the perfect designer for your project
+            </p>
+          </div>
+        )}
 
-        {/* Loading State */}
+        {/* Loading State - Simplified without box */}
         {isLoading && matches.length === 0 && (
-          <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
-            <div 
-              className="rounded-3xl p-8 text-center"
-              style={{
-                backgroundColor: theme.cardBg,
-                border: `1px solid ${theme.border}`
-              }}
-            >
-              <div className="space-y-6">
-                {/* Animated Icon */}
-                <div className="flex justify-center">
-                  <div className="relative">
-                    <div className="text-5xl animate-pulse" style={{ color: theme.accent }}>
-                      🎯
-                    </div>
-                    <div className="absolute -right-2 -bottom-2 text-2xl animate-spin">
-                      ✨
-                    </div>
+          <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fadeIn">
+            <div className="space-y-8">
+              {/* Animated Icon */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="text-5xl animate-pulse" style={{ color: theme.accent }}>
+                    🎯
+                  </div>
+                  <div className="absolute -right-2 -bottom-2 text-2xl animate-spin">
+                    ✨
                   </div>
                 </div>
-                
-                {/* Loading Message */}
-                <div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                    {loadingMessage}
-                  </h3>
-                  <p className="text-sm" style={{ color: theme.text.secondary }}>
-                    This usually takes 10-15 seconds
-                  </p>
+              </div>
+              
+              {/* Loading Message */}
+              <div className="text-center">
+                <h3 className="text-xl font-bold mb-2" style={{ color: theme.text.primary }}>
+                  {loadingMessage}
+                </h3>
+                <p className="text-sm" style={{ color: theme.text.secondary }}>
+                  This usually takes 10-15 seconds
+                </p>
+              </div>
+              
+              {/* Progress Steps */}
+              <div className="flex justify-center items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase ? 'scale-125' : ''}`}
+                    style={{ backgroundColor: currentPhase ? theme.accent : theme.border }}
+                  />
+                  <span className="text-xs" style={{ color: currentPhase ? theme.text.primary : theme.text.muted }}>
+                    Analyzing
+                  </span>
                 </div>
-                
-                {/* Progress Steps */}
-                <div className="flex justify-center items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase ? 'scale-125' : ''}`}
-                      style={{ backgroundColor: currentPhase ? theme.accent : theme.border }}
-                    />
-                    <span className="text-xs" style={{ color: currentPhase ? theme.text.primary : theme.text.muted }}>
-                      Analyzing
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase === 'refined' || currentPhase === 'final' ? 'scale-125' : ''}`}
-                      style={{ backgroundColor: currentPhase === 'refined' || currentPhase === 'final' ? theme.accent : theme.border }}
-                    />
-                    <span className="text-xs" style={{ color: currentPhase === 'refined' || currentPhase === 'final' ? theme.text.primary : theme.text.muted }}>
-                      Matching
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div 
-                      className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase === 'final' ? 'scale-125' : ''}`}
-                      style={{ backgroundColor: currentPhase === 'final' ? theme.accent : theme.border }}
-                    />
-                    <span className="text-xs" style={{ color: currentPhase === 'final' ? theme.text.primary : theme.text.muted }}>
-                      Finalizing
-                    </span>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase === 'refined' || currentPhase === 'final' ? 'scale-125' : ''}`}
+                    style={{ backgroundColor: currentPhase === 'refined' || currentPhase === 'final' ? theme.accent : theme.border }}
+                  />
+                  <span className="text-xs" style={{ color: currentPhase === 'refined' || currentPhase === 'final' ? theme.text.primary : theme.text.muted }}>
+                    Matching
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className={`w-3 h-3 rounded-full transition-all duration-500 ${currentPhase === 'final' ? 'scale-125' : ''}`}
+                    style={{ backgroundColor: currentPhase === 'final' ? theme.accent : theme.border }}
+                  />
+                  <span className="text-xs" style={{ color: currentPhase === 'final' ? theme.text.primary : theme.text.muted }}>
+                    Finalizing
+                  </span>
                 </div>
               </div>
             </div>

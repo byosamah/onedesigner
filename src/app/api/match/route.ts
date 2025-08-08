@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       return apiResponse.validationError('Brief must have design category, timeline, and budget information')
     }
 
-    // Get approved designers
+    // Get approved designers with portfolio images
     const { data: designers, error: designersError } = await supabase
       .from('designers')
-      .select('*')
+      .select('*, portfolio_image_1, portfolio_image_2, portfolio_image_3')
       .eq('is_verified', true)
       .eq('is_approved', true)
       .eq('availability', 'available')
@@ -158,6 +158,11 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
+            portfolioImages: [
+              designer.portfolio_image_1,
+              designer.portfolio_image_2,
+              designer.portfolio_image_3
+            ].filter(Boolean), // Remove null/undefined values
             avgClientSatisfaction: 95,
             onTimeDeliveryRate: 98
           },
@@ -192,6 +197,11 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
+            portfolioImages: [
+              designer.portfolio_image_1,
+              designer.portfolio_image_2,
+              designer.portfolio_image_3
+            ].filter(Boolean), // Remove null/undefined values
             avgClientSatisfaction: 95,
             onTimeDeliveryRate: 98
           },
