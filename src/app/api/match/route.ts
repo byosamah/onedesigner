@@ -231,18 +231,182 @@ Provide a JSON response with:
 
     console.log(`Found ${matches.length} enhanced matches`)
 
+    // If no matches found after AI analysis, implement fallback strategy
     if (matches.length === 0) {
-      // For simple matcher, just check if any designers exist
-      const { data: allDesigners } = await supabase
-        .from('designers')
-        .select('id')
-        .eq('is_verified', true)
-        .eq('is_approved', true)
+      console.log('No suitable matches found after AI analysis - implementing fallback strategy')
+      
+      // Check if the brief has incomplete data that might be causing low scores
+      const hasIncompleteData = !briefData.industry || briefData.industry.length <= 3 || 
+                               !briefData.styles || briefData.styles.length === 0 ||
+                               !briefData.project_description || briefData.project_description.length < 20
+      
+      if (hasIncompleteData && availableDesigners.length > 0) {
+        console.log('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
+        
+        // Use a much lower threshold for incomplete briefs (30+ instead of 50+)
+        const fallbackMatches = []
+        
+        // Re-analyze top 3 designers with more relaxed scoring
+        for (const designer of availableDesigners.slice(0, 3)) {
+          try {
+            const prompt = `
+You are an expert design matchmaker. Analyze this designer-client match with RELAXED criteria for an incomplete brief.
 
-      if (!allDesigners || allDesigners.length === 0) {
-        return apiResponse.error('No designers available yet. Please check back later.')
+CLIENT BRIEF (INCOMPLETE):
+- Category: ${briefData.design_category}
+- Timeline: ${briefData.timeline_type}
+- Budget: ${briefData.budget_range}
+- Description: ${briefData.project_description}
+- Industry: ${briefData.industry || 'Not specified'}
+- Styles: ${briefData.styles?.join(', ') || 'Not specified'}
+
+DESIGNER PROFILE:
+- Name: ${designer.first_name} ${designer.last_initial}
+- Experience: ${designer.years_experience} years
+- Categories: ${designer.categories?.join(', ') || 'Not specified'}
+- Industries: ${designer.industries?.join(', ') || 'Not specified'}
+- Styles: ${designer.styles?.join(', ') || 'Not specified'}
+- Rating: ${designer.rating || 0}/5
+- Projects: ${designer.total_projects || 0}
+
+Use relaxed scoring (30+ acceptable) for incomplete briefs. Focus on designer availability and basic category match.
+
+Provide JSON response:
+{
+  "score": <number 30-80>,
+  "confidence": <"medium" | "high">,
+  "matchSummary": <string explaining this is a capable designer despite brief limitations>,
+  "personalizedReasons": [<2-3 reasons focusing on designer qualifications>],
+  "uniqueValue": <what makes this designer reliable for incomplete projects>,
+  "potentialChallenges": ["Project brief could benefit from more specific requirements"]
+}
+`
+
+            const completion = await ai.generateText({
+              messages: [{ role: 'user', content: prompt }],
+              model: AI_CONFIG.models.fast,
+              temperature: 0.3,
+              maxTokens: 500,
+              responseFormat: { type: 'json_object' }
+            })
+
+            const analysis = JSON.parse(completion.text)
+            
+            // Accept matches with scores of 30+ for incomplete briefs
+            if (analysis.score >= 30) {
+              fallbackMatches.push({
+                designer: {
+                  ...designer,
+                  firstName: designer.first_name,
+                  lastName: designer.last_name,
+                  lastInitial: designer.last_initial || designer.last_name?.charAt(0),
+                  title: designer.title,
+                  city: designer.city,
+                  country: designer.country,
+                  yearsExperience: designer.years_experience,
+                  rating: designer.rating,
+                  totalProjects: designer.total_projects,
+                  designPhilosophy: designer.design_philosophy,
+                  primaryCategories: designer.categories,
+                  styleKeywords: designer.styles,
+                  portfolioProjects: designer.portfolio_projects || [],
+                  portfolioImages: [
+                    designer.portfolio_image_1,
+                    designer.portfolio_image_2,
+                    designer.portfolio_image_3
+                  ].filter(Boolean),
+                  avgClientSatisfaction: 95,
+                  onTimeDeliveryRate: 98
+                },
+                score: analysis.score,
+                confidence: analysis.confidence,
+                matchSummary: `${designer.first_name} is a qualified designer ready to work on your ${briefData.design_category} project. While your brief could use more details, this designer has the experience to deliver quality results.`,
+                reasons: analysis.personalizedReasons.slice(0, 3),
+                personalizedReasons: analysis.personalizedReasons,
+                uniqueValue: analysis.uniqueValue,
+                potentialChallenges: analysis.potentialChallenges || ['Project brief could benefit from more specific requirements'],
+                riskLevel: 'medium',
+                scoreBreakdown: {
+                  categoryMatch: Math.min(analysis.score * 0.4, 30),
+                  styleAlignment: Math.min(analysis.score * 0.25, 25),
+                  budgetCompatibility: 15,
+                  timelineCompatibility: 10,
+                  experienceLevel: 10,
+                  industryFamiliarity: 5
+                },
+                aiAnalyzed: true,
+                fallbackMatch: true
+              })
+            }
+          } catch (error) {
+            console.error('Fallback analysis failed for designer:', designer.id, error)
+          }
+        }
+        
+        if (fallbackMatches.length > 0) {
+          console.log(`Found ${fallbackMatches.length} fallback matches - using best one`)
+          matches = fallbackMatches.sort((a, b) => b.score - a.score)
+        } else {
+          // Last resort: select first available designer with reasonable defaults
+          console.log('No fallback matches found - using last resort selection')
+          const selectedDesigner = availableDesigners[0]
+          matches = [{
+            designer: {
+              ...selectedDesigner,
+              firstName: selectedDesigner.first_name,
+              lastName: selectedDesigner.last_name,
+              lastInitial: selectedDesigner.last_initial || selectedDesigner.last_name?.charAt(0),
+              title: selectedDesigner.title,
+              city: selectedDesigner.city,
+              country: selectedDesigner.country,
+              yearsExperience: selectedDesigner.years_experience,
+              rating: selectedDesigner.rating,
+              totalProjects: selectedDesigner.total_projects,
+              designPhilosophy: selectedDesigner.design_philosophy,
+              primaryCategories: selectedDesigner.categories,
+              styleKeywords: selectedDesigner.styles,
+              portfolioProjects: selectedDesigner.portfolio_projects || [],
+              portfolioImages: [
+                selectedDesigner.portfolio_image_1,
+                selectedDesigner.portfolio_image_2,
+                selectedDesigner.portfolio_image_3
+              ].filter(Boolean),
+              avgClientSatisfaction: 95,
+              onTimeDeliveryRate: 98
+            },
+            score: 45,
+            confidence: 'medium',
+            matchSummary: `${selectedDesigner.first_name} is an experienced designer who can work on your ${briefData.design_category} project. Consider providing more project details for optimal results.`,
+            reasons: ['Verified and approved designer', 'Available for new projects', `${selectedDesigner.years_experience || 3}+ years experience`],
+            personalizedReasons: ['Verified and approved designer', 'Available for new projects', `${selectedDesigner.years_experience || 3}+ years experience`],
+            uniqueValue: 'Experienced professional ready to bring your vision to life',
+            potentialChallenges: ['Project brief could benefit from more specific requirements'],
+            riskLevel: 'medium',
+            scoreBreakdown: {
+              categoryMatch: 15,
+              styleAlignment: 10,
+              budgetCompatibility: 10,
+              timelineCompatibility: 5,
+              experienceLevel: 5,
+              industryFamiliarity: 0
+            },
+            aiAnalyzed: false,
+            fallbackMatch: true
+          }]
+        }
       } else {
-        return apiResponse.error('All available designers have already been matched with you')
+        // For simple matcher, just check if any designers exist
+        const { data: allDesigners } = await supabase
+          .from('designers')
+          .select('id')
+          .eq('is_verified', true)
+          .eq('is_approved', true)
+
+        if (!allDesigners || allDesigners.length === 0) {
+          return apiResponse.error('No designers available yet. Please check back later.')
+        } else {
+          return apiResponse.error('All available designers have already been matched with you')
+        }
       }
     }
 
