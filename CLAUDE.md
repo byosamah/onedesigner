@@ -189,6 +189,29 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 2. Use `007_speed_optimization_tables_fixed.sql` (not the original)
 3. Required for speed optimization
 
+### Deployment Process
+1. **Make changes and commit**:
+   ```bash
+   git add .
+   git commit -m "Your commit message"
+   ```
+
+2. **Push to GitHub**:
+   ```bash
+   git push origin main
+   ```
+
+3. **Deploy to Vercel** (ALWAYS do this after pushing):
+   ```bash
+   vercel --prod
+   ```
+
+4. **If Vercel link is lost**:
+   ```bash
+   vercel link --project onedesigner2 --yes
+   vercel --prod
+   ```
+
 ### Testing Checklist
 - [ ] Create brief → Match appears instantly
 - [ ] Unlock with credit → Credits deducted
@@ -237,6 +260,14 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
   - Created access token for Claude MCP
   - Configured HTTP MCP with Bearer authentication
   - Ready for deployment management through Claude
+- **Successfully deployed to production**:
+  - Fixed Vercel project linking issue (directory name didn't match requirements)
+  - Created `.vercel/project.json` to link to existing `onedesigner2` project
+  - Used `vercel link --project onedesigner2 --yes` to establish connection
+  - Deployed with `vercel --prod` successfully
+  - Production URL: https://www.onedesigner.app
+  - Build completed with warnings but no errors
+  - All API routes properly configured as serverless functions
 
 ### Previous Session (Aug 7, 2025) - Design System Update
 - **Updated client/purchase page** to match test mode design
