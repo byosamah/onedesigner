@@ -19,6 +19,8 @@ interface NavigationProps {
   title?: string
   showSignOut?: boolean
   onSignOut?: () => void
+  showBackButton?: boolean
+  onBack?: () => void
 }
 
 const NavigationComponent = ({ 
@@ -30,12 +32,25 @@ const NavigationComponent = ({
   showDashboardLink = false,
   title,
   showSignOut = false,
-  onSignOut
+  onSignOut,
+  showBackButton = false,
+  onBack
 }: NavigationProps) => {
   return (
     <nav className="px-8 py-4">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <Logo theme={theme} title={title} />
+        <div className="flex items-center gap-4">
+          {showBackButton && onBack && (
+            <button
+              onClick={onBack}
+              className="text-sm font-medium transition-colors duration-300 hover:opacity-80"
+              style={{ color: theme.text.secondary }}
+            >
+              ← Back
+            </button>
+          )}
+          <Logo theme={theme} title={title} />
+        </div>
         
         <div className="flex items-center gap-8">
           {showDashboardLink && (
