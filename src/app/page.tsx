@@ -51,10 +51,10 @@ export default function HomePage() {
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-8">
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8">
           <Link
             href="/brief"
-            className="min-w-[240px] group font-bold py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+            className="min-w-[300px] group font-bold py-6 px-12 rounded-2xl transition-all duration-300 hover:scale-[1.02] text-lg"
             style={{ backgroundColor: theme.accent, color: '#000' }}
           >
             I need a designer
@@ -63,7 +63,7 @@ export default function HomePage() {
           
           <Link
             href="/designer/apply"
-            className="min-w-[240px] group font-semibold py-4 px-8 rounded-2xl transition-all duration-300 hover:scale-[1.02] relative"
+            className="min-w-[300px] group font-semibold py-6 px-12 rounded-2xl transition-all duration-300 hover:scale-[1.02] relative text-lg"
             style={{ 
               backgroundColor: 'transparent',
               border: '2px solid ' + theme.border,
