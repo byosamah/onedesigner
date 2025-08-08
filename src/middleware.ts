@@ -32,8 +32,12 @@ export async function middleware(request: NextRequest) {
     '/icon.svg'
   ]
   
-  // Skip middleware for public routes
-  if (publicRoutes.some(route => pathname === route || pathname.startsWith('/test-redesign'))) {
+  // Skip middleware for public routes, API routes, and static assets
+  const isPublicRoute = publicRoutes.some(route => pathname === route)
+  const isPublicApiRoute = publicRoutes.some(route => route.startsWith('/api/') && pathname.startsWith(route))
+  const isStaticAsset = pathname.startsWith('/_next/') || pathname.includes('.')
+  
+  if (isPublicRoute || isPublicApiRoute || isStaticAsset || pathname.startsWith('/test-redesign')) {
     return NextResponse.next()
   }
   
