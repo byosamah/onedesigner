@@ -38,6 +38,8 @@ const config: Config = {
         'fade-up': 'fadeUp 0.5s ease-out',
         'scale-in': 'scaleIn 0.2s ease-out',
         'typewriter': 'typewriter 2s steps(40, end)',
+        'fadeIn': 'fadeIn 0.5s ease-in-out',
+        'slideUp': 'slideUp 0.5s ease-out',
       },
       keyframes: {
         fadeIn: {
@@ -55,6 +57,10 @@ const config: Config = {
         typewriter: {
           'from': { width: '0' },
           'to': { width: '100%' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
       },
       borderRadius: {
