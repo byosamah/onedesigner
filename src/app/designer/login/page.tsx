@@ -49,7 +49,7 @@ export default function DesignerLoginPage() {
       </div>
       
       <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-md space-y-12 animate-fadeIn">
+        <div className="w-full max-w-md space-y-12 animate-slideUp">
         <div className="text-center space-y-6">
           <div className="text-6xl mb-8">🎨</div>
           <h1 className="text-4xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
@@ -97,19 +97,15 @@ export default function DesignerLoginPage() {
 
         <div className="text-center space-y-4 animate-slideUp" style={{ animationDelay: '0.2s' }}>
           <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-            Don't have an account?
+            Don't have an account?{' '}
+            <Link 
+              href="/designer/apply" 
+              className="font-medium transition-colors duration-300 hover:opacity-80"
+              style={{ color: theme.accent }}
+            >
+              Apply as a designer
+            </Link>
           </p>
-          <Link 
-            href="/designer/apply" 
-            className="font-medium py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-            style={{ 
-              backgroundColor: 'transparent',
-              border: `2px solid ${theme.border}`,
-              color: theme.text.primary
-            }}
-          >
-            Apply as a designer
-          </Link>
         </div>
         </div>
       </div>

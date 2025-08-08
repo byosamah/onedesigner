@@ -21,67 +21,33 @@ export function ProgressBar({
   const progress = (current / total) * 100
 
   return (
-    <div className="space-y-4">
-      {/* Progress Bar */}
-      <div className="relative">
-        <div 
-          className="h-2 rounded-full"
-          style={{ backgroundColor: theme.border }}
-        >
+    <div className="mb-12 animate-slideUp">
+      <div className="flex items-center justify-between mb-2">
+        {Array.from({ length: total }, (_, i) => (
           <div
-            className="h-2 rounded-full transition-all duration-700 ease-out"
+            key={i}
+            className={`flex-1 h-2 rounded-full mx-1 transition-all duration-300 ${
+              i === 0 ? 'ml-0' : ''
+            } ${i === total - 1 ? 'mr-0' : ''}`}
             style={{
-              backgroundColor: theme.accent,
-              width: `${progress}%`
+              backgroundColor: i + 1 <= current ? theme.accent : theme.border
             }}
           />
-        </div>
-        
-        {/* Step Indicators */}
-        {steps && (
-          <div className="flex justify-between mt-4">
-            {steps.map((step, index) => {
-              const isCompleted = index < current
-              const isCurrent = index === current - 1
-              
-              return (
-                <div key={index} className="flex flex-col items-center">
-                  <div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                      isCurrent ? 'animate-pulse' : ''
-                    }`}
-                    style={{
-                      backgroundColor: isCompleted || isCurrent ? theme.accent : theme.border,
-                      color: isCompleted || isCurrent ? '#000' : theme.text.secondary
-                    }}
-                  >
-                    {isCompleted ? '✓' : index + 1}
-                  </div>
-                  {showLabels && (
-                    <span 
-                      className="text-xs font-medium mt-2 text-center max-w-20"
-                      style={{ 
-                        color: isCompleted || isCurrent ? theme.accent : theme.text.secondary 
-                      }}
-                    >
-                      {step}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+        ))}
       </div>
-
-      {/* Progress Text */}
-      <div className="flex justify-between items-center">
-        <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-          Step {current} of {total}
-        </span>
-        <span className="text-sm font-bold" style={{ color: theme.accent }}>
-          {Math.round(progress)}% Complete
-        </span>
+      <div className="flex justify-between mt-2">
+        {steps?.map((label, i) => (
+          <div 
+            key={label} 
+            className="text-xs flex-1 text-center"
+            style={{ 
+              color: i + 1 <= current ? theme.text.primary : theme.text.muted,
+              fontWeight: i + 1 === current ? 600 : 400
+            }}
+          >
+            {label}
+          </div>
+        ))}
       </div>
     </div>
   )

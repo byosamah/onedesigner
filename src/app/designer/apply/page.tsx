@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Navigation } from '@/components/shared'
 import { LoadingButton } from '@/components/forms'
 import { LoadingSpinner } from '@/components/shared'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
@@ -44,10 +43,26 @@ export default function DesignerApplyPage() {
     projectTypes: [] as string[],
     industries: [] as string[],
     bio: '',
+
+    // Step 5: Enhanced Portfolio & Skills
+    portfolioUrl: '',
+    dribbbleUrl: '',
+    behanceUrl: '',
+    linkedinUrl: '',
+    specializations: [] as string[],
+    softwareSkills: [] as string[],
+    
+    // Step 6: Experience & Preferences
+    previousClients: '',
+    projectPreferences: '',
+    workingStyle: '',
+    communicationStyle: 'direct',
+    remoteExperience: '',
+    teamCollaboration: ''
   })
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 6) {
       setStep(step + 1)
     } else {
       handleSubmit()
@@ -84,6 +99,24 @@ export default function DesignerApplyPage() {
       industries: prev.industries.includes(industry)
         ? prev.industries.filter(i => i !== industry)
         : [...prev.industries, industry]
+    }))
+  }
+
+  const handleSpecializationToggle = (spec: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specializations: prev.specializations.includes(spec)
+        ? prev.specializations.filter(s => s !== spec)
+        : [...prev.specializations, spec]
+    }))
+  }
+
+  const handleSoftwareToggle = (software: string) => {
+    setFormData(prev => ({
+      ...prev,
+      softwareSkills: prev.softwareSkills.includes(software)
+        ? prev.softwareSkills.filter(s => s !== software)
+        : [...prev.softwareSkills, software]
     }))
   }
 
@@ -481,6 +514,285 @@ export default function DesignerApplyPage() {
           </>
         )
 
+      case 5:
+        const specializations = [
+          'UI/UX Design', 'Web Design', 'Mobile App Design', 'Brand Identity', 
+          'Logo Design', 'Illustration', 'Print Design', 'Packaging Design',
+          'Motion Graphics', 'Product Design', 'Service Design', 'Design Systems'
+        ]
+        
+        const softwareOptions = [
+          'Figma', 'Adobe XD', 'Sketch', 'Adobe Photoshop', 'Adobe Illustrator',
+          'Adobe InDesign', 'Adobe After Effects', 'Framer', 'Principle', 'InVision',
+          'Zeplin', 'Abstract', 'Miro', 'FigJam'
+        ]
+
+        return (
+          <>
+            <h2 className="text-2xl font-bold mb-8" style={{ color: theme.text.primary }}>
+              Portfolio & Skills
+            </h2>
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                    Additional Portfolio URL
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.portfolioUrl}
+                    onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                    style={{ 
+                      backgroundColor: theme.nestedBg, 
+                      color: theme.text.primary,
+                      borderColor: theme.border,
+                      '--tw-ring-color': theme.accent
+                    } as any}
+                    placeholder="https://portfolio2.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                    Dribbble URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.dribbbleUrl}
+                    onChange={(e) => setFormData({ ...formData, dribbbleUrl: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                    style={{ 
+                      backgroundColor: theme.nestedBg, 
+                      color: theme.text.primary,
+                      borderColor: theme.border,
+                      '--tw-ring-color': theme.accent
+                    } as any}
+                    placeholder="https://dribbble.com/username"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                    Behance URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.behanceUrl}
+                    onChange={(e) => setFormData({ ...formData, behanceUrl: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                    style={{ 
+                      backgroundColor: theme.nestedBg, 
+                      color: theme.text.primary,
+                      borderColor: theme.border,
+                      '--tw-ring-color': theme.accent
+                    } as any}
+                    placeholder="https://behance.net/username"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                    LinkedIn URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.linkedinUrl}
+                    onChange={(e) => setFormData({ ...formData, linkedinUrl: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                    style={{ 
+                      backgroundColor: theme.nestedBg, 
+                      color: theme.text.primary,
+                      borderColor: theme.border,
+                      '--tw-ring-color': theme.accent
+                    } as any}
+                    placeholder="https://linkedin.com/in/username"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
+                  Specializations (Select all that apply)
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {specializations.map((spec) => (
+                    <button
+                      key={spec}
+                      onClick={() => handleSpecializationToggle(spec)}
+                      className="px-3 py-2 rounded-xl border text-sm font-medium transition-all duration-300"
+                      style={{
+                        backgroundColor: formData.specializations.includes(spec) ? theme.accent : theme.nestedBg,
+                        color: formData.specializations.includes(spec) ? '#000' : theme.text.primary,
+                        borderColor: formData.specializations.includes(spec) ? theme.accent : theme.border
+                      }}
+                    >
+                      {spec}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
+                  Software Skills (Select all that apply)
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {softwareOptions.map((software) => (
+                    <button
+                      key={software}
+                      onClick={() => handleSoftwareToggle(software)}
+                      className="px-3 py-2 rounded-xl border text-sm font-medium transition-all duration-300"
+                      style={{
+                        backgroundColor: formData.softwareSkills.includes(software) ? theme.accent : theme.nestedBg,
+                        color: formData.softwareSkills.includes(software) ? '#000' : theme.text.primary,
+                        borderColor: formData.softwareSkills.includes(software) ? theme.accent : theme.border
+                      }}
+                    >
+                      {software}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )
+
+      case 6:
+        return (
+          <>
+            <h2 className="text-2xl font-bold mb-8" style={{ color: theme.text.primary }}>
+              Experience & Preferences
+            </h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Previous Notable Clients or Projects
+                </label>
+                <textarea
+                  value={formData.previousClients}
+                  onChange={(e) => setFormData({ ...formData, previousClients: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="Briefly describe notable clients or projects you've worked on..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Project Preferences
+                </label>
+                <textarea
+                  value={formData.projectPreferences}
+                  onChange={(e) => setFormData({ ...formData, projectPreferences: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="What types of projects do you enjoy most? What are your ideal project characteristics?"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Working Style & Process
+                </label>
+                <textarea
+                  value={formData.workingStyle}
+                  onChange={(e) => setFormData({ ...formData, workingStyle: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="Describe your design process, how you approach projects, and your working style..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
+                  Communication Style
+                </label>
+                <div className="space-y-3">
+                  {[
+                    { value: 'direct', label: 'Direct and straightforward' },
+                    { value: 'collaborative', label: 'Collaborative and consultative' },
+                    { value: 'detailed', label: 'Detailed with regular updates' },
+                    { value: 'flexible', label: 'Flexible based on client needs' }
+                  ].map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex items-center space-x-3 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name="communicationStyle"
+                        value={option.value}
+                        checked={formData.communicationStyle === option.value}
+                        onChange={(e) => setFormData({ ...formData, communicationStyle: e.target.value })}
+                        className="w-5 h-5 accent-current"
+                        style={{ accentColor: theme.accent }}
+                      />
+                      <span style={{ color: theme.text.primary }}>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Remote Work Experience
+                </label>
+                <textarea
+                  value={formData.remoteExperience}
+                  onChange={(e) => setFormData({ ...formData, remoteExperience: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="Describe your experience working remotely with clients..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Team Collaboration Experience
+                </label>
+                <textarea
+                  value={formData.teamCollaboration}
+                  onChange={(e) => setFormData({ ...formData, teamCollaboration: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="How do you work with developers, product managers, and other stakeholders?"
+                />
+              </div>
+            </div>
+          </>
+        )
+
       default:
         return null
     }
@@ -495,12 +807,39 @@ export default function DesignerApplyPage() {
   }
 
   return (
-    <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
-      <Navigation 
-        theme={theme} 
-        isDarkMode={isDarkMode} 
-        toggleTheme={toggleTheme}
-      />
+    <main className="min-h-screen transition-colors duration-300 animate-fadeIn" style={{ backgroundColor: theme.bg }}>
+      {/* Navigation */}
+      <nav className="px-8 py-4">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1"/>
+              <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
+              <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
+            </svg>
+            OneDesigner
+          </Link>
+          
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+            style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+            aria-label="Toggle theme"
+          >
+            <div
+              className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
+              style={{
+                left: isDarkMode ? '2px' : '32px',
+                backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
+              }}
+            >
+              {isDarkMode ? '🌙' : '☀️'}
+            </div>
+          </button>
+        </div>
+      </nav>
       
       <div className="max-w-3xl mx-auto px-8 py-12">
         <div className="mb-8 text-center">
@@ -513,25 +852,25 @@ export default function DesignerApplyPage() {
         </div>
 
         {/* Progress indicator */}
-        <div className="mb-12">
+        <div className="mb-12 animate-slideUp">
           <div className="flex items-center justify-between mb-2">
-            {[1, 2, 3, 4].map((i) => (
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
                 key={i}
                 className={`flex-1 h-2 rounded-full mx-1 transition-all duration-300 ${
                   i === 1 ? 'ml-0' : ''
-                } ${i === 4 ? 'mr-0' : ''}`}
+                } ${i === 6 ? 'mr-0' : ''}`}
                 style={{
                   backgroundColor: i <= step ? theme.accent : theme.border
                 }}
               />
             ))}
           </div>
-          <div className="flex items-center justify-between">
-            {['Basic Info', 'Professional', 'Location', 'Expertise'].map((label, i) => (
+          <div className="flex justify-between mt-2">
+            {['Basic', 'Professional', 'Location', 'Expertise', 'Portfolio', 'Experience'].map((label, i) => (
               <div 
                 key={label} 
-                className="text-xs"
+                className="text-xs flex-1 text-center"
                 style={{ 
                   color: i + 1 <= step ? theme.text.primary : theme.text.muted,
                   fontWeight: i + 1 === step ? 600 : 400
@@ -569,13 +908,12 @@ export default function DesignerApplyPage() {
             <LoadingButton
               onClick={handleNext}
               loading={isLoading}
-              className="ml-auto px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover:scale-[1.02]"
-              style={{
-                backgroundColor: theme.accent,
-                color: '#000'
-              }}
+              theme={theme}
+              className="ml-auto px-6 py-3 text-sm font-medium"
+              size="sm"
+              variant="primary"
             >
-              {step === 4 ? 'Submit Application' : 'Continue'}
+              {step === 6 ? 'Submit Application' : 'Continue'}
             </LoadingButton>
           </div>
         </div>
@@ -585,7 +923,7 @@ export default function DesignerApplyPage() {
             Already applied?{' '}
             <Link
               href="/designer/login"
-              className="font-medium hover:underline"
+              className="font-medium transition-colors duration-300 hover:opacity-80"
               style={{ color: theme.accent }}
             >
               Sign in to your account
@@ -593,6 +931,6 @@ export default function DesignerApplyPage() {
           </p>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

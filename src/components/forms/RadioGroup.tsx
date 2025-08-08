@@ -41,9 +41,9 @@ export function RadioGroup({
                 isSelected ? 'animate-fadeIn' : ''
               }`}
               style={{
-                backgroundColor: isSelected ? theme.accent + '15' : theme.cardBg,
+                backgroundColor: isSelected ? theme.accent : theme.cardBg,
                 borderColor: isSelected ? theme.accent : theme.border,
-                color: theme.text.primary
+                color: isSelected ? '#000' : theme.text.primary
               }}
               onClick={() => onChange(option.value)}
             >
@@ -52,7 +52,7 @@ export function RadioGroup({
                 <div className="flex-1">
                   <h4 className="font-medium text-base">{option.label}</h4>
                   {option.description && (
-                    <p className="text-sm mt-1" style={{ color: theme.text.secondary }}>
+                    <p className="text-sm mt-1 opacity-80" style={{ color: isSelected ? '#000' : theme.text.secondary }}>
                       {option.description}
                     </p>
                   )}
@@ -62,14 +62,14 @@ export function RadioGroup({
                     isSelected ? 'scale-110' : ''
                   }`}
                   style={{
-                    borderColor: isSelected ? theme.accent : theme.border,
-                    backgroundColor: isSelected ? theme.accent : 'transparent'
+                    borderColor: isSelected ? '#000' : theme.border,
+                    backgroundColor: isSelected ? '#000' : 'transparent'
                   }}
                 >
                   {isSelected && (
                     <div 
                       className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: '#000' }}
+                      style={{ backgroundColor: theme.accent }}
                     />
                   )}
                 </div>

@@ -27,6 +27,22 @@ const designerApplicationSchema = z.object({
   projectTypes: z.array(z.string()).min(1),
   industries: z.array(z.string()).min(1).max(5),
   bio: z.string().optional(),
+
+  // Step 5: Enhanced Portfolio & Skills
+  portfolioUrl: z.string().url().optional().or(z.literal('')),
+  dribbbleUrl: z.string().url().optional().or(z.literal('')),
+  behanceUrl: z.string().url().optional().or(z.literal('')),
+  linkedinUrl: z.string().url().optional().or(z.literal('')),
+  specializations: z.array(z.string()).optional(),
+  softwareSkills: z.array(z.string()).optional(),
+  
+  // Step 6: Experience & Preferences
+  previousClients: z.string().optional(),
+  projectPreferences: z.string().optional(),
+  workingStyle: z.string().optional(),
+  communicationStyle: z.string().min(1),
+  remoteExperience: z.string().optional(),
+  teamCollaboration: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -76,6 +92,19 @@ export async function POST(request: NextRequest) {
         project_types: validatedData.projectTypes,
         industries: validatedData.industries,
         bio: validatedData.bio,
+        // Enhanced fields
+        portfolio_url: validatedData.portfolioUrl || null,
+        dribbble_url: validatedData.dribbbleUrl || null,
+        behance_url: validatedData.behanceUrl || null,
+        linkedin_url: validatedData.linkedinUrl || null,
+        specializations: validatedData.specializations || [],
+        software_skills: validatedData.softwareSkills || [],
+        previous_clients: validatedData.previousClients || null,
+        project_preferences: validatedData.projectPreferences || null,
+        working_style: validatedData.workingStyle || null,
+        communication_style: validatedData.communicationStyle,
+        remote_experience: validatedData.remoteExperience || null,
+        team_collaboration: validatedData.teamCollaboration || null,
         verification_code: hashedCode,
         verification_expires: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
         is_verified: false,

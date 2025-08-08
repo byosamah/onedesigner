@@ -24,33 +24,82 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Create enhanced brief record
+    // Create enhanced brief record with all category-specific fields
+    const briefInsert: any = {
+      client_id: session.clientId,
+      design_category: briefData.design_category,
+      project_description: briefData.project_description,
+      timeline_type: briefData.timeline_type,
+      budget_range: briefData.budget_range,
+      
+      // Standard enhanced fields
+      deliverables: briefData.deliverables || [],
+      target_audience: briefData.target_audience,
+      project_goal: briefData.project_goal,
+      design_style_keywords: briefData.design_style_keywords || [],
+      design_examples: briefData.design_examples || [],
+      avoid_colors_styles: briefData.avoid_colors_styles,
+      involvement_level: briefData.involvement_level,
+      communication_preference: briefData.communication_preference,
+      previous_designer_experience: briefData.previous_designer_experience,
+      has_brand_guidelines: briefData.has_brand_guidelines || false,
+      
+      // Working Preferences
+      update_frequency: briefData.update_frequency,
+      involvement_preferences: briefData.involvement_preferences,
+      communication_channels: briefData.communication_channels || [],
+      project_management_tools: briefData.project_management_tools || [],
+      feedback_style: briefData.feedback_style,
+      change_flexibility: briefData.change_flexibility,
+      
+      // Category-specific fields - Branding/Logo
+      brand_identity_type: briefData.brand_identity_type,
+      brand_deliverables: briefData.brand_deliverables || [],
+      industry_sector: briefData.industry_sector,
+      brand_values: briefData.brand_values,
+      target_market: briefData.target_market,
+      brand_personality: briefData.brand_personality || [],
+      logo_style_preference: briefData.logo_style_preference,
+      color_preferences: briefData.color_preferences,
+      brand_assets_status: briefData.brand_assets_status,
+      
+      // Category-specific fields - Web/Mobile
+      digital_product_type: briefData.digital_product_type,
+      number_of_screens: briefData.number_of_screens,
+      key_features: briefData.key_features || [],
+      design_inspiration: briefData.design_inspiration,
+      technical_requirements: briefData.technical_requirements || [],
+      accessibility_requirements: briefData.accessibility_requirements || [],
+      content_strategy: briefData.content_strategy,
+      integration_needs: briefData.integration_needs || [],
+      
+      // Category-specific fields - Print/Packaging
+      print_product_type: briefData.print_product_type,
+      print_quantity: briefData.print_quantity,
+      print_dimensions: briefData.print_dimensions,
+      print_budget: briefData.print_budget,
+      print_timeline: briefData.print_timeline,
+      printing_constraints: briefData.printing_constraints || [],
+      distribution_channels: briefData.distribution_channels || [],
+      
+      // Legacy fields for backward compatibility
+      project_type: briefData.design_category,
+      industry: briefData.target_audience || briefData.industry_sector || 'General',
+      timeline: briefData.timeline_type,
+      styles: briefData.design_style_keywords || [],
+      additional_info: briefData.project_description
+    }
+
+    // Remove undefined fields to avoid database issues
+    Object.keys(briefInsert).forEach(key => {
+      if (briefInsert[key] === undefined) {
+        delete briefInsert[key]
+      }
+    })
+
     const { data: brief, error } = await supabase
       .from('briefs')
-      .insert({
-        client_id: session.clientId,
-        design_category: briefData.design_category,
-        project_description: briefData.project_description,
-        timeline_type: briefData.timeline_type,
-        budget_range: briefData.budget_range,
-        deliverables: briefData.deliverables || [],
-        target_audience: briefData.target_audience,
-        project_goal: briefData.project_goal,
-        design_style_keywords: briefData.design_style_keywords || [],
-        design_examples: briefData.design_examples || [],
-        avoid_colors_styles: briefData.avoid_colors_styles,
-        involvement_level: briefData.involvement_level,
-        communication_preference: briefData.communication_preference,
-        previous_designer_experience: briefData.previous_designer_experience,
-        has_brand_guidelines: briefData.has_brand_guidelines || false,
-        
-        // Legacy fields for backward compatibility
-        project_type: briefData.design_category,
-        industry: briefData.target_audience || 'General',
-        timeline: briefData.timeline_type,
-        styles: briefData.design_style_keywords || [],
-        additional_info: briefData.project_description
-      })
+      .insert(briefInsert)
       .select()
       .single()
 
