@@ -7,6 +7,8 @@ import { Navigation } from '@/components/shared'
 import { LoadingButton } from '@/components/forms'
 import { getTheme } from '@/lib/design-system'
 
+export const dynamic = 'force-dynamic'
+
 const DESIGN_CATEGORIES = [
   { id: 'branding', name: 'Branding & Identity', icon: '🎨' },
   { id: 'web-design', name: 'Web Design', icon: '🌐' },
