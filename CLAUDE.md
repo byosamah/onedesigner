@@ -56,11 +56,25 @@ OneDesigner is a platform that matches clients with pre-vetted designers using A
   - Consistent color scheme (#f0ad4e accent)
 - **Terminology Change**: "Credits" → "Matches" throughout UI
 
-### 6. Supabase MCP Integration (NEW - Aug 7, 2025)
+### 6. MCP Integrations (Updated - Aug 8, 2025)
+
+#### Supabase MCP
 - **Configuration**: `~/.config/claude/claude_desktop_config.json`
 - **Project Ref**: `frwchtwxpnrlpzksupgm`
 - **Mode**: Read-only for safety
 - **Benefits**: Direct database access for Claude
+
+#### Vercel MCP (NEW - Aug 8, 2025)
+- **Type**: HTTP MCP with Bearer authentication
+- **Token**: `Jn9dwrQamPfPDoFJpzsSpIjm`
+- **Account**: `designbattlefield-2236`
+- **Benefits**: Deploy, manage deployments, configure domains, manage env vars
+- **Setup Guide**: `VERCEL_MCP_SETUP.md`
+
+#### Resend MCP
+- **Custom MCP**: `/Users/osamakhalil/mcp-send-email/build/index.js`
+- **API Key**: Same as project (`re_KL6peoSX_KsWzKz8JhALUK3BdttMNS8M8`)
+- **Benefits**: Send emails programmatically through Claude
 
 ## Critical Business Rules
 
@@ -196,7 +210,7 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 
 ## Recent Changes Log
 
-### Latest Session (Aug 8, 2025) - Production Deployment
+### Latest Session (Aug 8, 2025) - Production Deployment & Vercel MCP
 - **Fixed authentication middleware** preventing public routes from loading (401 errors)
 - **Fixed build errors** by removing problematic error boundary code
 - **Disabled TypeScript/ESLint checks** in production to allow deployment
@@ -206,6 +220,7 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
   - `PRODUCTION_DEPLOYMENT.md` - Full deployment guide
   - `COMPLETE_VERCEL_ENV_VARS.md` - All environment variables with values
   - `VERCEL_ENV_SETUP.md` - Step-by-step Vercel configuration
+  - `VERCEL_MCP_SETUP.md` - Vercel MCP integration guide
 - **Generated secure production secrets**:
   - NEXTAUTH_SECRET: 898b848f7289de7aef74edccf4f9a0a899ca6f125a048cb588ca388aa2db97c6
   - CRON_SECRET: 20e0ddd37fc67741e38fdd0ed00c7f09c3e2264d385cd868f2a2ff22984882a8
@@ -216,6 +231,11 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
   - Framework detection failing despite Next.js in package.json
   - Attempted multiple fixes including vercel.json configuration
 - **Recommendation**: Delete and recreate Vercel project for fresh import
+- **Set up Vercel MCP Integration**:
+  - Authenticated with Vercel CLI (account: designbattlefield-2236)
+  - Created access token for Claude MCP
+  - Configured HTTP MCP with Bearer authentication
+  - Ready for deployment management through Claude
 
 ### Previous Session (Aug 7, 2025) - Design System Update
 - **Updated client/purchase page** to match test mode design
