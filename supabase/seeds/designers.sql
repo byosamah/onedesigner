@@ -1,9 +1,12 @@
--- Seed data for designers
+-- Delete existing seed data first
+DELETE FROM designers WHERE email LIKE '%@example.com';
+
+-- Seed data for designers with is_approved = true
 INSERT INTO designers (
   first_name, last_initial, last_name, title, email, 
   city, country, years_experience, rating, total_projects,
   bio, styles, industries, tools, hourly_rate, 
-  availability, timezone, is_verified, website_url, calendar_url
+  availability, timezone, is_verified, is_approved, categories, design_philosophy, website_url, calendar_url
 ) VALUES 
 (
   'Sarah', 'C', 'Chen', 'Brand Identity Specialist', 'sarah.chen@example.com',
@@ -12,7 +15,7 @@ INSERT INTO designers (
   ARRAY['minimal', 'modern', 'technical'],
   ARRAY['Technology/SaaS', 'Finance', 'Healthcare'],
   ARRAY['Figma', 'Adobe Creative Suite', 'Webflow'],
-  150, 'available', 'PST', true,
+  150, 'available', 'PST', true, true, ARRAY['branding-logo-design', 'web-mobile-design'], 'Clean, minimal, and impactful design that tells your brand story',
   'https://sarahchen.design', 'https://calendly.com/sarahchen'
 ),
 (
@@ -22,7 +25,7 @@ INSERT INTO designers (
   ARRAY['modern', 'minimal', 'technical'],
   ARRAY['Technology/SaaS', 'E-commerce', 'Finance'],
   ARRAY['Figma', 'Sketch', 'Framer'],
-  125, 'available', 'EST', true,
+  125, 'available', 'EST', true, true, ARRAY['web-mobile-design', 'presentations'], 'Making complex systems simple and intuitive for users',
   'https://michaelrodriguez.io', 'https://calendly.com/mrodriguez'
 ),
 (
@@ -32,7 +35,7 @@ INSERT INTO designers (
   ARRAY['corporate', 'modern', 'minimal'],
   ARRAY['Technology/SaaS', 'Finance', 'Healthcare', 'Enterprise'],
   ARRAY['Figma', 'Principle', 'Miro'],
-  175, 'busy', 'GMT', true,
+  175, 'available', 'GMT', true, true, ARRAY['web-mobile-design', 'presentations'], 'Bringing clarity to complexity through thoughtful product design',
   'https://emmathompson.co.uk', 'https://calendly.com/ethompson'
 ),
 (
@@ -42,7 +45,7 @@ INSERT INTO designers (
   ARRAY['playful', 'modern', 'bold'],
   ARRAY['E-commerce', 'Entertainment', 'Fashion', 'Food & Beverage'],
   ARRAY['Adobe Creative Suite', 'Figma', 'After Effects'],
-  100, 'available', 'KST', true,
+  100, 'available', 'KST', true, true, ARRAY['motion-graphics', 'photography-video'], 'Bold, playful designs that make brands unforgettable',
   'https://davidkim.kr', 'https://calendly.com/dkim'
 ),
 (
@@ -52,7 +55,7 @@ INSERT INTO designers (
   ARRAY['elegant', 'modern', 'minimal'],
   ARRAY['E-commerce', 'Real Estate', 'Fashion', 'Technology/SaaS'],
   ARRAY['Figma', 'Webflow', 'Adobe XD'],
-  130, 'available', 'CET', true,
+  130, 'available', 'CET', true, true, ARRAY['web-mobile-design', 'social-media-graphics'], 'Beautiful, responsive designs that convert visitors into customers',
   'https://lisamartinez.es', 'https://calendly.com/lmartinez'
 );
 
