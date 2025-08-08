@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { LoadingButton, FormTextarea } from '@/components/forms'
@@ -16,6 +16,14 @@ const timelines = [
 ]
 
 export default function BriefDetailsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BriefDetailsContent />
+    </Suspense>
+  )
+}
+
+function BriefDetailsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const projectType = searchParams.get('type') || ''

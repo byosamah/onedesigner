@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Navigation } from '@/components/shared'
 import { LoadingButton, FormInput } from '@/components/forms'
 import { useTheme } from '@/lib/hooks'

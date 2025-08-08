@@ -34,7 +34,7 @@ export default function ClientBriefPage() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {projectTypes.map((type) => (
+          {projectTypesWithOther.map((type) => (
             <button
               key={type.id}
               onClick={() => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const industries = [
@@ -35,6 +35,14 @@ const styles = [
 ]
 
 export default function ClientBriefDetailsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ClientBriefDetailsContent />
+    </Suspense>
+  )
+}
+
+function ClientBriefDetailsContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const projectType = searchParams.get('type') || ''
