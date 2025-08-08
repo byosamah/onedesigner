@@ -100,7 +100,9 @@ export const OTPInput = ({
         {otp.map((digit, index) => (
           <input
             key={index}
-            ref={(el) => (inputRefs.current[index] = el)}
+            ref={(el) => {
+              if (el) inputRefs.current[index] = el
+            }}
             type="text"
             inputMode="numeric"
             maxLength={1}
@@ -113,8 +115,8 @@ export const OTPInput = ({
               backgroundColor: theme.nestedBg,
               border: error ? '2px solid #ef4444' : `2px solid ${theme.border}`,
               color: theme.text.primary,
-              focusRingColor: theme.accent
-            }}
+              '--tw-ring-color': theme.accent
+            } as React.CSSProperties}
           />
         ))}
       </div>

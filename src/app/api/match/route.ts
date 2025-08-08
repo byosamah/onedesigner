@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
-import { createEnhancedMatcher } from '@/lib/matching/enhanced-matcher'
-import { createSimpleMatcher } from '@/lib/matching/simple-matcher'
+import { createAIProvider } from '@/lib/ai'
+import { AI_CONFIG } from '@/lib/ai/config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Brief ID is required')
     }
 
-    console.log('=== ENHANCED MATCHING START ===')
+    console.log('=== AI MATCHING START ===')
     console.log('Brief ID:', briefId)
 
     const supabase = createServiceClient()
@@ -53,34 +53,171 @@ export async function POST(request: NextRequest) {
       return apiResponse.validationError('Brief must have design category, timeline, and budget information')
     }
 
-    // Try enhanced matcher first, fall back to simple matcher
-    let matches = []
+    // Get approved designers
+    const { data: designers, error: designersError } = await supabase
+      .from('designers')
+      .select('*')
+      .eq('is_verified', true)
+      .eq('is_approved', true)
+      .eq('availability', 'available')
+
+    if (designersError || !designers || designers.length === 0) {
+      console.error('No available designers')
+      return apiResponse.error('No designers available yet. Please check back later.')
+    }
+
+    // Exclude already matched designers (if client exists)
+    let availableDesigners = designers
     
-    // Always use simple matcher for now since enhanced matcher expects different schema
-    console.log('Using simple matcher for compatibility with current schema')
-    const simpleMatcher = createSimpleMatcher()
-    const simpleMatches = await simpleMatcher.findMatches(briefData)
+    if (brief.client_id) {
+      const { data: previousMatches } = await supabase
+        .from('matches')
+        .select('designer_id')
+        .eq('client_id', brief.client_id)
+
+      const excludedIds = previousMatches?.map(m => m.designer_id) || []
+      availableDesigners = designers.filter(d => !excludedIds.includes(d.id))
+
+      if (availableDesigners.length === 0) {
+        return apiResponse.error('All available designers have already been matched with you')
+      }
+    }
+
+    // Use AI to analyze matches
+    console.log(`Analyzing ${availableDesigners.length} designers with AI...`)
     
-    // Convert simple matches to enhanced format
-    matches = simpleMatches.map(match => ({
-      ...match,
-      confidence: match.score >= 80 ? 'high' : match.score >= 60 ? 'medium' : 'low',
-      categoryMatch: true,
-      matchSummary: `${match.designer.firstName} is a great match with ${match.score}% compatibility`,
-      personalizedReasons: match.reasons,
-      uniqueValue: 'Experienced designer ready to bring your vision to life',
-      potentialChallenges: [],
-      riskLevel: 'low',
-      scoreBreakdown: {
-        categoryMatch: 30,
-        styleAlignment: 20,
-        budgetFit: 15,
-        timelineFit: 15,
-        industryFit: 15,
-        workingStyleFit: 5
-      },
-      aiAnalyzed: false
-    }))
+    const ai = createAIProvider()
+    const matches = []
+
+    // Analyze each designer with AI
+    for (const designer of availableDesigners.slice(0, 5)) { // Limit to top 5 for performance
+      try {
+        const prompt = `
+You are an expert design matchmaker. Analyze this designer-client match and provide a detailed assessment.
+
+CLIENT BRIEF:
+- Category: ${briefData.design_category}
+- Timeline: ${briefData.timeline_type}
+- Budget: ${briefData.budget_range}
+- Description: ${briefData.project_description}
+- Industry: ${briefData.industry || 'Not specified'}
+- Styles: ${briefData.styles?.join(', ') || 'Not specified'}
+
+DESIGNER PROFILE:
+- Name: ${designer.first_name} ${designer.last_initial}
+- Experience: ${designer.years_experience} years
+- Categories: ${designer.categories?.join(', ') || 'Not specified'}
+- Industries: ${designer.industries?.join(', ') || 'Not specified'}
+- Styles: ${designer.styles?.join(', ') || 'Not specified'}
+- Rating: ${designer.rating || 0}/5
+- Projects: ${designer.total_projects || 0}
+- Philosophy: ${designer.design_philosophy || 'Not specified'}
+
+Provide a JSON response with:
+{
+  "score": <number 0-100>,
+  "confidence": <"low" | "medium" | "high">,
+  "matchSummary": <string explaining why this is a good/bad match>,
+  "personalizedReasons": [<3-5 specific reasons>],
+  "uniqueValue": <what makes this designer special for this project>,
+  "potentialChallenges": [<0-2 potential issues>],
+  "scoreBreakdown": {
+    "categoryMatch": <0-30>,
+    "styleAlignment": <0-25>,
+    "budgetCompatibility": <0-15>,
+    "timelineCompatibility": <0-10>,
+    "experienceLevel": <0-10>,
+    "industryFamiliarity": <0-10>
+  }
+}
+`
+
+        const completion = await ai.generateText({
+          messages: [{ role: 'user', content: prompt }],
+          model: AI_CONFIG.models.fast,
+          temperature: 0.3,
+          maxTokens: 800,
+          responseFormat: { type: 'json_object' }
+        })
+
+        const analysis = JSON.parse(completion.text)
+        
+        matches.push({
+          designer: {
+            ...designer,
+            firstName: designer.first_name,
+            lastName: designer.last_name,
+            lastInitial: designer.last_initial || designer.last_name?.charAt(0),
+            title: designer.title,
+            city: designer.city,
+            country: designer.country,
+            yearsExperience: designer.years_experience,
+            rating: designer.rating,
+            totalProjects: designer.total_projects,
+            designPhilosophy: designer.design_philosophy,
+            primaryCategories: designer.categories,
+            styleKeywords: designer.styles,
+            portfolioProjects: designer.portfolio_projects || [],
+            avgClientSatisfaction: 95,
+            onTimeDeliveryRate: 98
+          },
+          score: analysis.score,
+          confidence: analysis.confidence,
+          matchSummary: analysis.matchSummary,
+          reasons: analysis.personalizedReasons.slice(0, 3),
+          personalizedReasons: analysis.personalizedReasons,
+          uniqueValue: analysis.uniqueValue,
+          potentialChallenges: analysis.potentialChallenges || [],
+          riskLevel: analysis.score >= 80 ? 'low' : analysis.score >= 60 ? 'medium' : 'high',
+          scoreBreakdown: analysis.scoreBreakdown,
+          aiAnalyzed: true
+        })
+
+      } catch (error) {
+        console.error('AI analysis failed for designer:', designer.id, error)
+        // Fallback to simple scoring if AI fails
+        matches.push({
+          designer: {
+            ...designer,
+            firstName: designer.first_name,
+            lastName: designer.last_name,
+            lastInitial: designer.last_initial || designer.last_name?.charAt(0),
+            title: designer.title,
+            city: designer.city,
+            country: designer.country,
+            yearsExperience: designer.years_experience,
+            rating: designer.rating,
+            totalProjects: designer.total_projects,
+            designPhilosophy: designer.design_philosophy,
+            primaryCategories: designer.categories,
+            styleKeywords: designer.styles,
+            portfolioProjects: designer.portfolio_projects || [],
+            avgClientSatisfaction: 95,
+            onTimeDeliveryRate: 98
+          },
+          score: 70,
+          confidence: 'medium',
+          matchSummary: `${designer.first_name} is an experienced designer ready for your project`,
+          reasons: ['Verified designer', 'Available for new projects', `${designer.years_experience} years of experience`],
+          personalizedReasons: ['Verified designer', 'Available for new projects', `${designer.years_experience} years of experience`],
+          uniqueValue: 'Experienced designer ready to bring your vision to life',
+          potentialChallenges: [],
+          riskLevel: 'low',
+          scoreBreakdown: {
+            categoryMatch: 20,
+            styleAlignment: 15,
+            budgetCompatibility: 10,
+            timelineCompatibility: 10,
+            experienceLevel: 10,
+            industryFamiliarity: 5
+          },
+          aiAnalyzed: false
+        })
+      }
+    }
+
+    // Sort matches by score
+    matches.sort((a, b) => b.score - a.score)
 
     console.log(`Found ${matches.length} enhanced matches`)
 

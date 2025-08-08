@@ -2,6 +2,10 @@
 export const AI_CONFIG = {
   provider: 'deepseek',
   model: 'deepseek-chat',
+  models: {
+    fast: 'deepseek-chat',
+    standard: 'deepseek-chat'
+  },
   rateLimit: 60, // requests per minute
   matching: {
     maxDesignersToAnalyze: 10,

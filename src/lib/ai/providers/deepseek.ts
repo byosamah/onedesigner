@@ -32,7 +32,7 @@ export class DeepSeekProvider implements AIProvider {
           messages: [
             {
               role: 'system',
-              content: 'You are an expert at matching designers with client projects. Analyze designer profiles and project requirements to find the best matches. Be specific and detailed in your reasoning.'
+              content: 'You are an elite designer-client matchmaker AI. Your task is to analyze client projects and designer profiles to identify THE SINGLE PERFECT MATCH with surgical precision. Your selection must be defensible, data-driven, and compelling.'
             },
             {
               role: 'user',
@@ -66,101 +66,125 @@ export class DeepSeekProvider implements AIProvider {
 
   private createMatchingPrompt(designers: any[], brief: any): string {
     return `
-You are an expert design matchmaker analyzing compatibility between a client's project and potential designers.
+==== YOUR MISSION ====
+Analyze this client's project and the available designers to identify THE SINGLE PERFECT MATCH. Your selection must be defensible, data-driven, and compelling.
 
-PROJECT CONTEXT:
-Company: ${brief.company_name}
-Industry: ${brief.industry}
-Project Type: ${brief.project_type || brief.projectType}
-Budget Range: ${brief.budget}
-Timeline: ${brief.timeline}
-Required Styles: ${JSON.stringify(brief.styles)}
-Target Audience: ${brief.target_audience || 'Not specified'}
-Brand Personality: ${brief.brand_personality || 'Not specified'}
-Key Requirements: ${brief.requirements || 'None specified'}
-Project Complexity: ${brief.complexity_level || 'moderate'}
-Success Metrics: ${brief.success_metrics || 'Not specified'}
-Inspiration/References: ${brief.inspiration || 'None provided'}
+==== CLIENT PROJECT ANALYSIS ====
 
-AVAILABLE DESIGNERS:
+CORE REQUIREMENTS:
+- Company: ${brief.company_name}
+- Industry: ${brief.industry}
+- Project Type: ${brief.project_type || brief.projectType}
+- Budget: ${brief.budget}
+- Timeline: ${brief.timeline}
+- Required Styles: ${JSON.stringify(brief.styles)}
+
+PROJECT ESSENCE:
+- Target Audience: ${brief.target_audience || 'Not specified'}
+- Brand Personality: ${brief.brand_personality || 'Not specified'}
+- Key Requirements: ${brief.requirements || 'None specified'}
+- Success Metrics: ${brief.success_metrics || 'Not specified'}
+- Inspiration/References: ${brief.inspiration || 'None provided'}
+
+==== AVAILABLE DESIGNERS FOR EVALUATION ====
 ${designers.map((d, i) => `
-Designer ${i + 1}: ${d.first_name} ${d.last_name}
-Professional Profile:
-- Title: ${d.title}
-- Experience: ${d.years_experience || 5} years
-- Location: ${d.city}, ${d.country} (${d.timezone || 'UTC'})
-- Languages: ${JSON.stringify(d.languages || ['English'])}
-- Team Size: ${d.team_size || 'solo'}
+DESIGNER ${i + 1}: ${d.first_name} ${d.last_name}
 
-Expertise & Style:
+CATEGORY EXPERTISE:
 - Specializations: ${JSON.stringify(d.specializations || [])}
-- Design Styles: ${JSON.stringify(d.styles || [])}
 - Industries: ${JSON.stringify(d.industries || [])}
-- Tools: ${JSON.stringify(d.tools_expertise || [])}
+- Experience: ${d.years_experience || 5} years
+- Total Projects: ${d.total_projects_completed || d.total_projects || 10}
+
+STYLE DNA:
+- Design Styles: ${JSON.stringify(d.styles || [])}
 - Portfolio Keywords: ${JSON.stringify(d.portfolio_keywords || [])}
 - Design Philosophy: ${d.design_philosophy || 'Not specified'}
 
-Work Approach:
-- Communication Style: ${d.communication_style || 'collaborative'}
-- Project Size Preference: ${d.preferred_project_size || 'medium'}
+PRACTICAL FIT:
+- Location: ${d.city}, ${d.country} (${d.timezone || 'UTC'})
+- Languages: ${JSON.stringify(d.languages || ['English'])}
+- Current Availability: ${d.availability}
 - Timeline Preference: ${d.preferred_timeline || 'standard'}
-- Revision Approach: ${d.revision_approach || 'structured'}
-- Work Approach: ${d.work_approach || 'Not specified'}
-- Key Strengths: ${JSON.stringify(d.strengths || [])}
+- Project Size Preference: ${d.preferred_project_size || 'medium'}
 
-Performance Metrics:
+WORKING STYLE:
+- Communication Style: ${d.communication_style || 'collaborative'}
+- Revision Approach: ${d.revision_approach || 'structured'}
+- Team Size: ${d.team_size || 'solo'}
+- Work Approach: ${d.work_approach || 'Not specified'}
+
+PERFORMANCE METRICS:
 - Client Satisfaction: ${d.avg_client_satisfaction || 4.5}/5
 - On-time Delivery: ${d.on_time_delivery_rate || 90}%
-- Project Completion: ${d.project_completion_rate || 95}%
 - Budget Adherence: ${d.budget_adherence_rate || 85}%
-- Client Retention: ${d.client_retention_rate || 80}%
 - Avg Project Duration: ${d.avg_project_duration_days || 30} days
-- Total Projects: ${d.total_projects_completed || d.total_projects || 10}
-- Current Availability: ${d.availability}
-`).join('\n---\n')}
+`).join('\n===== NEXT DESIGNER =====\n')}
 
-ANALYZE AND PROVIDE:
-1. Overall match score (0-100) with confidence level
-2. Top 5 specific reasons why this designer is ideal for this project
-3. Potential challenges or considerations
-4. Unique value propositions this designer brings
-5. Risk assessment (low/medium/high)
+==== MATCHING ALGORITHM ====
 
-Consider these critical matching factors:
-- Style alignment with brand personality
-- Industry expertise relevance
-- Capacity to handle project complexity
-- Communication style compatibility
-- Timeline feasibility
-- Budget alignment
-- Innovation vs. tradition balance
-- Cultural fit indicators
-- Performance track record
-- Unique differentiators
+STEP 1: ELIMINATION FILTERS
+For each designer, verify:
+□ Correct specialization for project type
+□ Within budget range (+/- 20%)
+□ Available for timeline
+□ Style alignment (no conflicts)
+□ Required industry experience
 
-For the top ${Math.min(3, designers.length)} designers, return your response in this exact JSON format:
+STEP 2: SCORING MATRIX (100 points total)
+- CATEGORY MASTERY (30 pts): Exact match + portfolio evidence + experience
+- STYLE ALIGNMENT (25 pts): Style match + philosophy fit + aesthetic range
+- PROJECT FIT (20 pts): Industry + scale + success history
+- WORKING COMPATIBILITY (15 pts): Communication + process alignment
+- VALUE FACTORS (10 pts): Budget fit + availability + extras
+
+STEP 3: SELECT THE ONE
+Choose the highest scoring designer who passes all filters.
+If NO designer scores above 70/100, recommend waiting.
+
+==== RESPONSE FORMAT ====
+Return ONLY this JSON structure for THE SINGLE BEST MATCH:
 {
-  "matches": [
-    {
-      "designerIndex": 0,
-      "score": 95,
-      "confidence": "high",
-      "reasons": [
-        "Specific reason with concrete examples from their background",
-        "How their expertise directly addresses the project needs",
-        "Why their work style matches the client's requirements",
-        "What unique value they bring to this specific project",
-        "Performance metric that demonstrates reliability"
-      ],
-      "uniqueValue": "One sentence describing their standout quality for this project",
-      "challenges": ["Potential consideration 1", "Potential consideration 2"],
-      "riskLevel": "low",
-      "matchSummary": "2-3 sentence compelling summary of why they're the perfect match"
-    }
-  ]
+  "selectedDesignerIndex": 0,
+  "designerName": "First Last",
+  "matchScore": 85,
+  "confidence": "95%",
+  "isRecommended": true,
+  "matchDecision": "PERFECT MATCH: [One compelling sentence why this designer]",
+  "keyDistinction": "The only designer who [unique combination of strengths]",
+  "scoreBreakdown": {
+    "categoryMastery": 28,
+    "styleAlignment": 23,
+    "projectFit": 18,
+    "workingCompatibility": 13,
+    "valueFactors": 8
+  },
+  "matchNarrative": "[2-3 sentences: compelling story of why THIS designer for THIS project]",
+  "specificEvidence": [
+    "Concrete portfolio example proving capability",
+    "Specific metric demonstrating reliability",
+    "Unique qualification addressing client need",
+    "Past project showing budget/timeline alignment"
+  ],
+  "riskMitigation": "How this designer solves client's specific concerns",
+  "surpriseDelight": "Unexpected bonus value they bring",
+  "potentialConcerns": ["Honest concern if any", "Another if applicable"],
+  "nextSteps": "Contact designer immediately to confirm availability for [specific dates]"
 }
 
-Be specific and mention actual details from both the brief and designer profiles. Focus on creating a compelling narrative for why each match is ideal.`
+If NO suitable match (all scores <70):
+{
+  "selectedDesignerIndex": -1,
+  "designerName": "No Match Found",
+  "matchScore": 0,
+  "confidence": "N/A",
+  "isRecommended": false,
+  "matchDecision": "NO OPTIMAL MATCH: Best available scores only [X]/100",
+  "recommendedAction": "Wait for better matches or adjust [specific requirement]",
+  "topGaps": ["Specific missing qualification", "Another gap"]
+}
+
+REMEMBER: Select THE ONE designer who seems custom-built for this project. Make it undeniable.`
   }
 
   private parseMatchResults(content: string, designers: any[]): MatchResult[] {
@@ -172,44 +196,59 @@ Be specific and mention actual details from both the brief and designer profiles
       }
 
       const parsed = JSON.parse(jsonMatch[0])
-      const matches = parsed.matches || []
+      
+      // Handle single match response
+      if (!parsed.isRecommended || parsed.selectedDesignerIndex === -1) {
+        // No suitable match found
+        console.log('No suitable match found:', parsed.recommendedAction)
+        return []
+      }
 
-      return matches.map((match: any) => {
-        const designer = designers[match.designerIndex]
-        return {
-          designer,
-          score: Math.min(100, Math.max(0, match.score)),
-          reasons: match.reasons || [
-            'Strong portfolio in relevant style',
-            'Experience with similar projects',
-            'Available within timeline'
-          ],
-          personalizedReasons: match.reasons || [],
-          confidence: match.confidence || 'medium',
-          uniqueValue: match.uniqueValue,
-          challenges: match.challenges || [],
-          riskLevel: match.riskLevel || 'medium',
-          matchSummary: match.matchSummary
-        }
-      })
+      const designer = designers[parsed.selectedDesignerIndex]
+      if (!designer) {
+        throw new Error(`Invalid designer index: ${parsed.selectedDesignerIndex}`)
+      }
+
+      // Return single match as array (for compatibility)
+      return [{
+        designer,
+        score: Math.min(100, Math.max(0, parsed.matchScore)),
+        reasons: parsed.specificEvidence || [
+          'Strong portfolio in relevant style',
+          'Experience with similar projects',
+          'Available within timeline'
+        ],
+        personalizedReasons: parsed.specificEvidence || [],
+        confidence: parsed.confidence || 'medium',
+        uniqueValue: parsed.keyDistinction || parsed.surpriseDelight,
+        challenges: parsed.potentialConcerns || [],
+        riskLevel: parsed.matchScore >= 85 ? 'low' : parsed.matchScore >= 70 ? 'medium' : 'high',
+        matchSummary: parsed.matchNarrative || parsed.matchDecision,
+        matchDecision: parsed.matchDecision,
+        scoreBreakdown: parsed.scoreBreakdown,
+        riskMitigation: parsed.riskMitigation,
+        nextSteps: parsed.nextSteps
+      }]
     } catch (error) {
       console.error('Error parsing DeepSeek response:', error)
-      // Fallback to basic scoring
-      return designers.slice(0, 3).map((designer, index) => ({
-        designer,
-        score: 85 - (index * 10),
+      // Fallback to best available designer
+      if (designers.length === 0) return []
+      
+      return [{
+        designer: designers[0],
+        score: 70,
         reasons: [
-          'Strong portfolio match',
-          'Relevant industry experience',
-          'Available for project timeline'
+          'Available designer with relevant experience',
+          'Matches project requirements',
+          'Within budget range'
         ],
         personalizedReasons: [],
         confidence: 'low',
-        uniqueValue: 'Experienced designer with relevant portfolio',
-        challenges: [],
-        riskLevel: 'low',
-        matchSummary: 'This designer has relevant experience and is available for your project timeline.'
-      }))
+        uniqueValue: 'Experienced designer available for your project',
+        challenges: ['AI analysis unavailable - manual review recommended'],
+        riskLevel: 'medium',
+        matchSummary: 'This designer appears suitable for your project based on availability and experience.'
+      }]
     }
   }
 
@@ -228,10 +267,10 @@ Be specific and mention actual details from both the brief and designer profiles
           messages: [
             {
               role: 'system',
-              content: `You are an expert design matchmaker with deep understanding of design disciplines, client needs, and professional compatibility. 
-Your job is to analyze designer-client matches with extreme precision and provide realistic, honest assessments. 
-Be critical and thorough - do not inflate scores. A 90+ score should be exceptionally rare and only for near-perfect matches.
-Consider all aspects: skills, experience, style, availability, communication, budget fit, and cultural alignment.`
+              content: `You are an elite designer-client matchmaker AI with deep understanding of design disciplines, client needs, and professional compatibility. 
+Your job is to analyze if this specific designer is THE PERFECT MATCH for this client's project with surgical precision. 
+Be critical and thorough - only recommend if the match is truly exceptional. A score below 70 means NO MATCH.
+Consider all aspects: category expertise, style alignment, project fit, working compatibility, and value factors.`
             },
             {
               role: 'user',
@@ -266,103 +305,107 @@ Consider all aspects: skills, experience, style, availability, communication, bu
 
   private createDetailedMatchAnalysisPrompt(designer: any, brief: any): string {
     return `
-TASK: Analyze this designer-client match with extreme thoroughness and provide a realistic compatibility score.
+==== YOUR MISSION ====
+Determine if this designer is THE PERFECT MATCH for this client's project. Apply the elite matching algorithm with surgical precision.
 
-CLIENT BRIEF - READ CAREFULLY:
-==================================
-Company: ${brief.company_name}
-Industry: ${brief.industry}
-Project Type: ${brief.project_type || brief.projectType}
-Budget: ${brief.budget}
-Timeline: ${brief.timeline}
-Design Styles Needed: ${JSON.stringify(brief.styles)}
+==== CLIENT PROJECT ANALYSIS ====
 
-DETAILED REQUIREMENTS:
-${brief.requirements || 'Not specified'}
+CORE REQUIREMENTS:
+- Company: ${brief.company_name}
+- Industry: ${brief.industry}
+- Project Type: ${brief.project_type || brief.projectType}
+- Budget: ${brief.budget}
+- Timeline: ${brief.timeline}
+- Design Styles: ${JSON.stringify(brief.styles)}
 
-INSPIRATION/REFERENCES:
-${brief.inspiration || 'None provided'}
+PROJECT ESSENCE:
+- Requirements: ${brief.requirements || 'Not specified'}
+- Target Audience: ${brief.target_audience || 'Not specified'}
+- Brand Personality: ${brief.brand_personality || 'Not specified'}
+- Success Metrics: ${brief.success_metrics || 'Not specified'}
+- Inspiration: ${brief.inspiration || 'None provided'}
 
-Target Audience: ${brief.target_audience || 'Not specified'}
-Brand Personality: ${brief.brand_personality || 'Not specified'}
-Success Metrics: ${brief.success_metrics || 'Not specified'}
-Project Complexity: ${brief.complexity_level || 'moderate'}
+==== DESIGNER EVALUATION ====
 
-DESIGNER PROFILE - ANALYZE THOROUGHLY:
-======================================
 Name: ${designer.first_name} ${designer.last_name}
-Title: ${designer.title}
-Experience: ${designer.years_experience || 0} years
-Location: ${designer.city}, ${designer.country} (Timezone: ${designer.timezone || 'Unknown'})
 
-PORTFOLIO & EXPERTISE:
-- Design Styles: ${JSON.stringify(designer.styles || [])}
-- Industries: ${JSON.stringify(designer.industries || [])}
+CATEGORY EXPERTISE:
 - Specializations: ${JSON.stringify(designer.specializations || [])}
-- Portfolio Keywords: ${JSON.stringify(designer.portfolio_keywords || [])}
-- Tools: ${JSON.stringify(designer.tools_expertise || [])}
+- Industries: ${JSON.stringify(designer.industries || [])}
+- Experience: ${designer.years_experience || 0} years
+- Total Projects: ${designer.total_projects_completed || designer.total_projects || 0}
 
-WORK APPROACH:
-- Team Size: ${designer.team_size || 'solo'}
-- Communication Style: ${designer.communication_style || 'unknown'}
-- Project Size Preference: ${designer.preferred_project_size || 'unknown'}
-- Timeline Preference: ${designer.preferred_timeline || 'unknown'}
+STYLE DNA:
+- Design Styles: ${JSON.stringify(designer.styles || [])}
+- Portfolio Keywords: ${JSON.stringify(designer.portfolio_keywords || [])}
 - Design Philosophy: ${designer.design_philosophy || 'Not specified'}
+
+PRACTICAL FIT:
+- Location: ${designer.city}, ${designer.country} (${designer.timezone || 'Unknown'})
+- Current Availability: ${designer.availability}
+- Timeline Preference: ${designer.preferred_timeline || 'unknown'}
+- Project Size Preference: ${designer.preferred_project_size || 'unknown'}
+
+WORKING STYLE:
+- Communication Style: ${designer.communication_style || 'unknown'}
+- Team Size: ${designer.team_size || 'solo'}
 - Work Approach: ${designer.work_approach || 'Not specified'}
 
 PERFORMANCE METRICS:
 - Client Satisfaction: ${designer.avg_client_satisfaction || 'Unknown'}/5
 - On-time Delivery: ${designer.on_time_delivery_rate || 'Unknown'}%
-- Project Completion: ${designer.project_completion_rate || 'Unknown'}%
 - Budget Adherence: ${designer.budget_adherence_rate || 'Unknown'}%
-- Total Projects: ${designer.total_projects_completed || designer.total_projects || 0}
 
-CURRENT STATUS:
-- Availability: ${designer.availability}
-- Average Project Duration: ${designer.avg_project_duration_days || 'Unknown'} days
+==== MATCHING ALGORITHM ====
 
-CRITICAL ANALYSIS REQUIRED:
-1. Does the designer have PROVEN experience with ${brief.project_type} projects?
-2. Do their design styles ACTUALLY match what the client needs (${brief.styles.join(', ')})?
-3. Have they worked in the ${brief.industry} industry or similar?
-4. Can they realistically deliver within the ${brief.timeline} timeline?
-5. Does their typical project size align with the ${brief.budget} budget?
-6. Will their ${designer.communication_style || 'communication style'} work for this client?
-7. Do they have the right tools and skills for this specific project?
+STEP 1: ELIMINATION FILTERS
+Verify designer passes ALL:
+□ Correct specialization for ${brief.project_type}
+□ Within budget range ${brief.budget} (+/- 20%)
+□ Available for ${brief.timeline} timeline
+□ Style matches ${brief.styles.join(', ')}
+□ Has relevant industry experience
 
-SCORING GUIDELINES:
-- 95-100: Nearly impossible perfect match - all criteria align flawlessly
-- 85-94: Excellent match - most criteria align very well with minor gaps
-- 75-84: Good match - solid alignment with some notable differences
-- 65-74: Decent match - workable but with significant compromises needed
-- 50-64: Mediocre match - major gaps but could potentially work
-- Below 50: Poor match - fundamental misalignments
+STEP 2: SCORING MATRIX (100 points)
+- CATEGORY MASTERY (30 pts): Specialization + portfolio + experience
+- STYLE ALIGNMENT (25 pts): Style match + philosophy + range
+- PROJECT FIT (20 pts): Industry + scale + success history
+- WORKING COMPATIBILITY (15 pts): Communication + process
+- VALUE FACTORS (10 pts): Budget fit + availability + extras
 
-Provide your analysis in this EXACT JSON format:
+STEP 3: DECISION
+- Score 85+: PERFECT MATCH - Recommend immediately
+- Score 70-84: GOOD MATCH - Recommend with noted considerations
+- Score <70: NO MATCH - Do not recommend
+
+==== RESPONSE FORMAT ====
 {
-  "score": [0-100 realistic score based on thorough analysis],
-  "confidence": "high|medium|low",
-  "reasons": [
-    "Specific reason mentioning exact style/industry match or mismatch",
-    "Concrete evidence from their experience that relates to this project",
-    "How their availability and timeline preference fits the project needs",
-    "Their track record with similar project types and budgets",
-    "Any concerns or gaps that affect the match"
+  "isMatch": true/false,
+  "score": 0-100,
+  "confidence": "100%|95%|90%|85%",
+  "matchDecision": "PERFECT MATCH: [compelling reason]" or "NO MATCH: [key gap]",
+  "keyDistinction": "The only designer who [unique strength]",
+  "scoreBreakdown": {
+    "categoryMastery": 0-30,
+    "styleAlignment": 0-25,
+    "projectFit": 0-20,
+    "workingCompatibility": 0-15,
+    "valueFactors": 0-10
+  },
+  "matchNarrative": "[2-3 sentences why THIS designer for THIS project]",
+  "specificEvidence": [
+    "Portfolio example proving capability",
+    "Metric demonstrating reliability",
+    "Unique qualification for client need",
+    "Past project showing alignment"
   ],
-  "strengths": [
-    "Specific relevant strength with evidence",
-    "Another concrete strength"
-  ],
-  "weaknesses": [
-    "Honest assessment of gaps or concerns",
-    "Any misalignments that could be problematic"
-  ],
-  "uniqueValue": "One sentence on what makes them specifically good (or not) for THIS project",
-  "riskLevel": "low|medium|high",
-  "matchSummary": "2-3 sentence honest summary of the match quality"
+  "riskMitigation": "How they solve client's specific concerns",
+  "surpriseDelight": "Unexpected bonus value",
+  "potentialConcerns": ["Any honest concern"],
+  "nextSteps": "Contact immediately for [dates]" or "Find alternative designer"
 }
 
-BE REALISTIC AND CRITICAL. Most matches should score between 50-80. Only truly exceptional alignments should score above 85.`
+REMEMBER: Only recommend if this designer seems custom-built for this project (70+ score).`
   }
 
   private parseDetailedMatchResult(content: string, designer: any): any {
@@ -380,33 +423,40 @@ BE REALISTIC AND CRITICAL. Most matches should score between 50-80. Only truly e
       return {
         designer,
         score,
-        confidence: parsed.confidence || 'medium',
-        reasons: parsed.reasons || [],
-        personalizedReasons: parsed.reasons || [],
-        strengths: parsed.strengths || [],
-        weaknesses: parsed.weaknesses || [],
-        uniqueValue: parsed.uniqueValue,
-        riskLevel: parsed.riskLevel || 'medium',
-        matchSummary: parsed.matchSummary,
-        isMatch: score >= 50, // Only consider it a match if score is 50+
-        aiAnalyzed: true
+        confidence: parsed.confidence || '85%',
+        reasons: parsed.specificEvidence || [],
+        personalizedReasons: parsed.specificEvidence || [],
+        strengths: parsed.specificEvidence?.slice(0, 2) || [],
+        weaknesses: parsed.potentialConcerns || [],
+        uniqueValue: parsed.keyDistinction || parsed.surpriseDelight,
+        riskLevel: score >= 85 ? 'low' : score >= 70 ? 'medium' : 'high',
+        matchSummary: parsed.matchNarrative || parsed.matchDecision,
+        isMatch: parsed.isMatch && score >= 70,
+        aiAnalyzed: true,
+        matchDecision: parsed.matchDecision,
+        scoreBreakdown: parsed.scoreBreakdown,
+        riskMitigation: parsed.riskMitigation,
+        surpriseDelight: parsed.surpriseDelight,
+        nextSteps: parsed.nextSteps
       }
     } catch (error) {
       console.error('Error parsing DeepSeek match analysis:', error)
-      // Return a conservative score if parsing fails
+      // Return NO MATCH if parsing fails
       return {
         designer,
-        score: 60,
+        score: 0,
         confidence: 'low',
-        reasons: ['Unable to complete full AI analysis'],
-        personalizedReasons: ['Unable to complete full AI analysis'],
+        reasons: ['Unable to complete AI analysis'],
+        personalizedReasons: ['Unable to complete AI analysis'],
         strengths: [],
-        weaknesses: ['AI analysis incomplete'],
-        uniqueValue: 'Manual review recommended',
+        weaknesses: ['AI analysis failed'],
+        uniqueValue: 'Manual review required',
         riskLevel: 'high',
         matchSummary: 'AI analysis failed - manual review needed',
         isMatch: false,
-        aiAnalyzed: false
+        aiAnalyzed: false,
+        matchDecision: 'NO MATCH: AI analysis unavailable',
+        nextSteps: 'Manual review required'
       }
     }
   }
@@ -421,6 +471,49 @@ BE REALISTIC AND CRITICAL. Most matches should score between 50-80. Only truly e
       return response.ok
     } catch {
       return false
+    }
+  }
+
+  async generateText(params: {
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    model?: string
+    temperature?: number
+    maxTokens?: number
+    responseFormat?: { type: 'json_object' | 'text' }
+  }): Promise<{ text: string }> {
+    try {
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: params.model || this.model,
+          messages: params.messages,
+          temperature: params.temperature || 0.3,
+          max_tokens: params.maxTokens || 1000,
+          response_format: params.responseFormat
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.text()
+        console.error('DeepSeek API error:', error)
+        throw new Error(`DeepSeek API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      const content = data.choices[0]?.message?.content
+
+      if (!content) {
+        throw new Error('No response from DeepSeek')
+      }
+
+      return { text: content }
+    } catch (error) {
+      console.error('DeepSeek generateText error:', error)
+      throw error
     }
   }
 }

@@ -74,10 +74,21 @@ export class ClientService extends DatabaseService {
       throw new Error('Valid client ID and positive credits required')
     }
 
+    // Get current credits first
+    const { data: currentClient, error: fetchError } = await this.supabase
+      .from('clients')
+      .select('match_credits')
+      .eq('id', clientId)
+      .single()
+
+    if (fetchError) {
+      this.handleError(fetchError, 'fetch client for credits update')
+    }
+
     const { data, error } = await this.supabase
       .from('clients')
       .update({ 
-        match_credits: this.supabase.raw(`match_credits + ${credits}`) 
+        match_credits: (currentClient?.match_credits || 0) + credits
       })
       .eq('id', clientId)
       .select()
@@ -107,7 +118,7 @@ export class ClientService extends DatabaseService {
     const { data, error } = await this.supabase
       .from('clients')
       .update({ 
-        match_credits: this.supabase.raw(`match_credits - ${credits}`) 
+        match_credits: client.match_credits - credits
       })
       .eq('id', clientId)
       .select()

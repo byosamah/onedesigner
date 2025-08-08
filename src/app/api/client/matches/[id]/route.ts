@@ -72,11 +72,12 @@ export async function GET(
 
     // Hide contact info for locked matches
     if (match.status === 'pending' || match.status === 'declined') {
+      const { email, phone, website, ...safeDesigner } = match.designer
       match.designer = {
-        ...match.designer,
-        email: undefined,
-        phone: undefined,
-        website: undefined
+        ...safeDesigner,
+        email: '***',
+        phone: '***', 
+        website: '***'
       }
     }
 

@@ -46,4 +46,11 @@ export interface MatchResult {
 
 export interface AIProvider {
   analyzeMatch(designer: Designer, brief: Brief): Promise<MatchResult>
+  generateText(params: {
+    messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>
+    model?: string
+    temperature?: number
+    maxTokens?: number
+    responseFormat?: { type: 'json_object' | 'text' }
+  }): Promise<{ text: string }>
 }

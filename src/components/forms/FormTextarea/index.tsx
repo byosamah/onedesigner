@@ -34,7 +34,7 @@ export const FormTextarea = ({
           border: `2px solid ${error ? theme.error : theme.border}`,
           color: theme.text.primary,
           '--tw-ring-color': theme.accent
-        }}
+        } as React.CSSProperties}
         required={required}
         {...props}
       />

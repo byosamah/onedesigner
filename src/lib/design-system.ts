@@ -15,6 +15,7 @@ export interface Theme {
   accent: string
   success: string
   error: string
+  shadow: string
 }
 
 export const getTheme = (isDarkMode: boolean): Theme => ({
@@ -28,9 +29,10 @@ export const getTheme = (isDarkMode: boolean): Theme => ({
     muted: isDarkMode ? '#6B7280' : '#9CA3AF'
   },
   border: isDarkMode ? '#374151' : '#E5E7EB',
-  accent: 'rgb(245, 193, 71)',
+  accent: '#f0ad4e',
   success: '#10B981',
-  error: '#EF4444'
+  error: '#EF4444',
+  shadow: isDarkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
 })
 
 // Animation classes to be added to globals.css

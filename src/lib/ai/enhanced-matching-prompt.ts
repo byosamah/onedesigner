@@ -46,96 +46,140 @@ export function generateEnhancedMatchingPrompt(context: EnhancedMatchingContext)
   const { clientBrief, designer } = context
   const category = DESIGN_CATEGORIES[clientBrief.design_category as keyof typeof DESIGN_CATEGORIES]
 
-  return `You are an expert design matchmaker analyzing client requirements against designer profiles to find perfect matches.
+  return `You are an elite designer-client matchmaker AI. Your task is to analyze a client's project brief and available designers to identify THE SINGLE PERFECT MATCH with surgical precision.
 
-CLIENT PROJECT DETAILS:
-Category: ${category?.name || clientBrief.design_category}
-Description: ${clientBrief.project_description}
-Timeline: ${clientBrief.timeline_type} (${getTimelineDescription(clientBrief.timeline_type)})
-Budget: ${clientBrief.budget_range} (${getBudgetDescription(clientBrief.budget_range)})
-Deliverables: ${clientBrief.deliverables?.join(', ') || 'Not specified'}
-Target Audience: ${clientBrief.target_audience || 'Not specified'}
-Project Goal: ${clientBrief.project_goal || 'Not specified'}
-Style Keywords: ${clientBrief.design_style_keywords?.join(', ') || 'Not specified'}
-Avoid: ${clientBrief.avoid_colors_styles || 'Nothing specified'}
-Involvement Level: ${clientBrief.involvement_level || 'Not specified'}
-Communication: ${clientBrief.communication_preference || 'Not specified'}
-Brand Guidelines: ${clientBrief.has_brand_guidelines ? 'Yes, existing guidelines' : 'No, starting fresh'}
+==== YOUR MISSION ====
+Read the client brief and designer profiles, then select exactly ONE designer who represents the optimal match. Your selection must be defensible, data-driven, and compelling.
 
-DESIGNER PROFILE:
-Name: ${designer.firstName} ${designer.lastName}
-Philosophy: ${designer.designPhilosophy || 'Not provided'}
-Experience: ${designer.yearsExperience || 0} years
-Location: ${designer.city || 'Not specified'}, ${designer.country || 'Not specified'}
-Primary Categories: ${designer.primaryCategories?.join(', ') || 'Not specified'}
-Secondary Categories: ${designer.secondaryCategories?.join(', ') || 'None'}
-Style Keywords: ${designer.styleKeywords?.join(', ') || 'Not specified'}
-Preferred Industries: ${designer.preferredIndustries?.join(', ') || 'All industries'}
-Project Sizes: ${designer.preferredProjectSizes?.join(', ') || 'All sizes'}
-Tools: ${designer.expertTools?.join(', ') || 'Not specified'}
-Special Skills: ${designer.specialSkills?.join(', ') || 'None specified'}
-Collaboration Style: ${designer.collaborationStyle || 'Not specified'}
-Availability: ${designer.currentAvailability || 'Not specified'}
-Turnaround Times: ${formatTurnaroundTimes(designer.turnaroundTimes)}
-Revisions Included: ${designer.revisionRoundsIncluded || 'Not specified'}
-Dream Project: ${designer.dreamProjectDescription || 'Not specified'}
+==== INPUT ANALYSIS FRAMEWORK ====
 
-SCORING CRITERIA & WEIGHTS:
-1. Category Match (30%): Must match primary or secondary categories
-2. Style Alignment (25%): Keywords, philosophy, and aesthetic compatibility
-3. Budget Compatibility (15%): Designer's preferred project sizes vs client budget
-4. Timeline Feasibility (15%): Designer's turnaround times vs client timeline
-5. Industry/Audience Fit (10%): Relevant experience with client's industry/audience
-6. Working Style Match (5%): Communication and collaboration preferences
+FROM CLIENT BRIEF, EXTRACT:
+1. CORE REQUIREMENTS (Non-negotiables)
+   - Category: ${category?.name || clientBrief.design_category}
+   - Specific deliverables: ${clientBrief.deliverables?.join(', ') || 'Not specified'}
+   - Timeline: ${clientBrief.timeline_type} (${getTimelineDescription(clientBrief.timeline_type)})
+   - Budget: ${clientBrief.budget_range} (${getBudgetDescription(clientBrief.budget_range)})
 
-ANALYSIS INSTRUCTIONS:
-1. First verify category compatibility (required for any match)
-2. Assess style alignment using both explicit keywords and implied aesthetics
-3. Check budget/timeline feasibility based on designer's preferences
-4. Evaluate communication and collaboration fit
-5. Consider industry experience and special skills relevance
-6. Calculate weighted score (50-95 range, realistic distribution)
+2. PROJECT ESSENCE
+   - Primary goal: ${clientBrief.project_goal || 'Not specified'}
+   - Target audience: ${clientBrief.target_audience || 'Not specified'}
+   - Project description: ${clientBrief.project_description}
+
+3. CREATIVE DIRECTION
+   - Style keywords: ${clientBrief.design_style_keywords?.join(', ') || 'Not specified'}
+   - Avoid: ${clientBrief.avoid_colors_styles || 'Nothing specified'}
+   - Brand guidelines: ${clientBrief.has_brand_guidelines ? 'Yes, existing guidelines' : 'No, starting fresh'}
+
+4. COLLABORATION PREFERENCES
+   - Involvement level: ${clientBrief.involvement_level || 'Not specified'}
+   - Communication preference: ${clientBrief.communication_preference || 'Not specified'}
+   - Previous experience: ${clientBrief.previous_designer_experience || 'Not specified'}
+
+DESIGNER PROFILE EVALUATION:
+1. CATEGORY EXPERTISE
+   - Primary specialization: ${designer.primaryCategories?.join(', ') || 'Not specified'}
+   - Secondary categories: ${designer.secondaryCategories?.join(', ') || 'None'}
+
+2. STYLE DNA
+   - Design philosophy: ${designer.designPhilosophy || 'Not provided'}
+   - Style keywords: ${designer.styleKeywords?.join(', ') || 'Not specified'}
+
+3. EXPERIENCE RELEVANCE
+   - Years experience: ${designer.yearsExperience || 0} years
+   - Preferred industries: ${designer.preferredIndustries?.join(', ') || 'All industries'}
+   - Project sizes: ${designer.preferredProjectSizes?.join(', ') || 'All sizes'}
+   - Special skills: ${designer.specialSkills?.join(', ') || 'None specified'}
+
+4. PRACTICAL FIT
+   - Location: ${designer.city || 'Not specified'}, ${designer.country || 'Not specified'}
+   - Availability: ${designer.currentAvailability || 'Not specified'}
+   - Turnaround times: ${formatTurnaroundTimes(designer.turnaroundTimes)}
+
+5. WORKING STYLE
+   - Collaboration style: ${designer.collaborationStyle || 'Not specified'}
+   - Revisions included: ${designer.revisionRoundsIncluded || 'Not specified'}
+   - Tools expertise: ${designer.expertTools?.join(', ') || 'Not specified'}
+
+==== MATCHING ALGORITHM ====
+
+STEP 1: ELIMINATION FILTERS
+Check if designer passes ALL requirements:
+□ Correct category specialization
+□ Within budget range (+/- 20%)
+□ Available for timeline
+□ Style doesn't conflict with avoid list
+□ Has required tools/skills
+
+STEP 2: SCORING MATRIX
+Calculate composite score using:
+
+CATEGORY MASTERY (30 points max)
+- Exact category match: 15 points
+- Specific deliverables in portfolio: 10 points
+- Years in this category: 5 points
+
+STYLE ALIGNMENT (25 points max)
+- Portfolio matches style keywords: 10 points
+- Philosophy aligns with project: 8 points
+- Demonstrates required range: 7 points
+
+PROJECT FIT (20 points max)
+- Industry experience: 8 points
+- Scale/scope match: 7 points
+- Goal achievement history: 5 points
+
+WORKING COMPATIBILITY (15 points max)
+- Communication style alignment: 8 points
+- Process match: 7 points
+
+VALUE FACTORS (10 points max)
+- Within budget sweet spot: 5 points
+- Availability timing: 3 points
+- Extra value (strategy, research): 2 points
+
+STEP 3: DISTINCTION ANALYSIS
+For this designer, identify:
+1. The "only they can do this" factor
+2. The "perfect storm" alignment
+3. The risk mitigation
+4. The surprise delight
+
+==== DECISION CONFIDENCE FRAMEWORK ====
+- 100% Confidence: Perfect match across all criteria
+- 95% Confidence: All criteria except minor gap
+- 90% Confidence: Strong match with one compromise
+- 85% Confidence: Good match with two minor compromises
+- Below 85%: Do not recommend
 
 RESPONSE FORMAT:
 Return valid JSON only:
 {
+  "isMatch": true,
   "score": 85,
-  "confidence": "high",
-  "categoryMatch": true,
-  "matchSummary": "Perfect alignment for modern tech branding with collaborative approach",
-  "reasons": [
-    "Primary category match: Branding & Logo Design",
-    "Style keywords align: 'minimalist', 'modern', 'bold'",
-    "Budget compatible: Mid-tier projects ($2k-10k) fits $5k budget",
-    "Timeline works: 15-day turnaround for 3-week deadline",
-    "Industry experience: 5+ tech startup projects"
-  ],
-  "personalizedReasons": [
-    "Your desire for 'clean, innovative, bold' perfectly matches their minimalist-forward design philosophy showcased across 12+ tech projects",
-    "Their experience with 3 recent startup rebrandings targeting millennials aligns exactly with your demographic goals",
-    "Prefers milestone check-ins with creative freedom between - exactly matching your requested involvement level",
-    "15-day turnaround for brand identity projects fits comfortably within your 3-week timeline with buffer for revisions"
-  ],
-  "uniqueValue": "Specializes in translating complex technical concepts into accessible visual language that resonates with digital-native audiences",
-  "potentialChallenges": [
-    "Designer prefers 2-week minimum timelines, your urgent needs may require discussion"
-  ],
-  "riskLevel": "low",
+  "confidence": "95%",
+  "matchDecision": "PERFECT MATCH: This designer was seemingly custom-built for this project",
+  "keyDistinction": "The only designer who combines [specific unique combination]",
   "scoreBreakdown": {
-    "categoryMatch": 30,
-    "styleAlignment": 22,
-    "budgetFit": 12,
-    "timelineFit": 13,
-    "industryFit": 8,
-    "workingStyleFit": 5
-  }
+    "categoryMastery": 28,
+    "styleAlignment": 23,
+    "projectFit": 18,
+    "workingCompatibility": 13,
+    "valueFactors": 8
+  },
+  "matchNarrative": "Compelling 2-3 sentence story of why THIS designer for THIS project",
+  "specificEvidence": [
+    "Concrete example from portfolio that proves capability",
+    "Specific metric or achievement relevant to project",
+    "Unique qualification that addresses client need",
+    "Timeline/budget alignment with past similar projects"
+  ],
+  "riskMitigation": "How this designer specifically solves client's past pain points",
+  "surpriseDelight": "Unexpected bonus value they bring",
+  "nextSteps": "Concrete action items and timeline",
+  "alternativeRecommendation": "If score <85: Specific gaps and what to adjust"
 }
 
-IMPORTANT: 
-- Be realistic with scores (50-80% typical, 85%+ rare)
-- Use specific details from both profiles in personalizedReasons
-- Identify potential challenges honestly
-- Focus on concrete compatibility factors, not generic praise`
+REMEMBER: You are not finding a "good" match. You are identifying THE designer who was seemingly custom-built for this exact project. Make the match compelling and undeniable.`
 }
 
 function getTimelineDescription(timeline: string): string {

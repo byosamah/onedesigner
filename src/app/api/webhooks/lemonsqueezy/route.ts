@@ -28,18 +28,24 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('x-signature') || ''
     const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
 
-    // Verify webhook signature (skip temporarily for testing)
-    if (secret && secret !== 'your-webhook-secret-here' && secret !== 'temp-skip-for-now') {
-      if (!verifyWebhookSignature(body, signature, secret)) {
-        console.error('Webhook signature verification failed')
-        return NextResponse.json(
-          { error: 'Invalid signature' },
-          { status: 401 }
-        )
-      }
-    } else {
-      console.warn('⚠️ Webhook signature verification skipped - configure LEMONSQUEEZY_WEBHOOK_SECRET in production!')
+    // Verify webhook signature - MANDATORY for security
+    if (!secret || secret === 'your-webhook-secret-here' || secret === 'temp-skip-for-now') {
+      console.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not properly configured!')
+      return NextResponse.json(
+        { error: 'Webhook secret not configured' },
+        { status: 500 }
+      )
     }
+
+    if (!verifyWebhookSignature(body, signature, secret)) {
+      console.error('🚨 SECURITY ALERT: Webhook signature verification failed')
+      return NextResponse.json(
+        { error: 'Invalid signature' },
+        { status: 401 }
+      )
+    }
+
+    console.log('✅ Webhook signature verified')
 
     const event = JSON.parse(body)
     const eventType = event.meta.event_name

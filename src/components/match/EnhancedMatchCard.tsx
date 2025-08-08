@@ -48,9 +48,10 @@ interface EnhancedMatchCardProps {
   isDarkMode: boolean
   onUnlock?: (matchId: string) => Promise<void>
   isUnlocked?: boolean
+  isTopMatch?: boolean
 }
 
-export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = false }: EnhancedMatchCardProps) {
+export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = false, isTopMatch = false }: EnhancedMatchCardProps) {
   const theme = getTheme(isDarkMode)
   const [isUnlocking, setIsUnlocking] = useState(false)
   const [showFullProfile, setShowFullProfile] = useState(false)
@@ -88,13 +89,24 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = fa
 
   return (
     <div 
-      className="p-8 rounded-3xl animate-slideUp hover:scale-[1.01] transition-all duration-300"
+      className="relative rounded-3xl p-8 transition-all duration-300 hover:scale-[1.02] animate-slideUp"
       style={{
-        backgroundColor: theme.cardBg,
-        border: `1px solid ${theme.border}`,
-        boxShadow: theme.shadow
+        backgroundColor: isTopMatch ? (isDarkMode ? '#2A2A2A' : '#FFF9F0') : theme.cardBg,
+        border: isTopMatch ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`,
+        boxShadow: isTopMatch ? (isDarkMode ? 'none' : '0 8px 24px rgba(240, 173, 78, 0.2)') : (isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)')
       }}
     >
+      {isTopMatch && (
+        <div 
+          className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold"
+          style={{
+            backgroundColor: theme.accent,
+            color: '#000'
+          }}
+        >
+          BEST MATCH
+        </div>
+      )}
       {/* Designer Header */}
       <div className="flex items-start gap-6 mb-6">
         <div className="flex-shrink-0">
@@ -326,17 +338,24 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = fa
       {/* Action Buttons */}
       <div className="flex gap-3">
         {!isUnlocked ? (
-          <LoadingButton
+          <button
             onClick={handleUnlock}
-            loading={isUnlocking}
-            className="flex-1 py-4 rounded-2xl font-bold text-lg"
+            disabled={isUnlocking}
+            className="flex-1 font-bold py-4 rounded-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               backgroundColor: theme.accent,
               color: '#000'
             }}
           >
-            Unlock Contact Details
-          </LoadingButton>
+            {isUnlocking ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin">⚡</span>
+                Unlocking...
+              </span>
+            ) : (
+              'Unlock Contact Details →'
+            )}
+          </button>
         ) : (
           <div className="flex-1 space-y-3">
             <div 
@@ -358,11 +377,11 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, isUnlocked = fa
         
         <button
           onClick={() => setShowFullProfile(true)}
-          className="px-6 py-4 rounded-2xl font-medium transition-all duration-300 hover:scale-[1.02]"
+          className="px-6 py-4 rounded-xl font-bold transition-all duration-300 hover:scale-[1.02]"
           style={{
             backgroundColor: 'transparent',
-            border: `2px solid ${theme.border}`,
-            color: theme.text.secondary
+            border: `2px solid ${theme.accent}`,
+            color: theme.accent
           }}
         >
           View Profile
