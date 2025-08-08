@@ -50,7 +50,21 @@ export default function DesignerApplyPage() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
+  const theme = getTheme(isDarkMode) || {
+    bg: '#0A0A0B',
+    cardBg: '#111113',
+    nestedBg: '#18181B',
+    border: '#27272A',
+    accent: '#f0ad4e',
+    success: '#10B981',
+    error: '#EF4444',
+    text: {
+      primary: '#FFFFFF',
+      secondary: '#A1A1AA',
+      muted: '#71717A'
+    },
+    tagBg: '#18181B'
+  }
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode)

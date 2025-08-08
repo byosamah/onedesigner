@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
-import { LoadingButton, LoadingSpinner } from '@/components/forms'
+import { LoadingButton } from '@/components/forms'
+import { LoadingSpinner } from '@/components/shared'
 import { toast } from '@/lib/toast'
 import { getTheme } from '@/lib/design-system'
 
