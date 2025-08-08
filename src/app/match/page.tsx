@@ -327,7 +327,7 @@ export default function MatchPage() {
     } catch (error: any) {
       console.error('Payment failed:', error)
       if (error.message?.includes('Failed to fetch')) {
-        alert('Unable to connect to the payment service. Please ensure you are accessing the app on the correct port (http://localhost:3000)')
+        alert('Unable to connect to the payment service. Please check your internet connection and try again.')
       } else {
         alert('Failed to start checkout. Please try again.')
       }

@@ -96,7 +96,7 @@ export async function POST(
           designerPhone: designerRequest.designer.phone,
           designerWebsite: designerRequest.designer.website,
           projectType: designerRequest.match.brief?.project_type || 'design',
-          dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/client/dashboard`
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
         })
 
         await sendEmail({ to: designerRequest.match.client.email, subject, html, text })
@@ -108,7 +108,7 @@ export async function POST(
           clientName: designerRequest.match.client.name || 'there',
           designerName: designerRequest.designer.name,
           projectType: designerRequest.match.brief?.project_type || 'design',
-          dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/client/dashboard`
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
         })
 
         await sendEmail({ to: designerRequest.match.client.email, subject, html, text })

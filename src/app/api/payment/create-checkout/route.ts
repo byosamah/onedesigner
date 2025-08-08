@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       email,
       clientId,
       matchId,
-      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success`
+      redirectUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/payment/success`
     })
 
     return NextResponse.json({ 

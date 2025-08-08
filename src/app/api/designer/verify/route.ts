@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // Send welcome email to new designer
     const { subject, html, text } = welcomeDesignerEmail({
       designerName: designer.first_name,
-      dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/designer/dashboard`
+      dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/dashboard`
     })
     
     await sendEmail({ to: email, subject, html, text })

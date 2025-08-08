@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify environment variables
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
     console.log('🔍 Environment check:', {
       hasApiKey: !!process.env.LEMONSQUEEZY_API_KEY,
       apiKeyStart: process.env.LEMONSQUEEZY_API_KEY?.substring(0, 20) + '...',

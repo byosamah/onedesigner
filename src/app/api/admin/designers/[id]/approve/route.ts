@@ -62,14 +62,14 @@ export async function POST(
             <li>Update your profile</li>
           </ul>
           <p>
-            <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/designer/login" 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login" 
                style="background: black; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
               Go to Dashboard
             </a>
           </p>
           <p>Best regards,<br>The OneDesigner Team</p>
         `,
-        text: `Congratulations ${designer.first_name}! Your application to join OneDesigner has been approved. You can now log in to your dashboard at ${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/designer/login`
+        text: `Congratulations ${designer.first_name}! Your application to join OneDesigner has been approved. You can now log in to your dashboard at ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
       })
     } catch (emailError) {
       console.error('Failed to send approval email:', emailError)

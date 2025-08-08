@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (isNewUser && client) {
       const { subject, html, text } = welcomeClientEmail({
         clientName: client.name || 'there',
-        dashboardUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/client/dashboard`
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
       })
       
       await sendEmail({ to: email, subject, html, text })
