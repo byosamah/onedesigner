@@ -163,17 +163,17 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Let's start with the basics
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 Tell us about yourself
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                   First Name
                 </label>
                 <input
@@ -182,17 +182,17 @@ export default function DesignerApplyPage() {
                   onChange={(e) => setFormData({...formData, firstName: e.target.value})}
                   className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{
-                    backgroundColor: theme.nestedBg,
-                    border: `2px solid ${theme.border}`,
+                    backgroundColor: safeTheme.nestedBg,
+                    border: `2px solid ${safeTheme.border}`,
                     color: theme.text.primary,
-                    focusRingColor: theme.accent
+                    focusRingColor: safeTheme.accent
                   }}
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                   Last Name
                 </label>
                 <input
@@ -201,10 +201,10 @@ export default function DesignerApplyPage() {
                   onChange={(e) => setFormData({...formData, lastName: e.target.value})}
                   className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{
-                    backgroundColor: theme.nestedBg,
-                    border: `2px solid ${theme.border}`,
+                    backgroundColor: safeTheme.nestedBg,
+                    border: `2px solid ${safeTheme.border}`,
                     color: theme.text.primary,
-                    focusRingColor: theme.accent
+                    focusRingColor: safeTheme.accent
                   }}
                   required
                 />
@@ -212,7 +212,7 @@ export default function DesignerApplyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Email
               </label>
               <input
@@ -221,17 +221,17 @@ export default function DesignerApplyPage() {
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Phone (optional)
               </label>
               <input
@@ -240,10 +240,10 @@ export default function DesignerApplyPage() {
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
               />
             </div>
@@ -254,16 +254,16 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Your professional identity
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 Help us understand your experience and location
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Professional Title
               </label>
               <input
@@ -273,17 +273,17 @@ export default function DesignerApplyPage() {
                 placeholder="e.g., Senior UI/UX Designer"
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Years of Experience
               </label>
               <select
@@ -291,10 +291,10 @@ export default function DesignerApplyPage() {
                 onChange={(e) => setFormData({...formData, yearsExperience: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               >
@@ -308,7 +308,7 @@ export default function DesignerApplyPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                   City
                 </label>
                 <input
@@ -317,17 +317,17 @@ export default function DesignerApplyPage() {
                   onChange={(e) => setFormData({...formData, city: e.target.value})}
                   className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{
-                    backgroundColor: theme.nestedBg,
-                    border: `2px solid ${theme.border}`,
+                    backgroundColor: safeTheme.nestedBg,
+                    border: `2px solid ${safeTheme.border}`,
                     color: theme.text.primary,
-                    focusRingColor: theme.accent
+                    focusRingColor: safeTheme.accent
                   }}
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                   Country
                 </label>
                 <input
@@ -336,10 +336,10 @@ export default function DesignerApplyPage() {
                   onChange={(e) => setFormData({...formData, country: e.target.value})}
                   className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{
-                    backgroundColor: theme.nestedBg,
-                    border: `2px solid ${theme.border}`,
+                    backgroundColor: safeTheme.nestedBg,
+                    border: `2px solid ${safeTheme.border}`,
                     color: theme.text.primary,
-                    focusRingColor: theme.accent
+                    focusRingColor: safeTheme.accent
                   }}
                   required
                 />
@@ -347,7 +347,7 @@ export default function DesignerApplyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Portfolio Link
               </label>
               <input
@@ -357,10 +357,10 @@ export default function DesignerApplyPage() {
                 placeholder="https://yourportfolio.com"
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               />
@@ -372,16 +372,16 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Your design philosophy
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 What makes you unique as a designer?
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Design Philosophy (2-3 sentences)
               </label>
               <textarea
@@ -391,17 +391,17 @@ export default function DesignerApplyPage() {
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Primary Design Categories (choose up to 3)
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -425,9 +425,9 @@ export default function DesignerApplyPage() {
                     className="p-4 rounded-xl text-left transition-all duration-200"
                     style={{
                       backgroundColor: formData.primaryCategories.includes(category.id) 
-                        ? theme.accent : theme.nestedBg,
+                        ? safeTheme.accent : theme.nestedBg,
                       border: `2px solid ${formData.primaryCategories.includes(category.id) 
-                        ? theme.accent : theme.border}`,
+                        ? safeTheme.accent : theme.border}`,
                       color: formData.primaryCategories.includes(category.id) 
                         ? '#000' : theme.text.primary
                     }}
@@ -442,7 +442,7 @@ export default function DesignerApplyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Design Style Keywords (choose 3-5)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -466,11 +466,11 @@ export default function DesignerApplyPage() {
                     className="px-4 py-2 rounded-full text-sm transition-all duration-200"
                     style={{
                       backgroundColor: formData.styleKeywords.includes(style) 
-                        ? theme.accent : theme.tagBg,
+                        ? safeTheme.accent : theme.tagBg,
                       color: formData.styleKeywords.includes(style) 
                         ? '#000' : theme.text.secondary,
                       border: `1px solid ${formData.styleKeywords.includes(style) 
-                        ? theme.accent : theme.border}`
+                        ? safeTheme.accent : theme.border}`
                     }}
                   >
                     {style}
@@ -485,16 +485,16 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Work preferences
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 Help us match you with the right projects
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Preferred Industries (choose up to 5)
               </label>
               <div className="flex flex-wrap gap-2">
@@ -518,11 +518,11 @@ export default function DesignerApplyPage() {
                     className="px-4 py-2 rounded-full text-sm transition-all duration-200"
                     style={{
                       backgroundColor: formData.preferredIndustries.includes(industry) 
-                        ? theme.accent : theme.tagBg,
+                        ? safeTheme.accent : theme.tagBg,
                       color: formData.preferredIndustries.includes(industry) 
                         ? '#000' : theme.text.secondary,
                       border: `1px solid ${formData.preferredIndustries.includes(industry) 
-                        ? theme.accent : theme.border}`
+                        ? safeTheme.accent : theme.border}`
                     }}
                   >
                     {industry}
@@ -532,7 +532,7 @@ export default function DesignerApplyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Preferred Project Sizes
               </label>
               <div className="space-y-2">
@@ -555,21 +555,21 @@ export default function DesignerApplyPage() {
                         }
                       }}
                       className="w-5 h-5 rounded"
-                      style={{ accentColor: theme.accent }}
+                      style={{ accentColor: safeTheme.accent }}
                     />
-                    <span style={{ color: theme.text.primary }}>{size}</span>
+                    <span style={{ color: safeTheme.text.primary }}>{size}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Typical Turnaround Times (in days)
               </label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-4">
-                  <span className="w-24 text-sm" style={{ color: theme.text.secondary }}>Logo Design:</span>
+                  <span className="w-24 text-sm" style={{ color: safeTheme.text.secondary }}>Logo Design:</span>
                   <input
                     type="number"
                     value={formData.turnaroundTimes.logo}
@@ -581,15 +581,15 @@ export default function DesignerApplyPage() {
                     max="60"
                     className="w-20 px-3 py-2 rounded-lg text-center"
                     style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`,
+                      backgroundColor: safeTheme.nestedBg,
+                      border: `1px solid ${safeTheme.border}`,
                       color: theme.text.primary
                     }}
                   />
-                  <span className="text-sm" style={{ color: theme.text.secondary }}>days</span>
+                  <span className="text-sm" style={{ color: safeTheme.text.secondary }}>days</span>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <span className="w-24 text-sm" style={{ color: theme.text.secondary }}>Website:</span>
+                  <span className="w-24 text-sm" style={{ color: safeTheme.text.secondary }}>Website:</span>
                   <input
                     type="number"
                     value={formData.turnaroundTimes.website}
@@ -601,15 +601,15 @@ export default function DesignerApplyPage() {
                     max="90"
                     className="w-20 px-3 py-2 rounded-lg text-center"
                     style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`,
+                      backgroundColor: safeTheme.nestedBg,
+                      border: `1px solid ${safeTheme.border}`,
                       color: theme.text.primary
                     }}
                   />
-                  <span className="text-sm" style={{ color: theme.text.secondary }}>days</span>
+                  <span className="text-sm" style={{ color: safeTheme.text.secondary }}>days</span>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <span className="w-24 text-sm" style={{ color: theme.text.secondary }}>Full Branding:</span>
+                  <span className="w-24 text-sm" style={{ color: safeTheme.text.secondary }}>Full Branding:</span>
                   <input
                     type="number"
                     value={formData.turnaroundTimes.branding}
@@ -621,18 +621,18 @@ export default function DesignerApplyPage() {
                     max="120"
                     className="w-20 px-3 py-2 rounded-lg text-center"
                     style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`,
+                      backgroundColor: safeTheme.nestedBg,
+                      border: `1px solid ${safeTheme.border}`,
                       color: theme.text.primary
                     }}
                   />
-                  <span className="text-sm" style={{ color: theme.text.secondary }}>days</span>
+                  <span className="text-sm" style={{ color: safeTheme.text.secondary }}>days</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Revision Rounds Included
               </label>
               <select
@@ -640,10 +640,10 @@ export default function DesignerApplyPage() {
                 onChange={(e) => setFormData({...formData, revisionRoundsIncluded: parseInt(e.target.value)})}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
               >
                 <option value={1}>1 round</option>
@@ -660,16 +660,16 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Tools & skills
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 What are you an expert at?
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Expert Tools (choose all that apply)
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -692,16 +692,16 @@ export default function DesignerApplyPage() {
                         }
                       }}
                       className="w-5 h-5 rounded"
-                      style={{ accentColor: theme.accent }}
+                      style={{ accentColor: safeTheme.accent }}
                     />
-                    <span style={{ color: theme.text.primary }}>{tool}</span>
+                    <span style={{ color: safeTheme.text.primary }}>{tool}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Special Skills or Certifications
               </label>
               <textarea
@@ -711,10 +711,10 @@ export default function DesignerApplyPage() {
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
               />
             </div>
@@ -725,16 +725,16 @@ export default function DesignerApplyPage() {
         return (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: safeTheme.text.primary }}>
                 Collaboration & availability
               </h2>
-              <p style={{ color: theme.text.secondary }}>
+              <p style={{ color: safeTheme.text.secondary }}>
                 How do you like to work with clients?
               </p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Collaboration Style
               </label>
               <div className="space-y-3">
@@ -747,16 +747,16 @@ export default function DesignerApplyPage() {
                       checked={formData.collaborationStyle === style.value}
                       onChange={(e) => setFormData({...formData, collaborationStyle: e.target.value})}
                       className="mt-1"
-                      style={{ accentColor: theme.accent }}
+                      style={{ accentColor: safeTheme.accent }}
                     />
-                    <span style={{ color: theme.text.primary }}>{style.label}</span>
+                    <span style={{ color: safeTheme.text.primary }}>{style.label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Current Availability
               </label>
               <select
@@ -764,10 +764,10 @@ export default function DesignerApplyPage() {
                 onChange={(e) => setFormData({...formData, currentAvailability: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
               >
                 <option value="available">Available immediately</option>
@@ -779,7 +779,7 @@ export default function DesignerApplyPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-3" style={{ color: safeTheme.text.primary }}>
                 Ideal Client Types
               </label>
               <div className="space-y-2">
@@ -802,16 +802,16 @@ export default function DesignerApplyPage() {
                         }
                       }}
                       className="w-5 h-5 rounded"
-                      style={{ accentColor: theme.accent }}
+                      style={{ accentColor: safeTheme.accent }}
                     />
-                    <span style={{ color: theme.text.primary }}>{type}</span>
+                    <span style={{ color: safeTheme.text.primary }}>{type}</span>
                   </label>
                 ))}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: safeTheme.text.primary }}>
                 Dream Project Description
               </label>
               <textarea
@@ -821,10 +821,10 @@ export default function DesignerApplyPage() {
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
                 style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
+                  backgroundColor: safeTheme.nestedBg,
+                  border: `2px solid ${safeTheme.border}`,
                   color: theme.text.primary,
-                  focusRingColor: theme.accent
+                  focusRingColor: safeTheme.accent
                 }}
                 required
               />
@@ -858,10 +858,27 @@ export default function DesignerApplyPage() {
     }
   }
 
+  // Ensure theme is always defined
+  const safeTheme = theme || {
+    bg: '#212121',
+    cardBg: '#323232',
+    nestedBg: '#212121',
+    border: '#374151',
+    accent: 'rgb(245, 193, 71)',
+    success: '#10B981',
+    error: '#EF4444',
+    text: {
+      primary: '#cfcfcf',
+      secondary: '#9CA3AF',
+      muted: '#6B7280'
+    },
+    tagBg: '#1A1A1A'
+  }
+
   return (
-    <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+    <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: safeTheme.bg }}>
       <Navigation 
-        theme={theme} 
+        theme={safeTheme} 
         isDarkMode={isDarkMode} 
         toggleTheme={toggleTheme}
         title="Apply as Designer"
@@ -873,11 +890,11 @@ export default function DesignerApplyPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
               <span className="text-3xl">🎨</span>
-              <h1 className="text-2xl font-bold" style={{ color: theme.text.primary }}>
+              <h1 className="text-2xl font-bold" style={{ color: safeTheme.text.primary }}>
                 Designer Application
               </h1>
             </div>
-            <p className="text-sm" style={{ color: theme.text.secondary }}>
+            <p className="text-sm" style={{ color: safeTheme.text.secondary }}>
               Step {step} of {totalSteps}
             </p>
           </div>
@@ -885,12 +902,12 @@ export default function DesignerApplyPage() {
           <div className="relative">
             <div 
               className="h-2 rounded-full"
-              style={{ backgroundColor: theme.nestedBg }}
+              style={{ backgroundColor: safeTheme.nestedBg }}
             />
             <div 
               className="absolute top-0 left-0 h-2 rounded-full transition-all duration-300"
               style={{ 
-                backgroundColor: theme.accent,
+                backgroundColor: safeTheme.accent,
                 width: `${(step / totalSteps) * 100}%`
               }}
             />
@@ -910,7 +927,7 @@ export default function DesignerApplyPage() {
               className="font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{ 
                 backgroundColor: 'transparent',
-                border: `2px solid ${theme.border}`,
+                border: `2px solid ${safeTheme.border}`,
                 color: theme.text.primary
               }}
             >
@@ -922,7 +939,7 @@ export default function DesignerApplyPage() {
               className="font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{ 
                 backgroundColor: 'transparent',
-                border: `2px solid ${theme.border}`,
+                border: `2px solid ${safeTheme.border}`,
                 color: theme.text.primary
               }}
             >
@@ -936,7 +953,7 @@ export default function DesignerApplyPage() {
             disabled={!isStepValid()}
             className="font-bold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ 
-              backgroundColor: theme.accent,
+              backgroundColor: safeTheme.accent,
               color: '#000'
             }}
           >
