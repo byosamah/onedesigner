@@ -132,6 +132,9 @@ export const PLACEHOLDER_IMAGES = {
   PROJECT_PREVIEW: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'
 } as const
 
+// Re-export design categories
+export * from './design-categories'
+
 // Type exports for type safety
 export type PricingPackage = typeof PRICING_PACKAGES[number]
 export type DesignStyle = typeof DESIGN_STYLES[number]
