@@ -207,6 +207,7 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 4. **ALWAYS persist matches** - Same designer after payment
 5. **ALWAYS use realistic scores** - 50-80% typical range
 6. **ALWAYS use design system** - Import theme from `/src/lib/design-system`
+7. **ALWAYS deploy to Vercel after pushing to GitHub** - Run `vercel` command after every `git push`
 
 ## Recent Changes Log
 
