@@ -5,8 +5,13 @@ import { performanceMiddleware, performanceMonitorPaths } from '@/middleware/per
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   
+  // Skip all middleware for static assets
+  if (pathname.startsWith('/_next/') || pathname.includes('.')) {
+    return NextResponse.next()
+  }
+  
   // Public routes that don't need authentication
-  const publicRoutes = [
+  const publicPaths = [
     '/',
     '/brief',
     '/brief/contact',
@@ -27,17 +32,17 @@ export async function middleware(request: NextRequest) {
     '/api/designer/verify',
     '/api/admin/auth/send-otp',
     '/api/admin/auth/verify',
-    '/favicon.ico',
-    '/logo.svg',
-    '/icon.svg'
   ]
   
-  // Skip middleware for public routes, API routes, and static assets
-  const isPublicRoute = publicRoutes.some(route => pathname === route)
-  const isPublicApiRoute = publicRoutes.some(route => route.startsWith('/api/') && pathname.startsWith(route))
-  const isStaticAsset = pathname.startsWith('/_next/') || pathname.includes('.')
+  // Check if it's a public route
+  const isPublicRoute = publicPaths.some(path => pathname === path)
   
-  if (isPublicRoute || isPublicApiRoute || isStaticAsset || pathname.startsWith('/test-redesign')) {
+  // Skip auth for public routes and test routes
+  if (isPublicRoute || pathname.startsWith('/test-redesign')) {
+    // Apply performance monitoring if needed
+    if (performanceMonitorPaths.some(path => pathname.startsWith(path))) {
+      performanceMiddleware(request)
+    }
     return NextResponse.next()
   }
   
@@ -46,6 +51,7 @@ export async function middleware(request: NextRequest) {
     performanceMiddleware(request)
   }
   
+  // Only update session for protected routes
   return await updateSession(request)
 }
 
