@@ -1,20 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/shared'
-import { LoadingButton } from '@/components/forms'
+import { LoadingButton, LoadingSpinner } from '@/components/forms'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
 import { useTheme } from '@/lib/hooks/useTheme'
-
-export const dynamic = 'force-dynamic'
 
 export default function DesignerApplyPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const { theme, isDarkMode, toggleTheme } = useTheme()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -129,12 +132,11 @@ export default function DesignerApplyPage() {
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                     style={{ 
                       backgroundColor: theme.nestedBg, 
                       color: theme.text.primary,
                       borderColor: theme.border,
-                      borderWidth: '1px',
                       '--tw-ring-color': theme.accent
                     } as any}
                     placeholder="John"
@@ -148,12 +150,11 @@ export default function DesignerApplyPage() {
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                     style={{ 
                       backgroundColor: theme.nestedBg, 
                       color: theme.text.primary,
                       borderColor: theme.border,
-                      borderWidth: '1px',
                       '--tw-ring-color': theme.accent
                     } as any}
                     placeholder="Doe"
@@ -168,12 +169,11 @@ export default function DesignerApplyPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="john@example.com"
@@ -187,12 +187,11 @@ export default function DesignerApplyPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="+1 (555) 123-4567"
@@ -217,12 +216,11 @@ export default function DesignerApplyPage() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="Senior Product Designer"
@@ -235,12 +233,11 @@ export default function DesignerApplyPage() {
                 <select
                   value={formData.yearsExperience}
                   onChange={(e) => setFormData({ ...formData, yearsExperience: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                 >
@@ -259,12 +256,11 @@ export default function DesignerApplyPage() {
                   type="url"
                   value={formData.websiteUrl}
                   onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="https://yourportfolio.com"
@@ -278,12 +274,11 @@ export default function DesignerApplyPage() {
                   type="number"
                   value={formData.hourlyRate}
                   onChange={(e) => setFormData({ ...formData, hourlyRate: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="150"
@@ -309,12 +304,11 @@ export default function DesignerApplyPage() {
                     type="text"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                     style={{ 
                       backgroundColor: theme.nestedBg, 
                       color: theme.text.primary,
                       borderColor: theme.border,
-                      borderWidth: '1px',
                       '--tw-ring-color': theme.accent
                     } as any}
                     placeholder="New York"
@@ -328,12 +322,11 @@ export default function DesignerApplyPage() {
                     type="text"
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                     style={{ 
                       backgroundColor: theme.nestedBg, 
                       color: theme.text.primary,
                       borderColor: theme.border,
-                      borderWidth: '1px',
                       '--tw-ring-color': theme.accent
                     } as any}
                     placeholder="United States"
@@ -348,12 +341,11 @@ export default function DesignerApplyPage() {
                   type="text"
                   value={formData.timezone}
                   onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="EST (UTC-5)"
@@ -381,7 +373,7 @@ export default function DesignerApplyPage() {
                         checked={formData.availability === option.value}
                         onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
                         className="w-5 h-5 accent-current"
-                        style={{ accentColor: theme?.accent || '#f0ad4e' }}
+                        style={{ accentColor: theme.accent }}
                       />
                       <span style={{ color: theme.text.primary }}>{option.label}</span>
                     </label>
@@ -408,12 +400,11 @@ export default function DesignerApplyPage() {
                     <button
                       key={style.id}
                       onClick={() => handleStyleToggle(style.id)}
-                      className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                      className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300"
                       style={{
                         backgroundColor: formData.styles.includes(style.id) ? theme.accent : theme.nestedBg,
                         color: formData.styles.includes(style.id) ? '#000' : theme.text.primary,
-                        borderColor: formData.styles.includes(style.id) ? theme.accent : theme.border,
-                        borderWidth: '1px'
+                        borderColor: formData.styles.includes(style.id) ? theme.accent : theme.border
                       }}
                     >
                       {style.name}
@@ -431,12 +422,11 @@ export default function DesignerApplyPage() {
                     <button
                       key={type.id}
                       onClick={() => handleProjectTypeToggle(type.id)}
-                      className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                      className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300"
                       style={{
                         backgroundColor: formData.projectTypes.includes(type.id) ? theme.accent : theme.nestedBg,
                         color: formData.projectTypes.includes(type.id) ? '#000' : theme.text.primary,
-                        borderColor: formData.projectTypes.includes(type.id) ? theme.accent : theme.border,
-                        borderWidth: '1px'
+                        borderColor: formData.projectTypes.includes(type.id) ? theme.accent : theme.border
                       }}
                     >
                       {type.name}
@@ -455,12 +445,11 @@ export default function DesignerApplyPage() {
                       key={industry}
                       onClick={() => handleIndustryToggle(industry)}
                       disabled={formData.industries.length >= 5 && !formData.industries.includes(industry)}
-                      className="px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 disabled:opacity-50"
+                      className="px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-300 disabled:opacity-50"
                       style={{
                         backgroundColor: formData.industries.includes(industry) ? theme.accent : theme.nestedBg,
                         color: formData.industries.includes(industry) ? '#000' : theme.text.primary,
-                        borderColor: formData.industries.includes(industry) ? theme.accent : theme.border,
-                        borderWidth: '1px'
+                        borderColor: formData.industries.includes(industry) ? theme.accent : theme.border
                       }}
                     >
                       {industry}
@@ -477,12 +466,11 @@ export default function DesignerApplyPage() {
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   rows={4}
-                  className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2 resize-none"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
                     borderColor: theme.border,
-                    borderWidth: '1px',
                     '--tw-ring-color': theme.accent
                   } as any}
                   placeholder="Tell us about yourself and your design approach..."
@@ -495,6 +483,14 @@ export default function DesignerApplyPage() {
       default:
         return null
     }
+  }
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
+        <LoadingSpinner />
+      </div>
+    )
   }
 
   return (
@@ -547,11 +543,10 @@ export default function DesignerApplyPage() {
         </div>
 
         <div 
-          className="p-8 rounded-3xl"
+          className="p-8 rounded-3xl border"
           style={{ 
             backgroundColor: theme.cardBg,
-            borderColor: theme.border,
-            borderWidth: '1px'
+            borderColor: theme.border
           }}
         >
           {renderStep()}
@@ -560,12 +555,11 @@ export default function DesignerApplyPage() {
             {step > 1 && (
               <button
                 onClick={handleBack}
-                className="px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300"
+                className="px-6 py-3 rounded-xl border text-sm font-medium transition-all duration-300"
                 style={{
                   backgroundColor: theme.nestedBg,
                   color: theme.text.primary,
-                  borderColor: theme.border,
-                  borderWidth: '1px'
+                  borderColor: theme.border
                 }}
               >
                 Back
