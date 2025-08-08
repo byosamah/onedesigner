@@ -28,10 +28,14 @@ export async function middleware(request: NextRequest) {
     '/api/auth/send-otp',
     '/api/auth/verify-otp',
     '/api/briefs/create',
+    '/api/briefs/public',
     '/api/designer/apply',
     '/api/designer/verify',
     '/api/admin/auth/send-otp',
     '/api/admin/auth/verify',
+    '/api/test/create-designer',
+    '/api/webhooks/lemonsqueezy',
+    '/api/match',
   ]
   
   // Check if it's a public route
