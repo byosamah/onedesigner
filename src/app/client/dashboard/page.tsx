@@ -482,7 +482,7 @@ export default function ClientDashboard() {
                   {/* Brief Info */}
                   <div className="flex justify-between items-center text-sm">
                     <div style={{ color: theme.text.muted }}>
-                      <span className="font-medium">Project:</span> {match.brief.designCategory} • {match.brief.timeline} • {match.brief.budget}
+                      <span className="font-medium">Project:</span> {match.brief.designCategory || 'Not specified'} • {match.brief.timeline} • {match.brief.budget}
                     </div>
                     <div style={{ color: theme.text.muted }}>
                       {new Date(match.created_at).toLocaleDateString()}

@@ -29,6 +29,7 @@ export default function EnhancedMatchPage() {
   const { theme, isDarkMode, toggleTheme } = useTheme()
   const [matches, setMatches] = useState<any[]>([])
   const [briefData, setBriefData] = useState<any>(null)
+  const [clientData, setClientData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0].message)
@@ -86,6 +87,19 @@ export default function EnhancedMatchPage() {
       
       setBriefData(data.briefData || null)
       
+      // Get client data for credits info
+      if (data.briefData?.client_email) {
+        try {
+          const clientResponse = await fetch('/api/auth/session')
+          if (clientResponse.ok) {
+            const clientSession = await clientResponse.json()
+            setClientData(clientSession.client)
+          }
+        } catch (error) {
+          console.error('Error fetching client data:', error)
+        }
+      }
+      
       // Keep loading for minimum time to show animations
       setTimeout(() => {
         setIsLoading(false)
@@ -132,13 +146,27 @@ export default function EnhancedMatchPage() {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to unlock designer')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to unlock designer')
+      }
+
+      const result = await response.json()
+      
+      // Update client credits immediately
+      if (clientData && result.remainingCredits !== undefined) {
+        setClientData({
+          ...clientData,
+          match_credits: result.remainingCredits
+        })
       }
 
       // Refresh matches to update unlock status
       await fetchRegularMatches()
+      
+      alert('Designer unlocked successfully!')
     } catch (error) {
       console.error('Error unlocking match:', error)
+      alert(error instanceof Error ? error.message : 'Failed to unlock designer')
     }
   }
 
@@ -219,8 +247,38 @@ export default function EnhancedMatchPage() {
             </svg>
             OneDesigner
           </Link>
+
+          {/* Center - Match Info (only show when matches are loaded) */}
+          {!isLoading && matches.length > 0 && (
+            <div className="flex items-center gap-6">
+              <div 
+                className="px-4 py-2 rounded-full text-sm font-bold"
+                style={{
+                  backgroundColor: theme.accent + '20',
+                  color: theme.accent
+                }}
+              >
+                You have {matches.length} match{matches.length !== 1 ? 'es' : ''}
+              </div>
+              
+              {clientData && (
+                <div className="flex items-center gap-2 text-sm" style={{ color: theme.text.secondary }}>
+                  <span>💳</span>
+                  <span>{clientData.match_credits || 0} credits</span>
+                </div>
+              )}
+              
+              <button 
+                onClick={() => window.location.href = '/client/dashboard'}
+                className="text-sm font-medium hover:underline transition-colors duration-300"
+                style={{ color: theme.text.secondary }}
+              >
+                Previous matches →
+              </button>
+            </div>
+          )}
           
-          {/* Theme Toggle */}
+          {/* Right - Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
@@ -242,31 +300,9 @@ export default function EnhancedMatchPage() {
       </nav>
 
       <div className="max-w-4xl mx-auto px-8 py-12">
-        {/* Header with match counter - Only show when matches are found */}
+        {/* Header - Only show when matches are found */}
         {!isLoading && matches.length > 0 && (
           <div className="mb-8 text-center animate-slideUp">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="px-4 py-2 rounded-full text-sm font-bold"
-                  style={{
-                    backgroundColor: theme.accent + '20',
-                    color: theme.accent
-                  }}
-                >
-                  You have {matches.length} match{matches.length !== 1 ? 'es' : ''}
-                </div>
-              </div>
-              
-              <button 
-                onClick={() => window.location.href = '/client/dashboard'}
-                className="text-sm font-medium hover:underline transition-colors duration-300"
-                style={{ color: theme.text.secondary }}
-              >
-                Previous matches →
-              </button>
-            </div>
-            
             <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
               Your Perfect Match
             </h1>
