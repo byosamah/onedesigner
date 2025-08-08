@@ -36,8 +36,17 @@ export async function POST(request: NextRequest) {
 
     // Store application data in session storage (will save after verification)
     // For now, we'll send OTP for verification
+    console.log('Creating OTP for designer:', formData.email)
     const otp = await createCustomOTP(formData.email)
-    await sendOTPEmail(formData.email, otp)
+    console.log('OTP created:', otp)
+    
+    console.log('Sending OTP email...')
+    const emailSent = await sendOTPEmail(formData.email, otp)
+    console.log('Email sent result:', emailSent)
+    
+    if (!emailSent) {
+      console.error('Failed to send OTP email')
+    }
 
     // Store application temporarily (you might want to use Redis or a temporary table)
     // For simplicity, we'll return the data to be stored client-side
