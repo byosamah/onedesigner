@@ -109,7 +109,7 @@ export const STYLES = {
 // Authentication constants
 export const AUTH_COOKIES = {
   CLIENT: 'client-session',
-  DESIGNER: 'designer-session',
+  DESIGNER: 'designer-auth',
   ADMIN: 'admin-session'
 } as const
 

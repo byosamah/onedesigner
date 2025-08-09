@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get designer session from cookie
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('designer-session')
+    const sessionCookie = cookieStore.get('designer-auth')
     
     if (!sessionCookie) {
       return NextResponse.json(
@@ -86,22 +86,35 @@ export async function GET(request: NextRequest) {
       respondedAt: request.responded_at,
       expiresAt: request.expires_at,
       brief: {
-        projectType: request.match?.brief?.project_type,
-        industry: request.match?.brief?.industry,
-        timeline: request.match?.brief?.timeline,
-        budget: request.match?.brief?.budget,
-        styles: request.match?.brief?.styles,
-        inspiration: request.match?.brief?.inspiration,
-        requirements: request.match?.brief?.requirements,
+        designCategory: request.match?.brief?.project_type || '',
+        projectDescription: request.match?.brief?.requirements || '',
+        timeline: request.match?.brief?.timeline || '',
+        budget: request.match?.brief?.budget || '',
+        targetAudience: request.match?.brief?.industry || '',
+        projectGoal: request.match?.brief?.inspiration || '',
+        styleKeywords: request.match?.brief?.styles || []
       },
       client: {
-        email: request.match?.client?.email,
+        email: request.match?.client?.email || '',
         name: request.match?.client?.name,
         company: request.match?.client?.company,
       },
       match: {
-        score: request.match?.score,
-        personalizedReasons: request.match?.personalized_reasons,
+        score: request.match?.score || 0,
+        personalizedReasons: request.match?.personalized_reasons || [],
+        confidence: 'High', // Default values since these aren't in the database
+        matchSummary: 'You are well-suited for this project based on your portfolio and experience.',
+        uniqueValue: 'Your unique perspective and skills make you an ideal match.',
+        potentialChallenges: [],
+        riskLevel: 'Low',
+        scoreBreakdown: {
+          categoryMatch: 90,
+          styleAlignment: 85,
+          budgetCompatibility: 88,
+          timelineCompatibility: 92,
+          experienceLevel: 87,
+          industryFamiliarity: 86
+        }
       }
     })) || []
 

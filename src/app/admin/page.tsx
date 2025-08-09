@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="osamah96@gmail.com"
+                placeholder="admin@onedesigner.app"
                 required
                 autoFocus
                 theme={theme}

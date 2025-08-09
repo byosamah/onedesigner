@@ -311,6 +311,14 @@ export default function DesignerApplyPage() {
       case 2:
         if (!formData.title.trim()) newErrors.title = 'Professional title is required'
         if (!formData.yearsExperience) newErrors.yearsExperience = 'Years of experience is required'
+        if (!formData.websiteUrl.trim()) {
+          newErrors.websiteUrl = 'Portfolio/Website URL is required'
+        } else {
+          const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/[^\s]*)?$/
+          if (!urlPattern.test(formData.websiteUrl.trim())) {
+            newErrors.websiteUrl = 'Please enter a valid URL (e.g., https://example.com)'
+          }
+        }
         if (!formData.projectPriceFrom) newErrors.projectPriceFrom = 'Minimum project price is required'
         if (!formData.projectPriceTo) newErrors.projectPriceTo = 'Maximum project price is required'
         if (formData.projectPriceFrom && formData.projectPriceTo && parseInt(formData.projectPriceFrom) > parseInt(formData.projectPriceTo)) {
@@ -338,12 +346,10 @@ export default function DesignerApplyPage() {
         break
 
       case 5:
-        if (!formData.websiteUrl.trim()) {
-          newErrors.websiteUrl = 'Portfolio/Website URL is required'
-        } else {
+        if (formData.portfolioUrl && formData.portfolioUrl.trim()) {
           const urlPattern = /^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(\/[^\s]*)?$/
-          if (!urlPattern.test(formData.websiteUrl.trim())) {
-            newErrors.websiteUrl = 'Please enter a valid URL (e.g., https://example.com)'
+          if (!urlPattern.test(formData.portfolioUrl.trim())) {
+            newErrors.portfolioUrl = 'Please enter a valid URL (e.g., https://example.com)'
           }
         }
         if (formData.specializations.length === 0) newErrors.specializations = 'Please select at least one specialization'
@@ -425,6 +431,7 @@ export default function DesignerApplyPage() {
 
   const handleSubmit = async () => {
     setIsLoading(true)
+    console.log('Submitting form data:', formData)
     try {
       const response = await fetch('/api/designer/apply', {
         method: 'POST',
@@ -435,11 +442,14 @@ export default function DesignerApplyPage() {
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('Submission error details:', data.details)
+        alert(data.error || 'Failed to submit application')
         throw new Error(data.error || 'Failed to submit application')
       }
 
-      // Store email for verification
+      // Store email and application data for verification
       sessionStorage.setItem('designerEmail', formData.email)
+      sessionStorage.setItem('designerApplication', JSON.stringify(formData))
       
       // Navigate to verification page
       router.push('/designer/apply/verify')
@@ -607,6 +617,29 @@ export default function DesignerApplyPage() {
                 {errors.yearsExperience && (
                   <p className="text-sm mt-1" style={{ color: theme.error }}>
                     {errors.yearsExperience}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Portfolio/Website URL <span style={{ color: theme.error }}>*</span>
+                </label>
+                <input
+                  type="url"
+                  value={formData.websiteUrl}
+                  onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                  style={{ 
+                    backgroundColor: theme.nestedBg, 
+                    color: theme.text.primary,
+                    borderColor: errors.websiteUrl ? theme.error : theme.border,
+                    '--tw-ring-color': theme.accent
+                  } as any}
+                  placeholder="https://yourportfolio.com"
+                />
+                {errors.websiteUrl && (
+                  <p className="text-sm mt-1" style={{ color: theme.error }}>
+                    {errors.websiteUrl}
                   </p>
                 )}
               </div>
@@ -976,24 +1009,24 @@ export default function DesignerApplyPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
-                    Portfolio/Website URL <span style={{ color: theme.error }}>*</span>
+                    Portfolio URL (Optional)
                   </label>
                   <input
                     type="url"
-                    value={formData.websiteUrl}
-                    onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
+                    value={formData.portfolioUrl}
+                    onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
                     style={{ 
                       backgroundColor: theme.nestedBg, 
                       color: theme.text.primary,
-                      borderColor: errors.websiteUrl ? theme.error : theme.border,
+                      borderColor: errors.portfolioUrl ? theme.error : theme.border,
                       '--tw-ring-color': theme.accent
                     } as any}
                     placeholder="https://yourportfolio.com"
                   />
-                  {errors.websiteUrl && (
+                  {errors.portfolioUrl && (
                     <p className="text-sm mt-1" style={{ color: theme.error }}>
-                      {errors.websiteUrl}
+                      {errors.portfolioUrl}
                     </p>
                   )}
                 </div>

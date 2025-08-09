@@ -65,7 +65,23 @@ export async function GET(request: NextRequest) {
     }
 
     return apiResponse.success({
-      designer: transformedDesigner,
+      designer: {
+        id: designer.id,
+        firstName: designer.first_name,
+        lastName: designer.last_name,
+        email: designer.email,
+        title: designer.title,
+        isApproved: designer.is_approved,
+        isVerified: designer.is_verified,
+        yearsExperience: designer.years_experience,
+        bio: designer.bio,
+        city: designer.city,
+        country: designer.country,
+        primaryCategories: projectTypes,
+        designPhilosophy: designer.bio || '',
+        styles,
+        industries
+      },
       session: {
         designerId: designer.id,
         email: designer.email,

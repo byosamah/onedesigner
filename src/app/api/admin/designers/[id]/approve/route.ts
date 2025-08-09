@@ -29,7 +29,9 @@ export async function POST(
       .update({
         is_approved: true,
         approved_at: new Date().toISOString(),
-        approved_by: session.adminId
+        approved_by: session.adminId,
+        last_approved_at: new Date().toISOString(),
+        edited_after_approval: false // Reset the edit flag when approving
       })
       .eq('id', params.id)
       .select()

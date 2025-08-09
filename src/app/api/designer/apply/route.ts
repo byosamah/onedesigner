@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import bcrypt from 'bcryptjs'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email/send-email'
+import { otpEmailTemplate } from '@/lib/email/templates/otp'
+import { createCustomOTP } from '@/lib/auth/custom-otp'
 
 const designerApplicationSchema = z.object({
   // Step 1: Basic Info
@@ -13,6 +15,20 @@ const designerApplicationSchema = z.object({
   // Step 2: Professional Info
   title: z.string().min(1),
   yearsExperience: z.string().min(1),
+  websiteUrl: z.string().transform((url) => {
+    // Add https:// if no protocol is provided
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`;
+    }
+    return url;
+  }).refine((url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }, { message: 'Invalid URL format' }),
   projectPriceFrom: z.string().min(1),
   projectPriceTo: z.string().min(1),
   
@@ -29,7 +45,12 @@ const designerApplicationSchema = z.object({
   bio: z.string().min(100).max(500),
 
   // Step 5: Enhanced Portfolio & Skills
-  websiteUrl: z.string().url(),
+  portfolioUrl: z.string().optional().transform(val => {
+    if (!val || val === '') return '';
+    return val;
+  }).refine(val => !val || val === '' || z.string().url().safeParse(val).success, {
+    message: 'Invalid URL format'
+  }),
   dribbbleUrl: z.string().optional().transform(val => {
     if (!val || val === '') return '';
     return val;
@@ -63,6 +84,7 @@ const designerApplicationSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Received designer application:', body)
     
     // Validate input
     const validatedData = designerApplicationSchema.parse(body)
@@ -83,77 +105,34 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Generate verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const hashedCode = await bcrypt.hash(verificationCode, 10)
+    // Generate and store OTP
+    const otp = await createCustomOTP(validatedData.email)
     
-    // Create designer record
-    const { data: designer, error: designerError } = await supabase
-      .from('designers')
-      .insert({
-        first_name: validatedData.firstName,
-        last_name: validatedData.lastName,
-        email: validatedData.email,
-        phone: validatedData.phone,
-        title: validatedData.title,
-        years_experience: validatedData.yearsExperience,
-        website_url: validatedData.websiteUrl,
-        project_price_from: parseFloat(validatedData.projectPriceFrom),
-        project_price_to: parseFloat(validatedData.projectPriceTo),
-        city: validatedData.city,
-        country: validatedData.country,
-        timezone: validatedData.timezone,
-        availability: validatedData.availability,
-        styles: validatedData.styles,
-        project_types: validatedData.projectTypes,
-        industries: validatedData.industries,
-        bio: validatedData.bio,
-        // Enhanced fields
-        dribbble_url: validatedData.dribbbleUrl || null,
-        behance_url: validatedData.behanceUrl || null,
-        linkedin_url: validatedData.linkedinUrl || null,
-        specializations: validatedData.specializations,
-        software_skills: validatedData.softwareSkills,
-        previous_clients: validatedData.previousClients || null,
-        project_preferences: validatedData.projectPreferences,
-        working_style: validatedData.workingStyle,
-        communication_style: validatedData.communicationStyle,
-        remote_experience: validatedData.remoteExperience,
-        team_collaboration: validatedData.teamCollaboration || null,
-        verification_code: hashedCode,
-        verification_expires: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-        is_verified: false,
-        is_approved: false
+    // Send OTP email
+    const { subject, html, text } = otpEmailTemplate({
+      otp,
+      name: validatedData.firstName,
+      action: 'verify your designer application'
+    })
+    
+    try {
+      await sendEmail({
+        to: validatedData.email,
+        subject,
+        html,
+        text
       })
-      .select()
-      .single()
-      
-    if (designerError) {
-      console.error('Error creating designer:', designerError)
+    } catch (emailError) {
+      console.error('Failed to send OTP email:', emailError)
       return NextResponse.json(
-        { error: 'Failed to create designer application' },
+        { error: 'Failed to send verification email' },
         { status: 500 }
       )
     }
     
-    // Send verification email
-    const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/designer/verify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: validatedData.email,
-        code: verificationCode,
-        firstName: validatedData.firstName
-      })
-    })
-    
-    if (!emailResponse.ok) {
-      console.error('Failed to send verification email')
-    }
-    
     return NextResponse.json({
       success: true,
-      message: 'Application submitted successfully',
+      message: 'Verification code sent to your email',
       requiresVerification: true
     })
     
@@ -161,6 +140,7 @@ export async function POST(request: NextRequest) {
     console.error('Designer apply error:', error)
     
     if (error instanceof z.ZodError) {
+      console.error('Validation errors:', error.errors)
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
         { status: 400 }

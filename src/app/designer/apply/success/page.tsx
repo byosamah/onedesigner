@@ -26,14 +26,14 @@ export default function DesignerSuccessPage() {
       
       <div className="w-full max-w-lg space-y-12 animate-fadeIn text-center">
         <div className="space-y-6">
-          <div className="text-8xl mb-8">🚀</div>
+          <div className="text-8xl mb-8">✅</div>
           
           <h1 className="text-4xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-            You're in! Welcome aboard 🎉
+            Application Submitted Successfully! 🎉
           </h1>
           
           <p className="text-xl transition-colors duration-300" style={{ color: theme.text.secondary }}>
-            Your application rocks. We're pumped to have you!
+            Your email is verified. Our team will review your application shortly.
           </p>
         </div>
 
@@ -45,18 +45,18 @@ export default function DesignerSuccessPage() {
               {[
                 {
                   emoji: '🔍',
-                  title: 'Portfolio Review (24 hours)',
-                  desc: 'Our team checks your work to make sure it\'s awesome'
+                  title: 'Application Review (24-48 hours)',
+                  desc: 'Our admin team will carefully review your application and portfolio'
                 },
                 {
                   emoji: '📧',
-                  title: 'Email Confirmation',
-                  desc: 'You\'ll get the good news straight to your inbox'
+                  title: 'Approval Notification',
+                  desc: 'You\'ll receive an email once your application is approved'
                 },
                 {
                   emoji: '💰', 
                   title: 'Start Earning',
-                  desc: 'Clients will find you, no hunting for work needed'
+                  desc: 'Once approved, clients will be able to find and hire you'
                 }
               ].map((step, i) => (
                 <div key={i} className="flex gap-4 animate-slideUp" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -72,24 +72,24 @@ export default function DesignerSuccessPage() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center gap-4">
             <Link 
-              href="/designer/login" 
+              href="/designer/dashboard" 
               className="font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{ backgroundColor: theme.accent, color: '#000' }}
             >
-              Check Your Dashboard ✨
+              Go to Dashboard →
             </Link>
             <Link 
               href="/" 
-              className="font-medium py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+              className="font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{ 
-                backgroundColor: 'transparent',
+                backgroundColor: 'transparent', 
                 border: `2px solid ${theme.border}`,
-                color: theme.text.primary
+                color: theme.text.primary 
               }}
             >
-              Back to Home
+              Back to Homepage
             </Link>
           </div>
         </div>

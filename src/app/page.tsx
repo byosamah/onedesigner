@@ -128,13 +128,22 @@ export default function HomePage() {
         <p className="text-sm transition-colors duration-300" style={{ color: theme.text.muted }}>
           ✨ 2,847 perfect matches made
         </p>
-        <Link
-          href="/designer/login"
-          className="text-sm transition-colors duration-300 hover:opacity-80"
-          style={{ color: theme.text.muted }}
-        >
-          Designer? Sign in here →
-        </Link>
+        <div className="flex flex-col items-center gap-2">
+          <Link
+            href="/designer/login"
+            className="text-sm transition-colors duration-300 hover:opacity-80"
+            style={{ color: theme.text.muted }}
+          >
+            Designer? Sign in here →
+          </Link>
+          <Link
+            href="/client/login"
+            className="text-sm transition-colors duration-300 hover:opacity-80"
+            style={{ color: theme.text.muted }}
+          >
+            Client? Sign in here →
+          </Link>
+        </div>
       </div>
     </main>
   )

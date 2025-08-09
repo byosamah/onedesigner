@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
-import { LoadingSpinner } from '@/components/shared'
 
 interface EnhancedDesignerRequest {
   id: string
@@ -53,17 +52,20 @@ interface DesignerProfile {
   isVerified: boolean
   designPhilosophy: string
   primaryCategories: string[]
-  yearsExperience: number
+  yearsExperience: number | string
 }
 
 export default function DesignerDashboardPage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(true)
   const [designer, setDesigner] = useState<DesignerProfile | null>(null)
   const [requests, setRequests] = useState<EnhancedDesignerRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
   const theme = getTheme(isDarkMode)
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
     fetchDashboardData()
@@ -101,6 +103,13 @@ export default function DesignerDashboardPage() {
       const sessionData = await sessionResponse.json()
       const requestsData = await requestsResponse.json()
 
+      console.log('Session data:', sessionData)
+      console.log('Requests data:', requestsData)
+
+      if (!sessionData.designer) {
+        throw new Error('Designer data not found in session response')
+      }
+
       setDesigner(sessionData.designer)
       setRequests(requestsData.requests || [])
 
@@ -130,6 +139,7 @@ export default function DesignerDashboardPage() {
 
       // Refresh requests after response
       fetchDashboardData()
+      setSelectedRequest(null)
 
     } catch (error) {
       console.error('Response error:', error)
@@ -151,46 +161,26 @@ export default function DesignerDashboardPage() {
 
   if (isLoading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: theme.bg }}
-      >
+      <main className="min-h-screen flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
         <div className="text-center">
-          <LoadingSpinner size="large" />
-          <p 
-            className="mt-4 text-lg animate-pulse"
-            style={{ color: theme.text.secondary }}
-          >
+          <div className="text-5xl mb-6 animate-pulse">⚡</div>
+          <h2 className="text-2xl font-bold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
             Loading your dashboard...
-          </p>
+          </h2>
         </div>
-      </div>
+      </main>
     )
   }
 
   if (error) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: theme.bg }}
-      >
+      <main className="min-h-screen flex items-center justify-center transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
         <div className="text-center max-w-md">
-          <div 
-            className="text-6xl mb-4"
-            style={{ color: theme.error }}
-          >
-            ⚠️
-          </div>
-          <h2 
-            className="text-2xl font-bold mb-4"
-            style={{ color: theme.text.primary }}
-          >
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: theme.text.primary }}>
             Dashboard Error
           </h2>
-          <p 
-            className="mb-6"
-            style={{ color: theme.text.secondary }}
-          >
+          <p className="mb-6" style={{ color: theme.text.secondary }}>
             {error}
           </p>
           <div className="space-y-4">
@@ -217,117 +207,116 @@ export default function DesignerDashboardPage() {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div 
-      className="min-h-screen transition-all duration-300"
-      style={{ backgroundColor: theme.bg }}
-    >
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center space-x-4">
-            <img 
-              src="/logo.svg" 
-              alt="OneDesigner" 
-              className="w-8 h-8"
-            />
-            <div>
-              <h1 
-                className="text-3xl font-bold"
-                style={{ color: theme.text.primary }}
-              >
-                Designer Dashboard
-              </h1>
-              <p 
-                className="text-sm"
-                style={{ color: theme.text.muted }}
-              >
-                Welcome back, {designer?.firstName} {designer?.lastName}
-              </p>
-            </div>
+    <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+      {/* Navigation - matching admin dashboard style */}
+      <nav className="px-8 py-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1"/>
+                <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
+                <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
+              </svg>
+              OneDesigner
+            </Link>
+            <span className="text-sm font-medium px-3 py-1 rounded-full" style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}>
+              Designer Dashboard
+            </span>
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-4">
+            {/* Theme Toggle */}
             <button
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="p-3 rounded-2xl transition-all duration-200 hover:scale-110"
-              style={{
-                backgroundColor: theme.nestedBg,
-                border: `2px solid ${theme.border}`,
-                color: theme.text.primary
-              }}
+              onClick={toggleTheme}
+              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+              style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+              aria-label="Toggle theme"
             >
-              {isDarkMode ? '☀️' : '🌙'}
+              <div
+                className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
+                style={{
+                  left: isDarkMode ? '2px' : '32px',
+                  backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
+                }}
+              >
+                {isDarkMode ? '🌙' : '☀️'}
+              </div>
             </button>
             
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 rounded-2xl font-bold transition-all duration-200 hover:scale-105"
-              style={{
-                backgroundColor: 'transparent',
-                border: `2px solid ${theme.border}`,
-                color: theme.text.primary
-              }}
+              className="font-medium py-2 px-4 rounded-xl transition-all duration-300 hover:opacity-80"
+              style={{ color: theme.text.secondary }}
             >
               Sign Out
             </button>
           </div>
         </div>
+      </nav>
 
-        {/* Profile Status */}
+      <div className="max-w-7xl mx-auto px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+            Designer Dashboard
+          </h1>
+          <p className="text-lg transition-colors duration-300" style={{ color: theme.text.secondary }}>
+            Welcome back, {designer?.firstName || 'Designer'} {designer?.lastName || ''}
+          </p>
+        </div>
+
+        {/* Profile Status Card */}
         {designer && (
           <div 
-            className="p-6 rounded-3xl mb-8"
+            className="rounded-2xl p-6 mb-8 transition-all duration-300 animate-slideUp"
             style={{
               backgroundColor: theme.cardBg,
-              border: `2px solid ${theme.border}`
+              border: `1px solid ${theme.border}`,
+              boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
             }}
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4">
                 <div 
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold"
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
                   style={{ backgroundColor: theme.accent, color: '#000' }}
                 >
-                  {designer.firstName[0]}{designer.lastName[0]}
+                  {designer.firstName?.[0] || 'D'}{designer.lastName?.[0] || 'U'}
                 </div>
                 <div>
-                  <h3 
-                    className="text-xl font-bold"
-                    style={{ color: theme.text.primary }}
-                  >
-                    {designer.firstName} {designer.lastName}
+                  <h3 className="text-lg font-bold mb-1 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                    {designer.firstName || 'Designer'} {designer.lastName || 'User'}
                   </h3>
-                  <p 
-                    className="text-sm"
-                    style={{ color: theme.text.secondary }}
-                  >
-                    {designer.title} • {designer.yearsExperience} years experience
+                  <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                    {designer.title || 'Designer'} • {designer.yearsExperience || 0} years experience
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-4">
-                <div 
-                  className="px-3 py-1 rounded-full text-sm font-bold"
-                  style={{
-                    backgroundColor: designer.isApproved ? theme.success + '20' : theme.accent + '20',
-                    color: designer.isApproved ? theme.success : theme.accent
-                  }}
-                >
-                  {designer.isApproved ? '✅ Approved' : '⏳ Under Review'}
-                </div>
+              <div className="flex items-center gap-3">
+                {designer.isApproved ? (
+                  <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
+                    ✓ Approved
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
+                    ⏳ Under Review
+                  </span>
+                )}
                 
                 <Link
                   href="/designer/profile"
-                  className="px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-105"
+                  className="font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                   style={{
-                    backgroundColor: theme.accent,
-                    color: '#000'
+                    backgroundColor: theme.nestedBg,
+                    color: theme.text.primary
                   }}
                 >
                   Edit Profile
@@ -337,16 +326,13 @@ export default function DesignerDashboardPage() {
 
             {!designer.isApproved && (
               <div 
-                className="mt-4 p-4 rounded-2xl"
+                className="mt-4 p-4 rounded-xl"
                 style={{
                   backgroundColor: theme.accent + '10',
                   border: `1px solid ${theme.accent}40`
                 }}
               >
-                <p 
-                  className="text-sm"
-                  style={{ color: theme.text.primary }}
-                >
+                <p className="text-sm" style={{ color: theme.text.primary }}>
                   <strong>Profile Under Review:</strong> Your profile is being reviewed by our team. 
                   You'll start receiving project requests once approved (usually within 24 hours).
                 </p>
@@ -355,209 +341,139 @@ export default function DesignerDashboardPage() {
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div 
-            className="p-6 rounded-3xl"
+            className="rounded-2xl p-6 transition-all duration-300 animate-slideUp"
             style={{
               backgroundColor: theme.cardBg,
-              border: `2px solid ${theme.border}`
+              border: `1px solid ${theme.border}`,
+              boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+              animationDelay: '0.1s'
             }}
           >
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="text-2xl">📥</span>
-              <h3 
-                className="text-lg font-bold"
-                style={{ color: theme.text.primary }}
-              >
-                New Requests
-              </h3>
-            </div>
-            <div 
-              className="text-3xl font-extrabold"
-              style={{ color: theme.accent }}
-            >
+            <div className="text-2xl mb-3">📥</div>
+            <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>
               {requests.filter(r => r.status === 'pending').length}
             </div>
-            <p 
-              className="text-sm mt-1"
-              style={{ color: theme.text.muted }}
-            >
-              Awaiting your response
-            </p>
+            <div className="text-sm" style={{ color: theme.text.secondary }}>New Requests</div>
           </div>
-
+          
           <div 
-            className="p-6 rounded-3xl"
+            className="rounded-2xl p-6 transition-all duration-300 animate-slideUp"
             style={{
               backgroundColor: theme.cardBg,
-              border: `2px solid ${theme.border}`
+              border: `1px solid ${theme.border}`,
+              boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+              animationDelay: '0.2s'
             }}
           >
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="text-2xl">✅</span>
-              <h3 
-                className="text-lg font-bold"
-                style={{ color: theme.text.primary }}
-              >
-                Accepted
-              </h3>
-            </div>
-            <div 
-              className="text-3xl font-extrabold"
-              style={{ color: theme.success }}
-            >
+            <div className="text-2xl mb-3">✅</div>
+            <div className="text-3xl font-bold mb-1" style={{ color: theme.success }}>
               {requests.filter(r => r.status === 'accepted').length}
             </div>
-            <p 
-              className="text-sm mt-1"
-              style={{ color: theme.text.muted }}
-            >
-              Projects in progress
-            </p>
+            <div className="text-sm" style={{ color: theme.text.secondary }}>Accepted</div>
           </div>
-
+          
           <div 
-            className="p-6 rounded-3xl"
+            className="rounded-2xl p-6 transition-all duration-300 animate-slideUp"
             style={{
               backgroundColor: theme.cardBg,
-              border: `2px solid ${theme.border}`
+              border: `1px solid ${theme.border}`,
+              boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)',
+              animationDelay: '0.3s'
             }}
           >
-            <div className="flex items-center space-x-3 mb-2">
-              <span className="text-2xl">📊</span>
-              <h3 
-                className="text-lg font-bold"
-                style={{ color: theme.text.primary }}
-              >
-                All Time
-              </h3>
-            </div>
-            <div 
-              className="text-3xl font-extrabold"
-              style={{ color: theme.text.primary }}
-            >
+            <div className="text-2xl mb-3">📊</div>
+            <div className="text-3xl font-bold mb-1" style={{ color: theme.text.primary }}>
               {requests.length}
             </div>
-            <p 
-              className="text-sm mt-1"
-              style={{ color: theme.text.muted }}
-            >
-              Total requests received
-            </p>
+            <div className="text-sm" style={{ color: theme.text.secondary }}>Total Requests</div>
           </div>
         </div>
 
-        {/* Requests List */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 
-              className="text-2xl font-bold"
-              style={{ color: theme.text.primary }}
-            >
-              Project Requests
-            </h2>
+        {/* Requests Section */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+            Project Requests
+          </h2>
+        </div>
+
+        {requests.length === 0 ? (
+          <div 
+            className="text-center py-16 rounded-3xl"
+            style={{
+              backgroundColor: theme.cardBg,
+              border: `1px solid ${theme.border}`
+            }}
+          >
+            <div className="text-5xl mb-6">📭</div>
+            <h3 className="text-xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              No requests yet
+            </h3>
+            <p className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
+              {designer?.isApproved 
+                ? "Project requests will appear here when clients match with you"
+                : "Complete your profile approval to start receiving project requests"
+              }
+            </p>
           </div>
-
-          {requests.length === 0 ? (
-            <div 
-              className="text-center py-12 rounded-3xl"
-              style={{
-                backgroundColor: theme.cardBg,
-                border: `2px solid ${theme.border}`
-              }}
-            >
-              <div className="text-6xl mb-4">📮</div>
-              <h3 
-                className="text-xl font-bold mb-4"
-                style={{ color: theme.text.primary }}
+        ) : (
+          <div className="space-y-4">
+            {requests.map((request) => (
+              <div 
+                key={request.id}
+                className="rounded-2xl p-6 transition-all duration-300 hover:scale-[1.002]"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  border: `1px solid ${theme.border}`,
+                  boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}
               >
-                No requests yet
-              </h3>
-              <p 
-                className="text-lg mb-6"
-                style={{ color: theme.text.secondary }}
-              >
-                {designer?.isApproved 
-                  ? "Project requests will appear here when clients match with you"
-                  : "Complete your profile approval to start receiving project requests"
-                }
-              </p>
-              {!designer?.isApproved && (
-                <Link
-                  href="/designer/profile"
-                  className="inline-flex px-6 py-3 rounded-2xl font-bold transition-all duration-200 hover:scale-105"
-                  style={{
-                    backgroundColor: theme.accent,
-                    color: '#000'
-                  }}
-                >
-                  Complete Profile
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {requests.map((request) => (
-                <div 
-                  key={request.id}
-                  className="p-6 rounded-3xl transition-all duration-200"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    border: `2px solid ${theme.border}`
-                  }}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 
-                          className="text-xl font-bold"
-                          style={{ color: theme.text.primary }}
-                        >
-                          {request.brief.designCategory}
-                        </h3>
-                        <div 
-                          className="px-3 py-1 rounded-full text-sm font-bold"
-                          style={{
-                            backgroundColor: request.status === 'pending' ? theme.accent + '20' : 
-                                           request.status === 'accepted' ? theme.success + '20' : 
-                                           request.status === 'declined' ? theme.error + '20' : theme.text.muted + '20',
-                            color: request.status === 'pending' ? theme.accent : 
-                                   request.status === 'accepted' ? theme.success : 
-                                   request.status === 'declined' ? theme.error : theme.text.muted
-                          }}
-                        >
-                          {request.status === 'pending' ? '⏳ Pending' : 
-                           request.status === 'accepted' ? '✅ Accepted' : 
-                           request.status === 'declined' ? '❌ Declined' : '⏰ Expired'}
-                        </div>
-                      </div>
-                      
-                      <p 
-                        className="text-sm mb-3"
-                        style={{ color: theme.text.secondary }}
-                      >
-                        {request.brief.timeline} • {request.brief.budget}
-                      </p>
-
-                      <div className="flex items-center space-x-4 text-sm mb-4">
-                        <span style={{ color: theme.text.muted }}>
-                          Match Score: <strong style={{ color: theme.accent }}>{request.match.score}%</strong>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {request.brief.designCategory}
+                      </h3>
+                      {request.status === 'pending' && (
+                        <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
+                          ⏳ Pending
                         </span>
-                        <span style={{ color: theme.text.muted }}>
-                          Confidence: <strong>{request.match.confidence}</strong>
+                      )}
+                      {request.status === 'accepted' && (
+                        <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
+                          ✅ Accepted
                         </span>
-                        <span style={{ color: theme.text.muted }}>
-                          Risk: <strong>{request.match.riskLevel}</strong>
+                      )}
+                      {request.status === 'declined' && (
+                        <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.error + '20', color: theme.error }}>
+                          ❌ Declined
                         </span>
-                      </div>
+                      )}
                     </div>
-
+                    
+                    <p className="text-sm mb-2 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                      {request.brief.timeline} • {request.brief.budget}
+                    </p>
+                    
+                    <p className="text-sm line-clamp-2 transition-colors duration-300" style={{ color: theme.text.muted }}>
+                      {request.brief.projectDescription}
+                    </p>
+                    
+                    <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: theme.text.muted }}>
+                      <span>Match Score: <strong style={{ color: theme.accent }}>{request.match.score}%</strong></span>
+                      <span>Client: {request.client.email}</span>
+                      <span>{new Date(request.sentAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 ml-4">
                     {request.status === 'pending' && (
-                      <div className="flex space-x-2">
+                      <>
                         <button
                           onClick={() => handleRequestResponse(request.id, 'decline')}
-                          className="px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-105"
+                          className="font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                           style={{
                             backgroundColor: 'transparent',
                             border: `2px solid ${theme.error}`,
@@ -568,89 +484,149 @@ export default function DesignerDashboardPage() {
                         </button>
                         <button
                           onClick={() => handleRequestResponse(request.id, 'accept')}
-                          className="px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-105"
+                          className="font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                           style={{
                             backgroundColor: theme.success,
-                            color: '#000'
+                            color: '#FFF'
                           }}
                         >
                           Accept
                         </button>
-                      </div>
+                      </>
                     )}
-                  </div>
-
-                  {/* Project Description */}
-                  <div 
-                    className="p-4 rounded-2xl mb-4"
-                    style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`
-                    }}
-                  >
-                    <h4 
-                      className="font-bold mb-2"
-                      style={{ color: theme.text.primary }}
+                    <button
+                      onClick={() => setSelectedRequest(request)}
+                      className="font-medium py-2 px-4 rounded-xl transition-all duration-300"
+                      style={{
+                        backgroundColor: theme.nestedBg,
+                        color: theme.text.secondary
+                      }}
                     >
-                      Project Description:
-                    </h4>
-                    <p 
-                      className="text-sm"
-                      style={{ color: theme.text.secondary }}
-                    >
-                      {request.brief.projectDescription}
-                    </p>
-                  </div>
-
-                  {/* Match Analysis */}
-                  <div 
-                    className="p-4 rounded-2xl mb-4"
-                    style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`
-                    }}
-                  >
-                    <h4 
-                      className="font-bold mb-2"
-                      style={{ color: theme.text.primary }}
-                    >
-                      Why you're a great match:
-                    </h4>
-                    <p 
-                      className="text-sm mb-2"
-                      style={{ color: theme.text.secondary }}
-                    >
-                      {request.match.matchSummary}
-                    </p>
-                    <ul className="text-sm space-y-1">
-                      {request.match.personalizedReasons.map((reason, index) => (
-                        <li 
-                          key={index}
-                          className="flex items-start space-x-2"
-                          style={{ color: theme.text.secondary }}
-                        >
-                          <span style={{ color: theme.success }}>•</span>
-                          <span>{reason}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Client Info & Request Time */}
-                  <div className="flex justify-between items-center text-sm">
-                    <div style={{ color: theme.text.muted }}>
-                      <span className="font-medium">Client:</span> {request.client.email}
-                    </div>
-                    <div style={{ color: theme.text.muted }}>
-                      {new Date(request.sentAt).toLocaleDateString()}
-                    </div>
+                      View Details
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Request Details Modal */}
+      {selectedRequest && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
+          onClick={() => setSelectedRequest(null)}
+        >
+          <div 
+            className="max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-3xl p-8"
+            style={{ backgroundColor: theme.cardBg }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold mb-6 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              Request Details
+            </h2>
+            
+            <div className="space-y-6">
+              {/* Project Info */}
+              <div>
+                <h3 className="font-bold mb-3" style={{ color: theme.text.primary }}>Project Information</h3>
+                <div className="space-y-2">
+                  <p style={{ color: theme.text.secondary }}>
+                    <strong>Category:</strong> {selectedRequest.brief.designCategory}
+                  </p>
+                  <p style={{ color: theme.text.secondary }}>
+                    <strong>Timeline:</strong> {selectedRequest.brief.timeline}
+                  </p>
+                  <p style={{ color: theme.text.secondary }}>
+                    <strong>Budget:</strong> {selectedRequest.brief.budget}
+                  </p>
+                  <p style={{ color: theme.text.secondary }}>
+                    <strong>Target Audience:</strong> {selectedRequest.brief.targetAudience}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-bold mb-3" style={{ color: theme.text.primary }}>Project Description</h3>
+                <p className="whitespace-pre-wrap" style={{ color: theme.text.secondary }}>
+                  {selectedRequest.brief.projectDescription}
+                </p>
+              </div>
+
+              {/* Match Analysis */}
+              <div>
+                <h3 className="font-bold mb-3" style={{ color: theme.text.primary }}>Why You're a Match</h3>
+                <p className="mb-3" style={{ color: theme.text.secondary }}>
+                  {selectedRequest.match.matchSummary}
+                </p>
+                <ul className="space-y-2">
+                  {selectedRequest.match.personalizedReasons.map((reason, index) => (
+                    <li key={index} className="flex items-start gap-2" style={{ color: theme.text.secondary }}>
+                      <span style={{ color: theme.success }}>•</span>
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Client Info */}
+              <div>
+                <h3 className="font-bold mb-3" style={{ color: theme.text.primary }}>Client Information</h3>
+                <p style={{ color: theme.text.secondary }}>
+                  <strong>Email:</strong> {selectedRequest.client.email}
+                </p>
+                {selectedRequest.client.company && (
+                  <p style={{ color: theme.text.secondary }}>
+                    <strong>Company:</strong> {selectedRequest.client.company}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              {selectedRequest.status === 'pending' && (
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => {
+                      handleRequestResponse(selectedRequest.id, 'accept')
+                    }}
+                    className="flex-1 font-bold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                    style={{ backgroundColor: theme.success, color: '#FFF' }}
+                  >
+                    Accept Request
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleRequestResponse(selectedRequest.id, 'decline')
+                    }}
+                    className="flex-1 font-bold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: `2px solid ${theme.error}`,
+                      color: theme.error
+                    }}
+                  >
+                    Decline Request
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={() => setSelectedRequest(null)}
+              className="mt-6 w-full font-medium py-3 rounded-xl transition-all duration-300"
+              style={{
+                backgroundColor: theme.nestedBg,
+                color: theme.text.secondary
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
   )
 }

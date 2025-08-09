@@ -7,29 +7,42 @@ import { getTheme } from '@/lib/design-system'
 
 interface Designer {
   id: string
-  first_name: string
-  last_name: string
+  firstName: string
+  lastName: string
   email: string
   title: string
   city: string
   country: string
-  years_experience: number
-  is_verified: boolean
-  is_approved: boolean
-  created_at: string
-  website_url?: string
+  yearsExperience: number | string
+  isVerified: boolean
+  isApproved: boolean
+  createdAt: string
+  websiteUrl?: string
   bio?: string
   styles?: string[]
-  project_types?: string[]
-  // Enhanced fields
-  design_philosophy?: string
-  primary_categories?: string[]
-  style_keywords?: string[]
-  preferred_industries?: string[]
-  turnaround_times?: Record<string, number>
-  collaboration_style?: string
-  ideal_client_types?: string[]
-  portfolio_images?: any[]
+  projectTypes?: string[]
+  industries?: string[]
+  specializations?: string[]
+  softwareSkills?: string[]
+  // Additional fields
+  phone?: string
+  portfolioUrl?: string
+  projectPriceFrom?: number
+  projectPriceTo?: number
+  availability?: string
+  timezone?: string
+  dribbbleUrl?: string
+  behanceUrl?: string
+  linkedinUrl?: string
+  previousClients?: string
+  projectPreferences?: string
+  workingStyle?: string
+  communicationStyle?: string
+  remoteExperience?: string
+  teamCollaboration?: string
+  rating?: number
+  totalProjects?: number
+  updatedAt?: string
 }
 
 interface Stats {
@@ -169,8 +182,8 @@ export default function AdminDashboardPage() {
   }
 
   const filteredDesigners = designers.filter(designer => {
-    if (activeTab === 'pending') return designer.is_verified && !designer.is_approved
-    if (activeTab === 'approved') return designer.is_approved
+    if (activeTab === 'pending') return designer.isVerified && !designer.isApproved
+    if (activeTab === 'approved') return designer.isApproved
     return true
   })
 
@@ -343,33 +356,33 @@ export default function AdminDashboardPage() {
                       className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
                       style={{ backgroundColor: theme.accent, color: '#000' }}
                     >
-                      {designer.first_name[0]}{designer.last_name[0]}
+                      {designer.firstName[0]}{designer.lastName[0]}
                     </div>
                     
                     <div>
                       <h3 className="text-lg font-bold mb-1 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {designer.first_name} {designer.last_name}
-                        {designer.is_approved && (
+                        {designer.firstName} {designer.lastName}
+                        {designer.isApproved && (
                           <span className="ml-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
                             ✓ Approved
                           </span>
                         )}
-                        {!designer.is_approved && designer.is_verified && (
+                        {!designer.isApproved && designer.isVerified && (
                           <span className="ml-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
                             ⏳ Pending
                           </span>
                         )}
                       </h3>
                       <p className="text-sm mb-1 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                        {designer.title} • {designer.city}, {designer.country} • {designer.years_experience} years exp
+                        {designer.title} • {designer.city}, {designer.country} • {designer.yearsExperience} years exp
                       </p>
                       <p className="text-sm" style={{ color: theme.text.muted }}>
                         {designer.email}
-                        {designer.website_url && (
+                        {designer.websiteUrl && (
                           <>
                             {' • '}
                             <a 
-                              href={designer.website_url} 
+                              href={designer.websiteUrl} 
                               target="_blank" 
                               rel="noopener noreferrer"
                               className="hover:opacity-80 transition-opacity"
@@ -385,9 +398,9 @@ export default function AdminDashboardPage() {
                           {designer.bio}
                         </p>
                       )}
-                      {designer.primary_categories && designer.primary_categories.length > 0 && (
+                      {designer.projectTypes && designer.projectTypes.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {designer.primary_categories.map((cat) => (
+                          {designer.projectTypes.map((cat) => (
                             <span 
                               key={cat}
                               className="text-xs px-2 py-1 rounded-full"
@@ -402,7 +415,7 @@ export default function AdminDashboardPage() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {!designer.is_approved && designer.is_verified && (
+                    {!designer.isApproved && designer.isVerified && (
                       <>
                         <button
                           onClick={() => handleApprove(designer.id)}
@@ -438,7 +451,7 @@ export default function AdminDashboardPage() {
                 </div>
                 
                 <div className="text-xs mt-4 transition-colors duration-300" style={{ color: theme.text.muted }}>
-                  Applied: {new Date(designer.created_at).toLocaleDateString()}
+                  Applied: {new Date(designer.createdAt).toLocaleDateString()}
                 </div>
               </div>
             ))
@@ -465,117 +478,328 @@ export default function AdminDashboardPage() {
               Designer Details
             </h2>
             
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Name</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.first_name} {selectedDesigner.last_name}
-                </p>
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Basic Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Name</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.firstName} {selectedDesigner.lastName}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Email</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.email}
+                    </p>
+                  </div>
+                  
+                  {selectedDesigner.phone && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Phone</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.phone}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Email</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.email}
-                </p>
+              {/* Professional Information */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Professional Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Title</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.title}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Experience</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.yearsExperience} years
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Price Range</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      ${selectedDesigner.projectPriceFrom} - ${selectedDesigner.projectPriceTo}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Availability</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.availability}
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Title</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.title}
-                </p>
+              {/* Location */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Location</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>City</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.city}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Country</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.country}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Timezone</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.timezone}
+                    </p>
+                  </div>
+                </div>
               </div>
               
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Location</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.city}, {selectedDesigner.country}
-                </p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Experience</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.years_experience} years
-                </p>
-              </div>
-              
+              {/* Bio */}
               <div>
                 <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Bio</p>
-                <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                <p className="transition-colors duration-300 whitespace-pre-wrap" style={{ color: theme.text.primary }}>
                   {selectedDesigner.bio || 'No bio provided'}
                 </p>
               </div>
               
-              {selectedDesigner.website_url && (
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Website</p>
-                  <a 
-                    href={selectedDesigner.website_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="transition-colors duration-300 hover:opacity-80"
-                    style={{ color: theme.accent }}
-                  >
-                    {selectedDesigner.website_url}
-                  </a>
+              {/* Portfolio URLs */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Portfolio Links</h3>
+                <div className="space-y-2">
+                  {selectedDesigner.websiteUrl ? (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Website</p>
+                      <a 
+                        href={selectedDesigner.websiteUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="transition-colors duration-300 hover:opacity-80"
+                        style={{ color: theme.accent }}
+                      >
+                        {selectedDesigner.websiteUrl}
+                      </a>
+                    </div>
+                  ) : null}
+                  
+                  {selectedDesigner.portfolioUrl ? (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Portfolio</p>
+                      <a 
+                        href={selectedDesigner.portfolioUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="transition-colors duration-300 hover:opacity-80"
+                        style={{ color: theme.accent }}
+                      >
+                        {selectedDesigner.portfolioUrl}
+                      </a>
+                    </div>
+                  ) : null}
+                  
+                  {selectedDesigner.dribbbleUrl ? (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Dribbble</p>
+                      <a 
+                        href={selectedDesigner.dribbbleUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="transition-colors duration-300 hover:opacity-80"
+                        style={{ color: theme.accent }}
+                      >
+                        {selectedDesigner.dribbbleUrl}
+                      </a>
+                    </div>
+                  ) : null}
+                  
+                  {selectedDesigner.behanceUrl ? (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Behance</p>
+                      <a 
+                        href={selectedDesigner.behanceUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="transition-colors duration-300 hover:opacity-80"
+                        style={{ color: theme.accent }}
+                      >
+                        {selectedDesigner.behanceUrl}
+                      </a>
+                    </div>
+                  ) : null}
+                  
+                  {selectedDesigner.linkedinUrl ? (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>LinkedIn</p>
+                      <a 
+                        href={selectedDesigner.linkedinUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="transition-colors duration-300 hover:opacity-80"
+                        style={{ color: theme.accent }}
+                      >
+                        {selectedDesigner.linkedinUrl}
+                      </a>
+                    </div>
+                  ) : null}
                 </div>
-              )}
+              </div>
               
-              {selectedDesigner.design_philosophy && (
+              {/* Skills & Expertise */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Skills & Expertise</h3>
+                
+                {selectedDesigner.styles && selectedDesigner.styles.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Design Styles</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDesigner.styles.map((style) => (
+                        <span 
+                          key={style}
+                          className="px-3 py-1 rounded-full text-sm"
+                          style={{ backgroundColor: theme.accent + '20', color: theme.accent }}
+                        >
+                          {style}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDesigner.projectTypes && selectedDesigner.projectTypes.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Project Types</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDesigner.projectTypes.map((type) => (
+                        <span 
+                          key={type}
+                          className="px-3 py-1 rounded-full text-sm"
+                          style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}
+                        >
+                          {type}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDesigner.industries && selectedDesigner.industries.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Industries</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDesigner.industries.map((industry) => (
+                        <span 
+                          key={industry}
+                          className="px-3 py-1 rounded-full text-sm"
+                          style={{ backgroundColor: theme.nestedBg, color: theme.text.primary }}
+                        >
+                          {industry}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDesigner.specializations && selectedDesigner.specializations.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Specializations</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDesigner.specializations.map((spec) => (
+                        <span 
+                          key={spec}
+                          className="px-3 py-1 rounded-full text-sm"
+                          style={{ backgroundColor: theme.success + '20', color: theme.success }}
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedDesigner.softwareSkills && selectedDesigner.softwareSkills.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Software Skills</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDesigner.softwareSkills.map((software) => (
+                        <span 
+                          key={software}
+                          className="px-3 py-1 rounded-full text-sm"
+                          style={{ backgroundColor: theme.error + '20', color: theme.error }}
+                        >
+                          {software}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Experience & Preferences */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Experience & Preferences</h3>
+                
+                {selectedDesigner.previousClients ? (
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Previous Clients</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.previousClients}
+                    </p>
+                  </div>
+                ) : null}
+                
                 <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Design Philosophy</p>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Project Preferences</p>
                   <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.design_philosophy}
+                    {selectedDesigner.projectPreferences}
                   </p>
                 </div>
-              )}
-              
-              {selectedDesigner.primary_categories && selectedDesigner.primary_categories.length > 0 && (
+                
                 <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Primary Categories</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDesigner.primary_categories.map((cat) => (
-                      <span 
-                        key={cat}
-                        className="px-3 py-1 rounded-full text-sm"
-                        style={{ backgroundColor: theme.accent + '20', color: theme.accent }}
-                      >
-                        {cat}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {selectedDesigner.style_keywords && selectedDesigner.style_keywords.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Style Keywords</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDesigner.style_keywords.map((style) => (
-                      <span 
-                        key={style}
-                        className="px-2 py-1 rounded-full text-xs"
-                        style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}
-                      >
-                        {style}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {selectedDesigner.collaboration_style && (
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Collaboration Style</p>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Working Style</p>
                   <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.collaboration_style.charAt(0).toUpperCase() + selectedDesigner.collaboration_style.slice(1)}
+                    {selectedDesigner.workingStyle}
                   </p>
                 </div>
-              )}
+                
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Communication Style</p>
+                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                    {selectedDesigner.communicationStyle}
+                  </p>
+                </div>
+                
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Remote Experience</p>
+                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                    {selectedDesigner.remoteExperience}
+                  </p>
+                </div>
+                
+                {selectedDesigner.teamCollaboration ? (
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Team Collaboration</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.teamCollaboration}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
               
-              {!selectedDesigner.is_approved && selectedDesigner.is_verified && (
+              {!selectedDesigner.isApproved && selectedDesigner.isVerified && (
                 <div className="pt-6 space-y-4">
                   <textarea
                     value={rejectionReason}

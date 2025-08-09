@@ -24,28 +24,56 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Create designer profile
+    // Create designer profile with all application data
     const { data: designer, error } = await supabase
       .from('designers')
       .insert({
+        // Basic Info
         first_name: applicationData.firstName,
-        last_initial: applicationData.lastName.charAt(0).toUpperCase(),
         last_name: applicationData.lastName,
-        title: applicationData.title,
+        last_initial: applicationData.lastName ? applicationData.lastName.charAt(0).toUpperCase() : '',
         email: applicationData.email,
-        phone: applicationData.phone,
+        phone: applicationData.phone || null,
+        
+        // Professional Info
+        title: applicationData.title,
+        years_experience: applicationData.yearsExperience, // This will store as string (e.g., "3-5")
+        website_url: applicationData.websiteUrl,
+        portfolio_url: applicationData.portfolioUrl || null,
+        project_price_from: parseFloat(applicationData.projectPriceFrom),
+        project_price_to: parseFloat(applicationData.projectPriceTo),
+        
+        // Location & Availability
         city: applicationData.city,
         country: applicationData.country,
-        years_experience: parseInt(applicationData.yearsExperience),
-        bio: applicationData.bio,
-        hourly_rate: applicationData.hourlyRate ? parseFloat(applicationData.hourlyRate) : null,
         timezone: applicationData.timezone,
-        website_url: applicationData.websiteUrl,
-        is_verified: true, // Verified through email
-        is_available: applicationData.availability === 'available',
-        subscription_tier: 'free',
-        rating: 4.5, // Default rating
-        total_projects: 0
+        availability: applicationData.availability,
+        
+        // Style & Expertise
+        bio: applicationData.bio,
+        
+        // Enhanced Portfolio
+        dribbble_url: applicationData.dribbbleUrl || null,
+        behance_url: applicationData.behanceUrl || null,
+        linkedin_url: applicationData.linkedinUrl || null,
+        
+        // Experience & Preferences
+        previous_clients: applicationData.previousClients || null,
+        project_preferences: applicationData.projectPreferences,
+        working_style: applicationData.workingStyle,
+        communication_style: applicationData.communicationStyle,
+        remote_experience: applicationData.remoteExperience,
+        team_collaboration: applicationData.teamCollaboration || null,
+        
+        // Status flags
+        is_verified: true, // Email verified
+        is_approved: false, // Needs admin approval
+        is_available: true,
+        
+        // Defaults
+        rating: 0, // No rating yet
+        total_projects: 0,
+        subscription_tier: 'free'
       })
       .select()
       .single()
@@ -55,27 +83,49 @@ export async function POST(request: NextRequest) {
       return apiResponse.serverError('Failed to create designer profile', error)
     }
 
-    // Insert styles, project types, and industries into separate tables
-    try {
-      // Insert styles
-      if (applicationData.styles && applicationData.styles.length > 0) {
-        const styleRecords = applicationData.styles.map(style => ({
-          designer_id: designer.id,
-          style
-        }))
-        await supabase.from('designer_styles').insert(styleRecords)
-      }
+    // Insert styles
+    if (applicationData.styles && applicationData.styles.length > 0) {
+      const styleRecords = applicationData.styles.map((style: string) => ({
+        designer_id: designer.id,
+        style
+      }))
+      await supabase.from('designer_styles').insert(styleRecords)
+    }
 
-      // Insert project types
-      if (applicationData.projectTypes && applicationData.projectTypes.length > 0) {
-        const projectTypeRecords = applicationData.projectTypes.map(projectType => ({
-          designer_id: designer.id,
-          project_type: projectType
-        }))
-        await supabase.from('designer_project_types').insert(projectTypeRecords)
-      }
-    } catch (e) {
-      console.log('Error inserting designer attributes, tables might not exist yet:', e)
+    // Insert project types
+    if (applicationData.projectTypes && applicationData.projectTypes.length > 0) {
+      const projectTypeRecords = applicationData.projectTypes.map((projectType: string) => ({
+        designer_id: designer.id,
+        project_type: projectType
+      }))
+      await supabase.from('designer_project_types').insert(projectTypeRecords)
+    }
+
+    // Insert industries
+    if (applicationData.industries && applicationData.industries.length > 0) {
+      const industryRecords = applicationData.industries.map((industry: string) => ({
+        designer_id: designer.id,
+        industry
+      }))
+      await supabase.from('designer_industries').insert(industryRecords)
+    }
+
+    // Insert specializations
+    if (applicationData.specializations && applicationData.specializations.length > 0) {
+      const specializationRecords = applicationData.specializations.map((specialization: string) => ({
+        designer_id: designer.id,
+        specialization
+      }))
+      await supabase.from('designer_specializations').insert(specializationRecords)
+    }
+
+    // Insert software skills
+    if (applicationData.softwareSkills && applicationData.softwareSkills.length > 0) {
+      const softwareRecords = applicationData.softwareSkills.map((software: string) => ({
+        designer_id: designer.id,
+        software
+      }))
+      await supabase.from('designer_software_skills').insert(softwareRecords)
     }
 
     // Send welcome email to new designer
@@ -105,7 +155,8 @@ export async function POST(request: NextRequest) {
         id: designer.id,
         email: designer.email,
         firstName: designer.first_name,
-        lastName: designer.last_name
+        lastName: designer.last_name,
+        isApproved: designer.is_approved
       }
     })
   } catch (error) {
