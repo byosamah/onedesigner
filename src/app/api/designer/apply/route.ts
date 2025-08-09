@@ -30,9 +30,24 @@ const designerApplicationSchema = z.object({
 
   // Step 5: Enhanced Portfolio & Skills
   websiteUrl: z.string().url(),
-  dribbbleUrl: z.string().url().optional().or(z.literal('')),
-  behanceUrl: z.string().url().optional().or(z.literal('')),
-  linkedinUrl: z.string().url().optional().or(z.literal('')),
+  dribbbleUrl: z.string().optional().transform(val => {
+    if (!val || val === '') return '';
+    return val;
+  }).refine(val => !val || val === '' || z.string().url().safeParse(val).success, {
+    message: 'Invalid URL format'
+  }),
+  behanceUrl: z.string().optional().transform(val => {
+    if (!val || val === '') return '';
+    return val;
+  }).refine(val => !val || val === '' || z.string().url().safeParse(val).success, {
+    message: 'Invalid URL format'
+  }),
+  linkedinUrl: z.string().optional().transform(val => {
+    if (!val || val === '') return '';
+    return val;
+  }).refine(val => !val || val === '' || z.string().url().safeParse(val).success, {
+    message: 'Invalid URL format'
+  }),
   specializations: z.array(z.string()).min(1),
   softwareSkills: z.array(z.string()).min(1),
   
