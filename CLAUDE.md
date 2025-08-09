@@ -241,6 +241,55 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 
 ## Recent Changes Log
 
+### Latest Session (Aug 9, 2025) - Designer Profile Enhancement & Client Dashboard Redesign
+- **Fixed Designer Login Issues**:
+  - Created missing `/api/designer/check` endpoint
+  - Created `/api/designer/auth/verify-otp` endpoint for designer-specific OTP verification
+  - Fixed cookie name mismatch (designer-auth vs designer-session)
+  - Resolved "Unexpected token DOCTYPE" JSON parsing errors
+  - Fixed session validation and data fetching issues
+- **Redesigned Designer Dashboard** to match admin dashboard design system:
+  - Added atom logo navigation with theme toggle
+  - Updated all cards to use rounded-2xl with consistent borders
+  - Applied animate-slideUp with staggered delays
+  - Made stats grid consistent with admin dashboard
+  - Fixed "Under Review" message display for unapproved designers
+- **Enhanced Designer Profile Page**:
+  - Created comprehensive profile edit functionality at `/designer/profile`
+  - Added all fields from application form with exact same dropdowns:
+    - Country/City dropdowns with dynamic city loading
+    - Years of experience dropdown (0-2, 3-5, 6-10, 10+)
+    - Communication style options matching application
+    - All skill checkboxes (Design Styles, Project Types, Industries, Specializations, Software)
+  - Added "Incomplete Profile" warning for missing required fields
+  - Profile edits now require admin re-approval (sets is_approved=false)
+  - Added warning message when editing approved profile
+- **Profile Edit Tracking**:
+  - Added database migration (008_track_profile_edits.sql) with:
+    - `last_approved_at` timestamp field
+    - `edited_after_approval` boolean field
+  - Admin dashboard now shows "Edited" instead of "Pending" for edited profiles
+  - Admin approve endpoint resets edit tracking flags
+- **Client Login Functionality**:
+  - Added "Client? Sign in here →" link on homepage under designer login
+  - Created `/client/login` page with OTP authentication
+  - Created `/client/login/verify` page for 6-digit code verification
+  - Auto-redirects to client dashboard after successful login
+- **Redesigned Client Dashboard** (`/client/dashboard`):
+  - Complete UI overhaul to match designer dashboard design system
+  - Added atom logo navigation with "Client Dashboard" badge
+  - Consistent theme toggle and sign out functionality
+  - Stats grid with animation delays (Available Matches, Total Matches, Unlocked)
+  - Updated match cards with consistent styling
+  - Added conditional "Buy Matches" button when credits are 0
+  - All cards use rounded-2xl, 1px borders, and proper shadows
+  - Applied animate-slideUp throughout with staggered delays
+- **Bug Fixes**:
+  - Fixed empty profile fields by adding proper defaults in profile loading
+  - Added debug logging to identify missing data issues
+  - Created scripts to check for missing required fields
+  - Ensured backward compatibility for older designer accounts
+
 ### Latest Session (Aug 8, 2025 - Night) - Enhanced Client Brief with Category-Specific Questions
 - **Integrated Enhanced AI Matching System** as the default experience throughout the app
 - **Implemented Detailed Category-Specific Questions** for all 6 design categories:
@@ -336,6 +385,8 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 - Redesigned dashboard to show only unlocked designers
 
 ## Todo for Next Session
+- [ ] Run the profile edit tracking migration in Supabase
+- [ ] Test complete flow: Designer edit → Admin sees "Edited" → Admin approves → Status resets
 - [ ] Test all 6 category-specific brief flows in production
 - [ ] Verify AI matching works correctly with new category-specific fields
 - [ ] Update matching algorithm to consider category-specific criteria
@@ -346,6 +397,8 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
 - [ ] Consider adding Redis for distributed caching
 - [ ] Add analytics to track which categories are most popular
 - [ ] Implement designer portfolio filtering by category
+- [ ] Add email notifications when designer profile is re-approved after edit
+- [ ] Consider adding profile edit history tracking
 
 ## Design System Reference
 
