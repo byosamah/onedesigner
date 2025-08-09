@@ -157,7 +157,7 @@ export default function DesignerApplyPage() {
               Basic Information
             </h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                     First Name
@@ -329,7 +329,7 @@ export default function DesignerApplyPage() {
               Location & Availability
             </h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                     City
@@ -429,7 +429,7 @@ export default function DesignerApplyPage() {
                 <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
                   Design Styles (Select all that apply)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {DESIGN_STYLES.map((style) => (
                     <button
                       key={style.id}
@@ -451,7 +451,7 @@ export default function DesignerApplyPage() {
                 <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
                   Project Types (Select all that apply)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {PROJECT_TYPES.map((type) => (
                     <button
                       key={type.id}
@@ -473,7 +473,7 @@ export default function DesignerApplyPage() {
                 <label className="block text-sm font-medium mb-4" style={{ color: theme.text.primary }}>
                   Industries (Select up to 5)
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {INDUSTRIES.map((industry) => (
                     <button
                       key={industry}
@@ -533,7 +533,7 @@ export default function DesignerApplyPage() {
               Portfolio & Skills
             </h2>
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                     Additional Portfolio URL
@@ -572,7 +572,7 @@ export default function DesignerApplyPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                     Behance URL (Optional)
@@ -809,7 +809,7 @@ export default function DesignerApplyPage() {
   return (
     <main className="min-h-screen transition-colors duration-300 animate-fadeIn" style={{ backgroundColor: theme.bg }}>
       {/* Navigation */}
-      <nav className="px-8 py-4">
+      <nav className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -841,18 +841,18 @@ export default function DesignerApplyPage() {
         </div>
       </nav>
       
-      <div className="max-w-3xl mx-auto px-8 py-12">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+        <div className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
             Join Our Designer Network
           </h1>
-          <p className="text-lg" style={{ color: theme.text.secondary }}>
+          <p className="text-base sm:text-lg" style={{ color: theme.text.secondary }}>
             Get matched with clients looking for your unique expertise
           </p>
         </div>
 
         {/* Progress indicator */}
-        <div className="mb-12 animate-slideUp">
+        <div className="mb-8 sm:mb-10 lg:mb-12 animate-slideUp">
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div
@@ -883,7 +883,7 @@ export default function DesignerApplyPage() {
         </div>
 
         <div 
-          className="p-8 rounded-3xl border"
+          className="p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border"
           style={{ 
             backgroundColor: theme.cardBg,
             borderColor: theme.border

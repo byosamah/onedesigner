@@ -48,71 +48,32 @@ export default function PurchasePage() {
 
   return (
     <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
-      {/* Navigation */}
-      <nav className="px-8 py-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1"/>
-              <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
-              <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
-            </svg>
-            OneDesigner
-          </Link>
-          
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                Home
-              </Link>
-              {isAuthenticated && (
-                <Link href="/client/dashboard" className="text-sm font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                  Dashboard
-                </Link>
-              )}
-            </div>
-            
-            {/* Theme Toggle */}
-            <div className="border-l pl-8" style={{ borderColor: theme.border }}>
-              <button
-                onClick={toggleTheme}
-                className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
-                style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
-                aria-label="Toggle theme"
-              >
-                <div
-                  className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
-                  style={{
-                    left: isDarkMode ? '2px' : '32px',
-                    backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
-                    transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
-                  }}
-                >
-                  {isDarkMode ? '🌙' : '☀️'}
-                </div>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navigation 
+        theme={theme} 
+        isDarkMode={isDarkMode} 
+        toggleTheme={toggleTheme}
+        showDashboardLink={true}
+        credits={0}
+        showSignOut={false}
+      />
 
-      <div className="max-w-6xl mx-auto px-8 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
         {/* Header */}
-        <div className="text-center mb-16 animate-fadeIn">
-          <h1 className="text-5xl font-extrabold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
+        <div className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fadeIn">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
             Get more designer matches
           </h1>
-          <p className="text-xl transition-colors duration-300" style={{ color: theme.text.secondary }}>
+          <p className="text-lg sm:text-xl transition-colors duration-300" style={{ color: theme.text.secondary }}>
             Simple pricing. No subscription. Use matches whenever you need.
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12 lg:mb-16">
           {PRICING_PACKAGES.map((pkg, index) => (
             <div 
               key={pkg.id}
-              className="rounded-3xl p-8 transition-all duration-300 hover:scale-[1.02] relative animate-slideUp"
+              className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:scale-[1.02] relative animate-slideUp"
               style={{ 
                 backgroundColor: pkg.popular ? (isDarkMode ? '#2A2A2A' : '#FFF9F0') : theme.cardBg,
                 border: pkg.popular ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`,
@@ -127,11 +88,11 @@ export default function PurchasePage() {
                 </div>
               )}
               
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              <div className="text-center mb-6 sm:mb-8">
+                <h3 className="text-xl sm:text-2xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
                   {pkg.name}
                 </h3>
-                <div className="text-5xl font-bold mb-2" style={{ color: theme.accent }}>
+                <div className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2" style={{ color: theme.accent }}>
                   ${pkg.price}
                 </div>
                 <div className="text-sm transition-colors duration-300" style={{ color: theme.text.muted }}>

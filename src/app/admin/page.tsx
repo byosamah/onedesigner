@@ -47,11 +47,11 @@ export default function AdminLoginPage() {
       />
 
       {/* Login Content */}
-      <div className="flex-1 flex items-center justify-center px-8 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="w-full max-w-md">
-          <div className="text-center mb-8 animate-fadeIn">
-            <div className="text-5xl mb-6">🛡️</div>
-            <h1 className="text-4xl font-extrabold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
+          <div className="text-center mb-6 sm:mb-8 animate-fadeIn">
+            <div className="text-4xl sm:text-5xl mb-4 sm:mb-6">🛡️</div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
               Admin Access Only
             </h1>
             <p className="text-lg transition-colors duration-300" style={{ color: theme.text.secondary }}>
@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 animate-slideUp">
-            <div className="rounded-2xl p-8 transition-all duration-300" style={{ 
+            <div className="rounded-2xl p-4 sm:p-6 lg:p-8 transition-all duration-300" style={{ 
               backgroundColor: theme.cardBg,
               border: `1px solid ${theme.border}`,
               boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'

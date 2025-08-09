@@ -96,7 +96,7 @@ export const OTPInput = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-center gap-3 animate-slideUp">
+      <div className="flex justify-center gap-2 sm:gap-3 animate-slideUp">
         {otp.map((digit, index) => (
           <input
             key={index}
@@ -110,7 +110,7 @@ export const OTPInput = ({
             onChange={(e) => handleChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={handlePaste}
-            className="w-14 h-16 text-center text-2xl font-bold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:scale-[1.05]"
+            className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-bold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:scale-[1.05]"
             style={{
               backgroundColor: theme.nestedBg,
               border: error ? '2px solid #ef4444' : `2px solid ${theme.border}`,

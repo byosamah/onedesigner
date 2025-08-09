@@ -37,13 +37,13 @@ const NavigationComponent = ({
   onBack
 }: NavigationProps) => {
   return (
-    <nav className="px-8 py-4">
+    <nav className="px-4 sm:px-8 py-6 sm:py-4">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
           {showBackButton && onBack && (
             <button
               onClick={onBack}
-              className="text-sm font-medium transition-colors duration-300 hover:opacity-80"
+              className="text-sm font-medium transition-colors duration-300 hover:opacity-80 flex-shrink-0"
               style={{ color: theme.text.secondary }}
             >
               ← Back
@@ -52,16 +52,19 @@ const NavigationComponent = ({
           <Logo theme={theme} title={title} />
         </div>
         
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-8 flex-shrink-0">
           {showDashboardLink && (
-            <div className="flex items-center gap-6">
-              <a href="/client/dashboard" className="text-sm font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
+            <div className="flex items-center gap-2 sm:gap-6">
+              <a href="/client/dashboard" className="hidden sm:inline text-sm font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
                 Previous Matches
+              </a>
+              <a href="/client/dashboard" className="sm:hidden text-xs font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                Dashboard
               </a>
               
               {showCredits && (
-                <div className="text-sm px-4 py-2 rounded-full transition-colors duration-300" style={{ backgroundColor: theme.accent, color: '#000' }}>
-                  <span className="font-normal">You have</span> <span className="font-bold">{credits} matches</span>
+                <div className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-colors duration-300 whitespace-nowrap" style={{ backgroundColor: theme.accent, color: '#000' }}>
+                  <span className="hidden sm:inline font-normal">You have</span> <span className="font-bold">{credits} matches</span>
                 </div>
               )}
             </div>
@@ -70,7 +73,7 @@ const NavigationComponent = ({
           {showSignOut && onSignOut && (
             <button 
               onClick={onSignOut}
-              className="text-sm font-medium transition-colors duration-300 hover:opacity-80" 
+              className="text-xs sm:text-sm font-medium transition-colors duration-300 hover:opacity-80 flex-shrink-0" 
               style={{ color: theme.text.secondary }}
             >
               Sign Out
@@ -78,7 +81,7 @@ const NavigationComponent = ({
           )}
           
           {/* Theme Toggle - Separated */}
-          <div className="border-l pl-8" style={{ borderColor: showDashboardLink || showSignOut ? theme.border : 'transparent' }}>
+          <div className="border-l pl-2 sm:pl-4 md:pl-8 flex-shrink-0" style={{ borderColor: showDashboardLink || showSignOut ? theme.border : 'transparent' }}>
             <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
           </div>
         </div>

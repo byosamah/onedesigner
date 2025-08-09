@@ -17,24 +17,24 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4 transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+    <main className="min-h-screen flex flex-col items-center justify-between px-4 py-8 transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
       {/* Theme Toggle - Top Right */}
-      <div className="absolute top-8 right-8">
+      <div className="absolute top-4 sm:top-8 right-4 sm:right-8 z-10">
         <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
       </div>
 
-      <div className="text-center space-y-8 animate-fadeIn">
+      <div className="text-center space-y-8 animate-fadeIn pt-16 sm:pt-0 flex-1 flex flex-col justify-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <Logo theme={theme} size="large" />
         </div>
         
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-5xl md:text-6xl font-extrabold leading-tight transition-colors duration-300" style={{ color: theme.text.primary }}>
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight transition-colors duration-300" style={{ color: theme.text.primary }}>
             Stop browsing portfolios.
             <br />
             Get your{' '}
             <span 
-              className="px-3 py-1 rounded-lg"
+              className="px-2 sm:px-3 py-1 rounded-lg text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
               style={{ 
                 backgroundColor: theme.accent,
                 color: '#000',
@@ -46,38 +46,42 @@ export default function HomePage() {
             </span>
             {' '}instantly.
           </h2>
-          <p className="text-xl mt-6 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+          <p className="text-base sm:text-lg md:text-xl mt-6 transition-colors duration-300 leading-relaxed" style={{ color: theme.text.secondary }}>
             One brief. 2,847 designers. 0.3 seconds.
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8">
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8 w-full max-w-xl mx-auto px-4">
           <Link
             href="/brief"
-            className="min-w-[350px] group font-bold py-8 px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] text-xl shadow-lg hover:shadow-xl"
+            className="w-full sm:w-auto group font-bold py-6 sm:py-8 px-8 sm:px-12 lg:px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] text-lg sm:text-xl shadow-lg hover:shadow-xl text-center"
             style={{ backgroundColor: theme.accent, color: '#000' }}
           >
-            I need a designer
-            <span className="inline-block transition-transform group-hover:translate-x-2 ml-3 text-2xl">→</span>
+            <span className="whitespace-nowrap">
+              I need a designer
+              <span className="inline-block transition-transform group-hover:translate-x-2 ml-2 text-xl sm:text-2xl">→</span>
+            </span>
           </Link>
           
           <Link
             href="/designer/apply"
-            className="min-w-[350px] group font-semibold py-8 px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] relative text-xl shadow-lg hover:shadow-xl"
+            className="w-full sm:w-auto group font-semibold py-6 sm:py-8 px-8 sm:px-12 lg:px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] relative text-lg sm:text-xl shadow-lg hover:shadow-xl text-center"
             style={{ 
               backgroundColor: 'transparent',
               border: '3px solid ' + theme.border,
               color: theme.text.primary
             }}
           >
-            I'm a designer
-            <span className="inline-block transition-transform group-hover:translate-x-2 ml-3 text-2xl">→</span>
+            <span className="whitespace-nowrap">
+              I'm a designer
+              <span className="inline-block transition-transform group-hover:translate-x-2 ml-2 text-xl sm:text-2xl">→</span>
+            </span>
             <span 
-              className="absolute -top-3 -right-3 text-xs font-bold px-3 py-2 rounded-full animate-pulse"
+              className="absolute -top-3 -right-3 text-xs font-bold px-2 sm:px-3 py-1 sm:py-2 rounded-full animate-pulse"
               style={{ 
                 backgroundColor: isDarkMode ? 'rgba(240, 173, 78, 0.15)' : 'rgba(240, 173, 78, 0.2)',
                 color: theme.accent,
-                fontSize: '11px',
+                fontSize: '10px',
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.accent}`
               }}
@@ -88,7 +92,7 @@ export default function HomePage() {
         </div>
         
         {/* Steps */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto px-4">
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.1s' }}>
             <div className="text-3xl mb-3">📝</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
@@ -121,7 +125,7 @@ export default function HomePage() {
         </div>
       </div>
       
-      <div className="absolute bottom-8 text-center space-y-4">
+      <div className="text-center space-y-4 mt-auto pt-16">
         <p className="text-sm transition-colors duration-300" style={{ color: theme.text.muted }}>
           ✨ 2,847 perfect matches made
         </p>

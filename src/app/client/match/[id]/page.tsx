@@ -197,16 +197,16 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         onBack={() => router.push('/client/dashboard')}
       />
 
-      <div className="max-w-7xl mx-auto px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
         {/* Match Score Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <div className="text-6xl">🎯</div>
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+            <div className="text-4xl sm:text-5xl lg:text-6xl">🎯</div>
             <div>
-              <h1 className="text-7xl font-extrabold transition-colors duration-300" style={{ color: theme.accent }}>
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold transition-colors duration-300" style={{ color: theme.accent }}>
                 {match.score}%
               </h1>
-              <p className="text-lg font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
+              <p className="text-sm sm:text-base lg:text-lg font-medium transition-colors duration-300" style={{ color: theme.text.secondary }}>
                 Match Score
               </p>
             </div>
@@ -230,14 +230,14 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {/* Designer Info */}
-        <div className="rounded-3xl p-8 mb-8 transition-all duration-300" 
+        <div className="rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 transition-all duration-300" 
           style={{ 
             backgroundColor: theme.cardBg,
             border: `1px solid ${theme.border}`
           }}>
-          <div className="flex items-start justify-between flex-wrap gap-6 mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+            <div className="flex-1">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
                 {isUnlocked ? `${match.designer.firstName} ${match.designer.lastName}` : `Designer ${match.designer.firstName}***`}
               </h2>
               <p className="text-xl mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>

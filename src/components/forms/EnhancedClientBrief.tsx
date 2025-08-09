@@ -932,20 +932,20 @@ export function EnhancedClientBrief({
       </div>
       
       <div 
-        className="p-8 rounded-3xl animate-fadeIn"
+        className="p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl animate-fadeIn"
         style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}
       >
         {/* Title inside the card */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold" style={{ color: theme.text.primary }}>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: theme.text.primary }}>
             Tell us about your project
           </h1>
         </div>
 
         {/* Step Content */}
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {currentStep === 1 && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Design Category */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
@@ -1032,7 +1032,7 @@ export function EnhancedClientBrief({
           )}
 
           {currentStep === 2 && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Debug: Show current category */}
               {formData.design_category && (
                 <div className="p-4 rounded-lg" style={{ backgroundColor: theme.accent + '10', border: `1px solid ${theme.accent}` }}>
@@ -1046,7 +1046,7 @@ export function EnhancedClientBrief({
           )}
 
           {currentStep === 3 && (
-            <div className="space-y-8">
+            <div className="space-y-6 sm:space-y-8">
               {/* Involvement Level */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
