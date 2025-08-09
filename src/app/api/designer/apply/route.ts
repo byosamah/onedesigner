@@ -13,8 +13,8 @@ const designerApplicationSchema = z.object({
   // Step 2: Professional Info
   title: z.string().min(1),
   yearsExperience: z.string().min(1),
-  websiteUrl: z.string().url(),
-  hourlyRate: z.string().min(1),
+  projectPriceFrom: z.string().min(1),
+  projectPriceTo: z.string().min(1),
   
   // Step 3: Location & Availability
   city: z.string().min(1),
@@ -26,22 +26,22 @@ const designerApplicationSchema = z.object({
   styles: z.array(z.string()).min(1),
   projectTypes: z.array(z.string()).min(1),
   industries: z.array(z.string()).min(1).max(5),
-  bio: z.string().optional(),
+  bio: z.string().min(100).max(500),
 
   // Step 5: Enhanced Portfolio & Skills
-  portfolioUrl: z.string().url().optional().or(z.literal('')),
+  websiteUrl: z.string().url(),
   dribbbleUrl: z.string().url().optional().or(z.literal('')),
   behanceUrl: z.string().url().optional().or(z.literal('')),
   linkedinUrl: z.string().url().optional().or(z.literal('')),
-  specializations: z.array(z.string()).optional(),
-  softwareSkills: z.array(z.string()).optional(),
+  specializations: z.array(z.string()).min(1),
+  softwareSkills: z.array(z.string()).min(1),
   
   // Step 6: Experience & Preferences
   previousClients: z.string().optional(),
-  projectPreferences: z.string().optional(),
-  workingStyle: z.string().optional(),
+  projectPreferences: z.string().min(1),
+  workingStyle: z.string().min(1),
   communicationStyle: z.string().min(1),
-  remoteExperience: z.string().optional(),
+  remoteExperience: z.string().min(1),
   teamCollaboration: z.string().optional(),
 })
 
@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
         title: validatedData.title,
         years_experience: validatedData.yearsExperience,
         website_url: validatedData.websiteUrl,
-        hourly_rate: parseFloat(validatedData.hourlyRate),
+        project_price_from: parseFloat(validatedData.projectPriceFrom),
+        project_price_to: parseFloat(validatedData.projectPriceTo),
         city: validatedData.city,
         country: validatedData.country,
         timezone: validatedData.timezone,
@@ -93,17 +94,16 @@ export async function POST(request: NextRequest) {
         industries: validatedData.industries,
         bio: validatedData.bio,
         // Enhanced fields
-        portfolio_url: validatedData.portfolioUrl || null,
         dribbble_url: validatedData.dribbbleUrl || null,
         behance_url: validatedData.behanceUrl || null,
         linkedin_url: validatedData.linkedinUrl || null,
-        specializations: validatedData.specializations || [],
-        software_skills: validatedData.softwareSkills || [],
+        specializations: validatedData.specializations,
+        software_skills: validatedData.softwareSkills,
         previous_clients: validatedData.previousClients || null,
-        project_preferences: validatedData.projectPreferences || null,
-        working_style: validatedData.workingStyle || null,
+        project_preferences: validatedData.projectPreferences,
+        working_style: validatedData.workingStyle,
         communication_style: validatedData.communicationStyle,
-        remote_experience: validatedData.remoteExperience || null,
+        remote_experience: validatedData.remoteExperience,
         team_collaboration: validatedData.teamCollaboration || null,
         verification_code: hashedCode,
         verification_expires: new Date(Date.now() + 10 * 60 * 1000).toISOString(),

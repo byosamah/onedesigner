@@ -266,7 +266,7 @@ export function EnhancedClientBrief({
             {/* 1. Brand Identity Type */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. What type of brand identity work do you need?
+                1. What type of brand identity work do you need? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -286,7 +286,7 @@ export function EnhancedClientBrief({
             {/* 2. Brand Deliverables */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. Which deliverables are required?
+                2. Which deliverables are required? <span style={{ color: theme.error }}>*</span>
               </label>
               <MultiSelect
                 options={[
@@ -309,7 +309,7 @@ export function EnhancedClientBrief({
             {/* 3. Industry */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                3. What industry/sector are you in?
+                3. What industry/sector are you in? <span style={{ color: theme.error }}>*</span>
               </label>
               <textarea
                 value={formData.industry_sector || ''}
@@ -377,7 +377,7 @@ export function EnhancedClientBrief({
             {/* 1. Digital Product Type */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. What type of digital product do you need?
+                1. What type of digital product do you need? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -397,7 +397,7 @@ export function EnhancedClientBrief({
             {/* 2. Number of Screens */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. Number of screens/pages needed?
+                2. Number of screens/pages needed? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -479,7 +479,7 @@ export function EnhancedClientBrief({
             {/* 1. Platforms */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. Which platforms do you need designs for?
+                1. Which platforms do you need designs for? <span style={{ color: theme.error }}>*</span>
               </label>
               <MultiSelect
                 options={[
@@ -500,7 +500,7 @@ export function EnhancedClientBrief({
             {/* 2. Content Type */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. What type of content?
+                2. What type of content? <span style={{ color: theme.error }}>*</span>
               </label>
               <MultiSelect
                 options={[
@@ -521,7 +521,7 @@ export function EnhancedClientBrief({
             {/* 3. Quantity Needed */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                3. How many templates/designs needed?
+                3. How many templates/designs needed? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -596,7 +596,7 @@ export function EnhancedClientBrief({
             {/* 1. Type of Motion Graphics */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. What type of motion graphics do you need?
+                1. What type of motion graphics do you need? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -617,7 +617,7 @@ export function EnhancedClientBrief({
             {/* 2. Video Length */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. Estimated video/animation length?
+                2. Estimated video/animation length? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -637,7 +637,7 @@ export function EnhancedClientBrief({
             {/* 3. Animation Style */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                3. Preferred animation style?
+                3. Preferred animation style? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -702,7 +702,7 @@ export function EnhancedClientBrief({
             {/* 1. Type of Visual Content */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. What type of visual content do you need?
+                1. What type of visual content do you need? <span style={{ color: theme.error }}>*</span>
               </label>
               <MultiSelect
                 options={[
@@ -723,7 +723,7 @@ export function EnhancedClientBrief({
             {/* 2. Quantity of Assets */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. How many photos/videos needed?
+                2. How many photos/videos needed? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -762,7 +762,7 @@ export function EnhancedClientBrief({
             {/* 4. Usage Rights */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                4. Usage rights needed?
+                4. Usage rights needed? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -807,7 +807,7 @@ export function EnhancedClientBrief({
             {/* 1. Presentation Type */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                1. What type of presentation do you need?
+                1. What type of presentation do you need? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -829,7 +829,7 @@ export function EnhancedClientBrief({
             {/* 2. Number of Slides */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                2. Estimated number of slides?
+                2. Estimated number of slides? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -869,7 +869,7 @@ export function EnhancedClientBrief({
             {/* 4. Content Status */}
             <div>
               <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                4. Is your content ready?
+                4. Is your content ready? <span style={{ color: theme.error }}>*</span>
               </label>
               <RadioGroup
                 options={[
@@ -935,12 +935,16 @@ export function EnhancedClientBrief({
         className="p-4 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl animate-fadeIn"
         style={{ backgroundColor: theme.cardBg, border: `1px solid ${theme.border}` }}
       >
-        {/* Title inside the card */}
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: theme.text.primary }}>
-            Tell us about your project
-          </h1>
-        </div>
+        {/* Title inside the card - Dynamic based on step */}
+        {currentStep !== 4 && (
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: theme.text.primary }}>
+              {currentStep === 1 && 'Tell us about your project'}
+              {currentStep === 2 && 'Category-Specific Questions'}
+              {currentStep === 3 && 'Working Preferences'}
+            </h1>
+          </div>
+        )}
 
         {/* Step Content */}
         <div className="space-y-6 sm:space-y-8">
@@ -949,7 +953,7 @@ export function EnhancedClientBrief({
               {/* Design Category */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  Which design category best describes your project? *
+                  Which design category best describes your project? <span style={{ color: theme.error }}>*</span>
                 </label>
                 <CategorySelector
                   options={Object.values(DESIGN_CATEGORIES).map(cat => ({
@@ -968,7 +972,7 @@ export function EnhancedClientBrief({
               {/* Project Description */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  Describe your project *
+                  Describe your project <span style={{ color: theme.error }}>*</span>
                 </label>
                 <textarea
                   value={formData.project_description}
@@ -994,7 +998,7 @@ export function EnhancedClientBrief({
               {/* Timeline */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  What's your preferred timeline? *
+                  What's your preferred timeline? <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={Object.values(TIMELINE_TYPES).map(t => ({
@@ -1013,7 +1017,7 @@ export function EnhancedClientBrief({
               {/* Budget Range */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  What's your budget range? *
+                  What's your budget range? <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={Object.values(BUDGET_RANGES).map(b => ({
@@ -1050,7 +1054,7 @@ export function EnhancedClientBrief({
               {/* Involvement Level */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  How involved do you want to be? *
+                  How involved do you want to be? <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={[
@@ -1069,7 +1073,7 @@ export function EnhancedClientBrief({
               {/* Update Frequency */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  Update Frequency (select one): *
+                  Update Frequency (select one): <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={[
@@ -1090,7 +1094,7 @@ export function EnhancedClientBrief({
               {/* Communication Channels */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  Preferred communication channels (select multiple): *
+                  Preferred communication channels (select multiple): <span style={{ color: theme.error }}>*</span>
                 </label>
                 <MultiSelect
                   options={[
@@ -1110,7 +1114,7 @@ export function EnhancedClientBrief({
               {/* Feedback Style */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  Feedback and revision style preference: *
+                  Feedback and revision style preference: <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={[
@@ -1130,7 +1134,7 @@ export function EnhancedClientBrief({
               {/* Change Flexibility */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                  How do you handle changes and iterations? *
+                  How do you handle changes and iterations? <span style={{ color: theme.error }}>*</span>
                 </label>
                 <RadioGroup
                   options={[

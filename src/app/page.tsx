@@ -28,13 +28,12 @@ export default function HomePage() {
           <Logo theme={theme} size="large" />
         </div>
         
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight transition-colors duration-300" style={{ color: theme.text.primary }}>
-            Stop browsing portfolios.
-            <br />
+        <div className="max-w-5xl mx-auto px-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-tight transition-colors duration-300" style={{ color: theme.text.primary }}>
+            <span className="block">Stop browsing portfolios.</span>
             Get your{' '}
             <span 
-              className="px-2 sm:px-3 py-1 rounded-lg text-2xl sm:text-3xl md:text-4xl lg:text-5xl"
+              className="px-2 sm:px-3 py-1 rounded-lg text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl"
               style={{ 
                 backgroundColor: theme.accent,
                 color: '#000',
@@ -51,7 +50,7 @@ export default function HomePage() {
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8 w-full max-w-xl mx-auto px-4">
+        <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8 px-4">
           <Link
             href="/brief"
             className="w-full sm:w-auto group font-bold py-6 sm:py-8 px-8 sm:px-12 lg:px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] text-lg sm:text-xl shadow-lg hover:shadow-xl text-center"

@@ -125,7 +125,7 @@ export default function BriefPage() {
   }
 
   return (
-    <main className="min-h-screen transition-colors duration-300 animate-fadeIn" style={{ backgroundColor: theme.bg }}>
+    <main className="min-h-screen transition-colors duration-300 animate-fadeIn flex flex-col" style={{ backgroundColor: theme.bg }}>
       {/* Navigation */}
       <nav className="px-8 py-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -159,26 +159,12 @@ export default function BriefPage() {
         </div>
       </nav>
       
-      <div className="max-w-4xl mx-auto px-8 py-12">
-        <div className="mb-8 text-center animate-slideUp">
-          <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
-            Find Your Perfect Designer
-          </h1>
-          <p className="text-lg" style={{ color: theme.text.secondary }}>
-            Answer a few questions to get matched with the perfect designer for your project
-          </p>
-        </div>
-
-        {/* Show authentication after brief completion */}
-        {showAuth ? (
-          <div className="animate-slideUp">
-            <div 
-              className="max-w-xl mx-auto rounded-3xl p-8"
-              style={{
-                backgroundColor: theme.cardBg,
-                border: `1px solid ${theme.border}`
-              }}
-            >
+      <div className="flex-1 flex items-center justify-center px-8 pb-32">
+        <div className="w-full max-w-4xl">
+          {/* Show authentication after brief completion */}
+          {showAuth ? (
+            <div className="animate-slideUp">
+              <div className="max-w-xl mx-auto">
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">🔐</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
@@ -288,7 +274,7 @@ export default function BriefPage() {
             </div>
 
             {/* Trust signals */}
-            <div className="mt-16 text-center space-y-6">
+            <div className="mt-12 text-center space-y-6">
               <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
                 <div className="flex items-center gap-2">
                   <span>🔒</span>
@@ -307,13 +293,24 @@ export default function BriefPage() {
           </div>
         ) : (
           /* Enhanced Brief Form */
-          <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
-            <EnhancedClientBrief
-              isDarkMode={isDarkMode}
-              onSubmit={handleBriefSubmit}
-            />
-          </div>
+          <>
+            <div className="mb-8 text-center animate-slideUp">
+              <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
+                Find Your Perfect Designer
+              </h1>
+              <p className="text-lg" style={{ color: theme.text.secondary }}>
+                Answer a few questions to get matched with the perfect designer for your project
+              </p>
+            </div>
+            <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
+              <EnhancedClientBrief
+                isDarkMode={isDarkMode}
+                onSubmit={handleBriefSubmit}
+              />
+            </div>
+          </>
         )}
+        </div>
       </div>
     </main>
   )
