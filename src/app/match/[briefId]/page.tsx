@@ -268,7 +268,11 @@ export default function EnhancedMatchPage() {
                   color: theme.accent
                 }}
               >
-                You have {matches.length} match{matches.length !== 1 ? 'es' : ''}
+                {clientData?.match_credits > 0 ? (
+                  <>You have {matches.length} match{matches.length !== 1 ? 'es' : ''}</>
+                ) : (
+                  <>Match found - Purchase credits to unlock</>
+                )}
               </div>
               
               {clientData && (
@@ -314,10 +318,12 @@ export default function EnhancedMatchPage() {
         {!isLoading && matches.length > 0 && (
           <div className="mb-8 text-center animate-slideUp">
             <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
-              Your Perfect Match
+              {clientData?.match_credits > 0 ? 'Your Perfect Match' : 'Match Found!'}
             </h1>
             <p className="text-lg" style={{ color: theme.text.secondary }}>
-              We found the perfect designer for your project
+              {clientData?.match_credits > 0 
+                ? 'We found the perfect designer for your project'
+                : 'Purchase credits to unlock and connect with this designer'}
             </p>
           </div>
         )}
