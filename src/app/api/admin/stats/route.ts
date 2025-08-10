@@ -5,7 +5,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check admin session
     const cookieStore = cookies()

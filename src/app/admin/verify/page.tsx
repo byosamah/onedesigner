@@ -180,7 +180,7 @@ export default function AdminVerifyPage() {
                   className="w-full text-sm font-medium transition-colors duration-300 hover:opacity-80"
                   style={{ color: theme.text.muted }}
                 >
-                  Didn't receive it? Send new code
+                  Didn&apos;t receive it? Send new code
                 </button>
               </form>
             </div>

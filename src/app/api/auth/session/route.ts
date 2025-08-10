@@ -6,7 +6,7 @@ import { AUTH_COOKIES } from '@/lib/constants'
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const cookieStore = cookies()
     const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value)
-    const { email, clientId } = session
+    const { clientId } = session
 
     // Get client data from database
     const supabase = createServiceClient()
