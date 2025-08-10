@@ -36,11 +36,16 @@ export interface AdminSessionData extends SessionData {
 export async function getSession(type: keyof typeof AUTH_COOKIES): Promise<SessionData | null> {
   try {
     const cookieStore = cookies()
-    const sessionCookie = cookieStore.get(AUTH_COOKIES[type])
+    const cookieName = AUTH_COOKIES[type]
+    console.log(`🍪 Looking for cookie: ${cookieName}`)
+    
+    const sessionCookie = cookieStore.get(cookieName)
+    console.log(`🍪 Cookie found: ${sessionCookie ? 'Yes' : 'No'}`)
     
     if (!sessionCookie) return null
     
     const session = JSON.parse(sessionCookie.value)
+    console.log(`🍪 Session parsed:`, session)
     
     // Validate session structure
     if (!session.email) return null
@@ -76,6 +81,7 @@ export async function createSession(
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: '/' // Ensure cookie is accessible across all paths
   })
 }
 

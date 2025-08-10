@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 
-export default function ClientVerifyPage() {
+export default function ClientSignupVerifyPage() {
   const router = useRouter()
   const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
@@ -18,9 +18,9 @@ export default function ClientVerifyPage() {
   const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem('clientLoginEmail')
+    const storedEmail = sessionStorage.getItem('clientSignupEmail')
     if (!storedEmail) {
-      router.push('/client/login')
+      router.push('/client/signup')
       return
     }
     setEmail(storedEmail)
@@ -51,11 +51,16 @@ export default function ClientVerifyPage() {
       }
 
       if (data.success) {
-        // Clear storage
-        sessionStorage.removeItem('clientLoginEmail')
+        console.log('✅ Verification successful, data:', data)
         
-        // Redirect to client dashboard
-        router.push('/client/dashboard')
+        // Clear signup storage
+        sessionStorage.removeItem('clientSignupEmail')
+        
+        // Small delay to ensure cookie is set
+        setTimeout(() => {
+          // Redirect to brief form
+          router.push('/brief')
+        }, 100)
       }
     } catch (error) {
       console.error('Verification error:', error)
@@ -138,7 +143,7 @@ export default function ClientVerifyPage() {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">📧</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Check your email! 🚀
+                  Check your email!
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
                   We sent a 6-digit code to
@@ -190,7 +195,7 @@ export default function ClientVerifyPage() {
                       Verifying...
                     </span>
                   ) : (
-                    'Continue to Dashboard'
+                    'Verify & Continue →'
                   )}
                 </button>
 
@@ -207,33 +212,27 @@ export default function ClientVerifyPage() {
                   
                   <div>
                     <Link 
-                      href="/client/login" 
+                      href="/client/signup" 
                       className="text-sm transition-colors duration-300 hover:opacity-80"
                       style={{ color: theme.text.muted }}
                     >
-                      ← Back to login
+                      ← Back to signup
                     </Link>
                   </div>
                 </div>
               </form>
             </div>
 
-            {/* Trust signals */}
-            <div className="mt-12 text-center space-y-6">
-              <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
-                <div className="flex items-center gap-2">
-                  <span>🔒</span>
-                  <span>Secure verification</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>✨</span>
-                  <span>Premium matches</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>🎯</span>
-                  <span>AI-powered platform</span>
-                </div>
+            {/* Progress indicator */}
+            <div className="mt-12 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.accent }}></div>
+                <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.border }}></div>
+                <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.border }}></div>
               </div>
+              <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
+                Step 1 of 3: Verify email
+              </p>
             </div>
           </div>
         </div>

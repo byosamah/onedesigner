@@ -11,15 +11,32 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Email is required')
     }
 
+    console.log('📧 Processing OTP request for:', email)
+
     // Generate and store OTP
-    const otp = await createCustomOTP(email)
+    let otp
+    try {
+      otp = await createCustomOTP(email)
+    } catch (error) {
+      console.error('Failed to create OTP:', error)
+      return apiResponse.error('Failed to generate verification code. Please try again.')
+    }
 
     // Send OTP email (in dev, this logs to console)
-    await sendOTPEmail(email, otp)
+    const emailSent = await sendOTPEmail(email, otp)
+    
+    if (!emailSent) {
+      console.log('⚠️ Email sending failed but OTP was created:', otp)
+      // In development, we still return success since the OTP is logged
+      if (process.env.NODE_ENV === 'development') {
+        return apiResponse.success({ success: true })
+      }
+      return apiResponse.error('Failed to send verification email. Please try again.')
+    }
 
     return apiResponse.success({ success: true })
   } catch (error) {
-    console.error('Error sending OTP:', error)
+    console.error('Error in send-otp endpoint:', error)
     if (error instanceof Error) {
       return apiResponse.serverError(error.message)
     }

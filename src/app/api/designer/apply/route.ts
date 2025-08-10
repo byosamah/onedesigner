@@ -91,49 +91,77 @@ export async function POST(request: NextRequest) {
     
     const supabase = createClient()
     
-    // Check if designer already exists
+    // Check if designer exists (they should, since they're authenticated)
     const { data: existingDesigner } = await supabase
       .from('designers')
       .select('id')
       .eq('email', validatedData.email)
       .single()
       
-    if (existingDesigner) {
+    if (!existingDesigner) {
+      console.error('Designer not found for authenticated user:', validatedData.email)
       return NextResponse.json(
-        { error: 'Designer with this email already exists' },
+        { error: 'Designer account not found. Please sign up first.' },
         { status: 400 }
       )
     }
     
-    // Generate and store OTP
-    const otp = await createCustomOTP(validatedData.email)
+    // Update the designer record with all the application data
+    const updateData = {
+      first_name: validatedData.firstName,
+      last_name: validatedData.lastName,
+      last_initial: validatedData.lastName.charAt(0).toUpperCase(),
+      phone: validatedData.phone || '',
+      title: validatedData.title,
+      years_experience: validatedData.yearsExperience,
+      website_url: validatedData.websiteUrl,
+      project_price_from: parseInt(validatedData.projectPriceFrom),
+      project_price_to: parseInt(validatedData.projectPriceTo),
+      city: validatedData.city,
+      country: validatedData.country,
+      timezone: validatedData.timezone,
+      availability: validatedData.availability,
+      styles: validatedData.styles,
+      project_types: validatedData.projectTypes,
+      industries: validatedData.industries,
+      bio: validatedData.bio,
+      portfolio_url: validatedData.portfolioUrl || '',
+      dribbble_url: validatedData.dribbbleUrl || '',
+      behance_url: validatedData.behanceUrl || '',
+      linkedin_url: validatedData.linkedinUrl || '',
+      specializations: validatedData.specializations,
+      software_skills: validatedData.softwareSkills,
+      previous_clients: validatedData.previousClients || '',
+      project_preferences: validatedData.projectPreferences,
+      working_style: validatedData.workingStyle,
+      communication_style: validatedData.communicationStyle,
+      remote_experience: validatedData.remoteExperience,
+      team_collaboration: validatedData.teamCollaboration || '',
+      is_approved: false, // Reset approval status since they updated their profile
+      updated_at: new Date().toISOString()
+    }
     
-    // Send OTP email
-    const { subject, html, text } = otpEmailTemplate({
-      otp,
-      name: validatedData.firstName,
-      action: 'verify your designer application'
-    })
+    console.log('📝 Updating designer with data:', updateData)
     
-    try {
-      await sendEmail({
-        to: validatedData.email,
-        subject,
-        html,
-        text
-      })
-    } catch (emailError) {
-      console.error('Failed to send OTP email:', emailError)
+    const { error: updateError } = await supabase
+      .from('designers')
+      .update(updateData)
+      .eq('id', existingDesigner.id)
+    
+    if (updateError) {
+      console.error('Failed to update designer profile:', updateError)
       return NextResponse.json(
-        { error: 'Failed to send verification email' },
+        { error: 'Failed to save application data' },
         { status: 500 }
       )
     }
     
+    console.log('✅ Designer profile updated successfully for:', validatedData.email)
+    
     return NextResponse.json({
       success: true,
-      message: 'Verification code sent to your email',
-      requiresVerification: true
+      message: 'Application submitted successfully',
+      requiresVerification: false
     })
     
   } catch (error) {

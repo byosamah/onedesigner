@@ -13,12 +13,18 @@ export async function createCustomOTP(email: string) {
   const otp = generateOTP()
   const expiresAt = new Date(Date.now() + OTP_CONFIG.EXPIRY_TIME) // 10 minutes
 
+  console.log('Creating OTP for email:', email)
+
   // Clean up old OTPs for this email
-  await supabase
+  const { error: deleteError } = await supabase
     .from('auth_tokens')
     .delete()
     .eq('email', email)
     .eq('type', 'otp')
+
+  if (deleteError) {
+    console.error('Error deleting old OTPs:', deleteError)
+  }
 
   // Insert new OTP
   const { error } = await supabase
@@ -30,8 +36,12 @@ export async function createCustomOTP(email: string) {
       expires_at: expiresAt.toISOString(),
     })
 
-  if (error) throw error
+  if (error) {
+    console.error('Error creating OTP in auth_tokens:', error)
+    throw error
+  }
 
+  console.log('OTP created successfully:', otp)
   return otp
 }
 

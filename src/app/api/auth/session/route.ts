@@ -12,10 +12,11 @@ export async function GET(request: NextRequest) {
     const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
     
     if (!sessionCookie) {
-      return NextResponse.json(
-        { error: 'No session found' },
-        { status: 401 }
-      )
+      return NextResponse.json({
+        authenticated: false,
+        user: null,
+        client: null
+      })
     }
 
     const session = JSON.parse(sessionCookie.value)
@@ -30,13 +31,16 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error || !client) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({
+        authenticated: false,
+        user: null,
+        client: null,
+        error: 'Client not found'
+      })
     }
 
     return NextResponse.json({
+      authenticated: true,
       user: {
         id: client.id,
         email: client.email,
@@ -46,9 +50,11 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Session error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get session' },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      authenticated: false,
+      user: null,
+      client: null,
+      error: 'Failed to get session'
+    })
   }
 }

@@ -227,11 +227,47 @@ export default function DesignerApplyPage() {
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [designerEmail, setDesignerEmail] = useState('')
   const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    
+    // Check if designer is authenticated
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/designer/check')
+        const data = await response.json()
+        
+        console.log('🔍 Designer auth check response:', response.status)
+        console.log('🔍 Designer auth check data:', data)
+        
+        if (data.exists && data.designer?.email) {
+          console.log('✅ Designer authenticated:', data.designer.email)
+          setIsAuthenticated(true)
+          setDesignerEmail(data.designer.email)
+          // Update formData with the email
+          setFormData(prev => ({ ...prev, email: data.designer.email }))
+          setIsCheckingAuth(false)
+        } else {
+          console.log('❌ Not authenticated, data:', data)
+          console.log('❌ Redirecting to signup')
+          setTimeout(() => {
+            router.push('/designer/signup')
+          }, 100)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        setTimeout(() => {
+          router.push('/designer/signup')
+        }, 100)
+      }
+    }
+    
+    checkAuth()
+  }, [router])
 
   const getTimezone = (country: string, city: string): string => {
     if (city && city !== 'Other' && CITY_TIMEZONES[city]) {
@@ -253,7 +289,7 @@ export default function DesignerApplyPage() {
     // Step 1: Basic Info
     firstName: '',
     lastName: '',
-    email: '',
+    email: designerEmail,
     phone: '',
     
     // Step 2: Professional Info
@@ -446,13 +482,9 @@ export default function DesignerApplyPage() {
         alert(data.error || 'Failed to submit application')
         throw new Error(data.error || 'Failed to submit application')
       }
-
-      // Store email and application data for verification
-      sessionStorage.setItem('designerEmail', formData.email)
-      sessionStorage.setItem('designerApplication', JSON.stringify(formData))
       
-      // Navigate to verification page
-      router.push('/designer/apply/verify')
+      // Navigate to success page since designer is already authenticated
+      router.push('/designer/apply/success')
     } catch (error) {
       console.error('Error submitting application:', error)
       // Handle error (show toast, etc)
@@ -521,17 +553,17 @@ export default function DesignerApplyPage() {
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                   Email <span style={{ color: theme.error }}>*</span>
+                  <span className="ml-2 text-xs" style={{ color: theme.text.muted }}>(verified)</span>
                 </label>
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 focus:outline-none focus:ring-2"
+                  readOnly
+                  className="w-full px-4 py-3 rounded-xl border transition-all duration-300 opacity-75 cursor-not-allowed"
                   style={{ 
                     backgroundColor: theme.nestedBg, 
                     color: theme.text.primary,
-                    borderColor: theme.border,
-                    '--tw-ring-color': theme.accent
+                    borderColor: theme.border
                   } as any}
                   placeholder="john@example.com"
                 />
@@ -1333,10 +1365,13 @@ export default function DesignerApplyPage() {
     }
   }
 
-  if (!mounted) {
+  if (!mounted || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#1a1a1a' }}>
-        <LoadingSpinner />
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-pulse">⚡</div>
+          <p style={{ color: '#999' }}>Loading...</p>
+        </div>
       </div>
     )
   }

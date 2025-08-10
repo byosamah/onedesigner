@@ -52,7 +52,7 @@ export default function HomePage() {
         
         <div className="flex flex-col sm:flex-row gap-6 items-center justify-center pt-8 px-4">
           <Link
-            href="/brief"
+            href="/client/signup"
             className="w-full sm:w-auto group font-bold py-6 sm:py-8 px-8 sm:px-12 lg:px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] text-lg sm:text-xl shadow-lg hover:shadow-xl text-center"
             style={{ backgroundColor: theme.accent, color: '#000' }}
           >
@@ -63,7 +63,7 @@ export default function HomePage() {
           </Link>
           
           <Link
-            href="/designer/apply"
+            href="/designer/signup"
             className="w-full sm:w-auto group font-semibold py-6 sm:py-8 px-8 sm:px-12 lg:px-16 rounded-3xl transition-all duration-300 hover:scale-[1.02] relative text-lg sm:text-xl shadow-lg hover:shadow-xl text-center"
             style={{ 
               backgroundColor: 'transparent',
@@ -93,32 +93,32 @@ export default function HomePage() {
         {/* Steps */}
         <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto px-4">
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.1s' }}>
+            <div className="text-3xl mb-3">✨</div>
+            <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              1. Sign up
+            </h3>
+            <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
+              Quick email verification
+            </p>
+          </div>
+          
+          <div className="text-center animate-slideUp" style={{ animationDelay: '0.2s' }}>
             <div className="text-3xl mb-3">📝</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              1. Submit brief
+              2. Share your project
             </h3>
             <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
               Tell us what you need in 2 minutes
             </p>
           </div>
           
-          <div className="text-center animate-slideUp" style={{ animationDelay: '0.2s' }}>
-            <div className="text-3xl mb-3">🤖</div>
-            <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              2. AI matches you
-            </h3>
-            <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Perfect designer found in 0.3 seconds
-            </p>
-          </div>
-          
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.3s' }}>
-            <div className="text-3xl mb-3">🚀</div>
+            <div className="text-3xl mb-3">🎯</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              3. Start designing
+              3. Meet your designer
             </h3>
             <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Direct contact, no platform fees
+              AI matches you instantly
             </p>
           </div>
         </div>

@@ -290,7 +290,62 @@ curl -X GET http://localhost:3000/api/cron/embeddings \
   - Created scripts to check for missing required fields
   - Ensured backward compatibility for older designer accounts
 
-### Latest Session (Aug 8, 2025 - Night) - Enhanced Client Brief with Category-Specific Questions
+### Latest Session (Aug 10, 2025) - Centralized Configuration System & Auth-First Flow Fixes
+- **Fixed Designer Authentication-First Flow**:
+  - Added all required database fields (first_name, last_name, last_initial, title, city, country, years_experience)
+  - Created designer signup pages at `/designer/signup` and `/designer/signup/verify`
+  - Updated designer application to require authentication and use pre-filled email
+  - Fixed `/api/designer/auth/verify-otp` to create designer records with all required fields
+  - Updated `/api/designer/apply` to UPDATE existing records instead of creating new ones
+  - Designer flow now: Signup → Verify Email → Fill Application → Admin sees complete profile
+
+- **Fixed Client Authentication-First Flow**:
+  - Implemented client signup flow at `/client/signup` and `/client/signup/verify`
+  - Updated homepage CTA from "I need a designer" to "Get Started"
+  - Modified brief page to require authentication before form submission
+  - Fixed session management with proper cookie paths
+
+- **Implemented Centralized Configuration System**:
+  - Created `/src/config/` directory with modular configuration files
+  - **Matching Configuration** (`/src/config/matching/prompt.config.ts`):
+    - AI system role and personality (easily editable)
+    - Scoring weights for matching factors (must total 100)
+    - Elimination criteria with enable/disable flags
+    - Custom business rules without code changes
+    - Thresholds for match quality
+    - Response format instructions
+  - **Designer Form Configuration** (`/src/config/forms/designer.config.ts`):
+    - All 6 form steps with field definitions
+    - Field types, validation rules, and options
+    - Easy to add/remove/modify fields
+    - Centralized dropdown and checkbox options
+  - **Brief Form Configuration** (`/src/config/forms/brief.config.ts`):
+    - Common fields across all categories
+    - Category-specific fields for each design type
+    - Style preference fields
+    - All selectable options centralized
+  - **Main Export** (`/src/config/index.ts`):
+    - Central configuration export
+    - Validation functions
+    - Helper utilities
+
+- **Updated AI Provider**:
+  - Modified `/src/lib/ai/providers/deepseek.ts` to use configuration
+  - Prompts now pulled from config instead of hardcoded
+  - Scoring weights and criteria from config
+  - Temperature and model settings configurable
+
+- **Database Cleanup**:
+  - Created cleanup script to remove test data
+  - Cleaned all test designers, clients, auth tokens, briefs, and matches
+
+- **Documentation**:
+  - Created comprehensive README in `/src/config/README.md`
+  - Examples for common customizations
+  - Testing and validation instructions
+  - Configuration best practices
+
+### Session (Aug 8, 2025 - Night) - Enhanced Client Brief with Category-Specific Questions
 - **Integrated Enhanced AI Matching System** as the default experience throughout the app
 - **Implemented Detailed Category-Specific Questions** for all 6 design categories:
   - **Branding & Logo Design**: Brand identity type, deliverables, industry sector, brand assets status, logo style preferences
@@ -431,15 +486,25 @@ theme.tagBg           // Tag backgrounds
 /src/
   /app/
     /admin/           # Admin pages (updated)
-    /client/          # Client pages (updated)
-    /designer/        # Designer pages (updated)
+    /client/          # Client pages (updated with auth-first flow)
+    /designer/        # Designer pages (updated with auth-first flow)
     /brief/           # Brief flow (updated)
     /test-redesign/   # Reference designs
+  /config/            # ✨ NEW - Centralized configuration
+    /matching/        # AI matching configuration
+      prompt.config.ts # AI prompts and scoring rules
+    /forms/           # Form configurations
+      designer.config.ts # Designer application form
+      brief.config.ts    # Client brief form
+    index.ts          # Main config export
+    README.md         # Configuration documentation
   /lib/
     /design-system/   # Centralized theme system
+    /ai/              # AI providers (updated to use config)
 /public/
   icon.svg           # New atom logo favicon
   logo.svg           # Header logo (24x24)
+/test/               # Test scripts and cleanup utilities
 ```
 
 ## Centralization Implementation ✅ COMPLETED (Aug 8, 2025)

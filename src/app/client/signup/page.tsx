@@ -1,36 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 
-export default function ClientVerifyPage() {
+export default function ClientSignupPage() {
   const router = useRouter()
-  const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [error, setError] = useState('')
-  const [isResending, setIsResending] = useState(false)
   const theme = getTheme(isDarkMode)
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
-  useEffect(() => {
-    const storedEmail = sessionStorage.getItem('clientLoginEmail')
-    if (!storedEmail) {
-      router.push('/client/login')
-      return
-    }
-    setEmail(storedEmail)
-  }, [router])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (otp.length !== 6) {
-      setError('Please enter all 6 digits')
+    if (!email || !email.includes('@')) {
+      setError('Please enter a valid email')
       return
     }
 
@@ -38,39 +27,10 @@ export default function ClientVerifyPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token: otp }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to verify code')
-      }
-
-      if (data.success) {
-        // Clear storage
-        sessionStorage.removeItem('clientLoginEmail')
-        
-        // Redirect to client dashboard
-        router.push('/client/dashboard')
-      }
-    } catch (error) {
-      console.error('Verification error:', error)
-      setError(error instanceof Error ? error.message : 'Invalid or expired code')
-      setOtp('')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleResendCode = async () => {
-    setIsResending(true)
-    setError('')
-    
-    try {
+      // Store email for verification page
+      sessionStorage.setItem('clientSignupEmail', email)
+      
+      // Send OTP
       const response = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,19 +40,16 @@ export default function ClientVerifyPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to resend code')
+        throw new Error(data.error || 'Failed to send verification code')
       }
 
-      // Clear OTP field
-      setOtp('')
-      
-      // Show success message
-      setError('New code sent! Check your email.')
-      setTimeout(() => setError(''), 3000)
+      // Redirect to verification page
+      router.push('/client/signup/verify')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to resend code')
+      console.error('Signup error:', error)
+      setError(error instanceof Error ? error.message : 'Something went wrong')
     } finally {
-      setIsResending(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -136,29 +93,26 @@ export default function ClientVerifyPage() {
           <div className="animate-slideUp">
             <div className="max-w-xl mx-auto">
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">📧</div>
+                <div className="text-6xl mb-4">👋</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Check your email! 🚀
+                  Welcome to OneDesigner
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  We sent a 6-digit code to
-                </p>
-                <p className="text-lg font-semibold" style={{ color: theme.text.primary }}>
-                  {email}
+                  Let's find your perfect designer match
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                    Enter your verification code
+                    Enter your email to get started
                   </label>
                   <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="123456"
-                    className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-2xl font-mono text-center tracking-widest"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-lg"
                     style={{
                       backgroundColor: theme.nestedBg,
                       border: `2px solid ${error ? theme.error : theme.border}`,
@@ -166,10 +120,9 @@ export default function ClientVerifyPage() {
                     }}
                     autoFocus
                     required
-                    maxLength={6}
                   />
                   {error && (
-                    <p className="text-sm mt-2 animate-shake" style={{ color: error.includes('sent') ? theme.success : theme.error }}>
+                    <p className="text-sm mt-2 animate-shake" style={{ color: theme.error }}>
                       {error}
                     </p>
                   )}
@@ -177,7 +130,7 @@ export default function ClientVerifyPage() {
 
                 <button
                   type="submit"
-                  disabled={otp.length !== 6 || isSubmitting}
+                  disabled={isSubmitting}
                   className="w-full font-bold py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                   style={{
                     backgroundColor: theme.accent,
@@ -187,33 +140,24 @@ export default function ClientVerifyPage() {
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <span className="animate-spin">⚡</span>
-                      Verifying...
+                      Sending verification code...
                     </span>
                   ) : (
-                    'Continue to Dashboard'
+                    'Continue with Email →'
                   )}
                 </button>
 
-                <div className="text-center space-y-2">
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={isResending}
-                    className="text-sm font-medium transition-colors duration-300 hover:opacity-80 disabled:opacity-50"
-                    style={{ color: theme.accent }}
-                  >
-                    {isResending ? 'Sending...' : "Didn't receive the code? Resend code"}
-                  </button>
-                  
-                  <div>
+                <div className="text-center">
+                  <p className="text-sm" style={{ color: theme.text.secondary }}>
+                    Already have an account?{' '}
                     <Link 
                       href="/client/login" 
-                      className="text-sm transition-colors duration-300 hover:opacity-80"
-                      style={{ color: theme.text.muted }}
+                      className="font-medium transition-colors duration-300 hover:opacity-80"
+                      style={{ color: theme.accent }}
                     >
-                      ← Back to login
+                      Sign in instead
                     </Link>
-                  </div>
+                  </p>
                 </div>
               </form>
             </div>
@@ -223,15 +167,15 @@ export default function ClientVerifyPage() {
               <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
                 <div className="flex items-center gap-2">
                   <span>🔒</span>
-                  <span>Secure verification</span>
+                  <span>Secure & private</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span>✨</span>
-                  <span>Premium matches</span>
+                  <span>⚡</span>
+                  <span>No spam ever</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span>🎯</span>
-                  <span>AI-powered platform</span>
+                  <span>2,847 matches made</span>
                 </div>
               </div>
             </div>

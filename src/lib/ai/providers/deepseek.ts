@@ -1,10 +1,12 @@
 import { AIProvider, MatchResult } from '../types'
 import { API_ENDPOINTS } from '@/lib/constants'
+import { MATCHING_PROMPT_CONFIG } from '@/config/matching/prompt.config'
 
 export class DeepSeekProvider implements AIProvider {
   private apiKey: string
   private baseURL = API_ENDPOINTS.DEEPSEEK
-  private model = 'deepseek-chat' // Using chat model for better matching capabilities
+  private model = MATCHING_PROMPT_CONFIG.aiSettings.model
+  private config = MATCHING_PROMPT_CONFIG
 
   constructor() {
     this.apiKey = process.env.DEEPSEEK_API_KEY || ''
@@ -32,15 +34,15 @@ export class DeepSeekProvider implements AIProvider {
           messages: [
             {
               role: 'system',
-              content: 'You are an elite designer-client matchmaker AI. Your task is to analyze client projects and designer profiles to identify THE SINGLE PERFECT MATCH with surgical precision. Your selection must be defensible, data-driven, and compelling.'
+              content: this.config.systemRole
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          temperature: 0.3, // Lower temperature for more consistent matching
-          max_tokens: 2000
+          temperature: this.config.aiSettings.temperature,
+          max_tokens: this.config.aiSettings.maxTokens
         })
       })
 
@@ -65,9 +67,11 @@ export class DeepSeekProvider implements AIProvider {
   }
 
   private createMatchingPrompt(designers: any[], brief: any): string {
+    const { promptTemplates, scoringWeights, eliminationCriteria, thresholds } = this.config
+    
     return `
 ==== YOUR MISSION ====
-Analyze this client's project and the available designers to identify THE SINGLE PERFECT MATCH. Your selection must be defensible, data-driven, and compelling.
+${promptTemplates.missionStatement}
 
 ==== CLIENT PROJECT ANALYSIS ====
 
@@ -125,25 +129,21 @@ PERFORMANCE METRICS:
 
 STEP 1: ELIMINATION FILTERS
 For each designer, verify:
-□ Correct specialization for project type
-□ Within budget range (+/- 20%)
-□ Available for timeline
-□ Style alignment (no conflicts)
-□ Required industry experience
+${Object.entries(eliminationCriteria)
+  .filter(([_, criteria]) => criteria.enabled)
+  .map(([_, criteria]) => `□ ${criteria.description}`)
+  .join('\n')}
 
-STEP 2: SCORING MATRIX (100 points total)
-- CATEGORY MASTERY (30 pts): Exact match + portfolio evidence + experience
-- STYLE ALIGNMENT (25 pts): Style match + philosophy fit + aesthetic range
-- PROJECT FIT (20 pts): Industry + scale + success history
-- WORKING COMPATIBILITY (15 pts): Communication + process alignment
-- VALUE FACTORS (10 pts): Budget fit + availability + extras
+STEP 2: ${promptTemplates.scoringInstructions}
 
 STEP 3: SELECT THE ONE
 Choose the highest scoring designer who passes all filters.
-If NO designer scores above 70/100, recommend waiting.
+If NO designer scores above ${thresholds.minimumScore}/100, respond with: "${thresholds.noMatchMessage}"
 
 ==== RESPONSE FORMAT ====
-Return ONLY this JSON structure for THE SINGLE BEST MATCH:
+${promptTemplates.outputInstructions}
+
+Example JSON structure:
 {
   "selectedDesignerIndex": 0,
   "designerName": "First Last",

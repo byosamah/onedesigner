@@ -1,127 +1,92 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { EnhancedClientBrief } from '@/components/forms/EnhancedClientBrief'
 
-interface ClientBriefData {
-  // Project Basics
-  design_category: string
-  project_description: string
-  timeline_type: string
-  budget_range: string
-  
-  // Project Details
-  deliverables: string[]
-  target_audience: string
-  project_goal: string
-  design_style_keywords: string[]
-  design_examples: string[]
-  avoid_colors_styles: string
-  
-  // Working Preferences
-  involvement_level: string
-  communication_preference: string
-  previous_designer_experience: string
-  has_brand_guidelines: boolean
-}
-
 export default function BriefPage() {
   const router = useRouter()
   const { theme, isDarkMode, toggleTheme } = useTheme()
-  const [showAuth, setShowAuth] = useState(false)
-  const [briefData, setBriefData] = useState<ClientBriefData | null>(null)
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [clientEmail, setClientEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleBriefSubmit = async (data: ClientBriefData) => {
-    // Store brief data and show authentication
-    setBriefData(data)
-    setShowAuth(true)
-  }
-
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
-    
-    try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to send OTP')
+  // Check if user is authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Check for client session
+        const response = await fetch('/api/auth/session')
+        const data = await response.json()
+        
+        console.log('🔍 Auth check response:', data)
+        
+        if (data.authenticated && data.user?.email) {
+          setIsAuthenticated(true)
+          setClientEmail(data.user.email)
+          setIsLoading(false)
+        } else {
+          console.log('❌ Not authenticated, redirecting to signup')
+          // Small delay to avoid race conditions
+          setTimeout(() => {
+            router.push('/client/signup')
+          }, 100)
+        }
+      } catch (error) {
+        console.error('Auth check error:', error)
+        setTimeout(() => {
+          router.push('/client/signup')
+        }, 100)
       }
-
-      setOtpSent(true)
-    } catch (error) {
-      console.error('Error sending OTP:', error)
-      alert('Failed to send verification code. Please try again.')
     }
-  }
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!otp || !briefData) return
     
-    setIsVerifying(true)
+    checkAuth()
+  }, [router])
+
+  const handleBriefSubmit = async (briefData: any) => {
+    if (isSubmitting) return
+    
+    setIsSubmitting(true)
     
     try {
-      // First verify OTP
-      const authResponse = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token: otp }),
-      })
-
-      if (!authResponse.ok) {
-        const data = await authResponse.json()
-        throw new Error(data.error || 'Invalid code')
-      }
-
-      // Then submit brief with email
-      console.log('📝 Submitting brief data:', briefData)
-      const briefResponse = await fetch('/api/briefs/public', {
+      // Submit brief with authenticated client email
+      const response = await fetch('/api/briefs/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...briefData,
-          client_email: email
+          client_email: clientEmail
         }),
       })
 
-      console.log('📝 Brief response status:', briefResponse.status)
+      const result = await response.json()
       
-      if (!briefResponse.ok) {
-        const errorData = await briefResponse.json()
-        console.error('❌ Brief submission error:', errorData)
-        throw new Error(errorData.message || errorData.error || 'Failed to submit brief')
+      if (response.ok && result.briefId) {
+        // Redirect to match finding page
+        router.push(`/match/${result.briefId}`)
+      } else {
+        throw new Error(result.error || 'Failed to create brief')
       }
-
-      const briefResult = await briefResponse.json()
-      console.log('✅ Brief created successfully:', briefResult)
-      const briefId = briefResult.briefId || briefResult.brief?.id
-
-      if (!briefId) {
-        console.error('❌ No briefId in response:', briefResult)
-        throw new Error('Brief created but no ID returned')
-      }
-
-      console.log('🎯 Redirecting to match page with briefId:', briefId)
-      // Redirect to AI matching page
-      router.push(`/match/${briefId}`)
-
     } catch (error) {
-      console.error('Error:', error)
-      alert(error instanceof Error ? error.message : 'Something went wrong')
-      setIsVerifying(false)
+      console.error('Brief submission error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to submit brief. Please try again.')
+      setIsSubmitting(false)
     }
+  }
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <main className="min-h-screen transition-colors duration-300 flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-pulse">⚡</div>
+          <p style={{ color: theme.text.secondary }}>Loading...</p>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -138,178 +103,56 @@ export default function BriefPage() {
             OneDesigner
           </Link>
           
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
-            style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
-            aria-label="Toggle theme"
-          >
-            <div
-              className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
-              style={{
-                left: isDarkMode ? '2px' : '32px',
-                backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
-                transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
-              }}
-            >
-              {isDarkMode ? '🌙' : '☀️'}
+          <div className="flex items-center gap-4">
+            {/* User indicator */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: theme.nestedBg }}>
+              <span className="text-xs" style={{ color: theme.text.muted }}>Signed in as</span>
+              <span className="text-sm font-medium" style={{ color: theme.text.primary }}>{clientEmail}</span>
             </div>
-          </button>
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+              style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+              aria-label="Toggle theme"
+            >
+              <div
+                className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
+                style={{
+                  left: isDarkMode ? '2px' : '32px',
+                  backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
+                }}
+              >
+                {isDarkMode ? '🌙' : '☀️'}
+              </div>
+            </button>
+          </div>
         </div>
       </nav>
       
-      <div className="flex-1 flex items-center justify-center px-8 pb-32">
-        <div className="w-full max-w-4xl">
-          {/* Show authentication after brief completion */}
-          {showAuth ? (
-            <div className="animate-slideUp">
-              <div className="max-w-xl mx-auto">
-              <div className="text-center mb-8">
-                <div className="text-6xl mb-4">🔐</div>
-                <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Last step. Promise.
-                </h2>
-                <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  {!otpSent 
-                    ? "Just need your email to show your match"
-                    : "Check your inbox for the magic code"
-                  }
-                </p>
-              </div>
-
-              {!otpSent ? (
-                <form onSubmit={handleSendOTP} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                      Your email
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="founder@startup.com"
-                      className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-lg"
-                      style={{
-                        backgroundColor: theme.nestedBg,
-                        border: `2px solid ${theme.border}`,
-                        color: theme.text.primary,
-                      }}
-                      autoFocus
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={!email}
-                    className="w-full font-bold py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                    style={{
-                      backgroundColor: theme.accent,
-                      color: '#000'
-                    }}
-                  >
-                    Send me the code →
-                  </button>
-
-                  <p className="text-center text-sm" style={{ color: theme.text.muted }}>
-                    No spam. No BS. Just your perfect designer match.
-                  </p>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyOTP} className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                      Enter the 6-digit code from your email
-                    </label>
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="123456"
-                      className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-2xl font-mono text-center tracking-widest"
-                      style={{
-                        backgroundColor: theme.nestedBg,
-                        border: `2px solid ${theme.border}`,
-                        color: theme.text.primary,
-                      }}
-                      autoFocus
-                      required
-                      maxLength={6}
-                    />
-                    <p className="text-sm mt-2" style={{ color: theme.text.muted }}>
-                      Sent to {email}
-                    </p>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={otp.length !== 6 || isVerifying}
-                    className="w-full font-bold py-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                    style={{
-                      backgroundColor: theme.accent,
-                      color: '#000'
-                    }}
-                  >
-                    {isVerifying ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="animate-spin">⚡</span>
-                        Finding your perfect designer...
-                      </span>
-                    ) : (
-                      'Show me my match →'
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => { setOtpSent(false); setOtp('') }}
-                    className="w-full text-sm font-medium transition-colors duration-300"
-                    style={{ color: theme.text.muted }}
-                  >
-                    Wrong email? Go back
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Trust signals */}
-            <div className="mt-12 text-center space-y-6">
-              <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
-                <div className="flex items-center gap-2">
-                  <span>🔒</span>
-                  <span>Bank-level security</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>⚡</span>
-                  <span>Instant matching</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>🎯</span>
-                  <span>94% match accuracy</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Enhanced Brief Form */
-          <>
-            <div className="mb-8 text-center animate-slideUp">
-              <h1 className="text-4xl font-bold mb-4" style={{ color: theme.text.primary }}>
-                Find Your Perfect Designer
-              </h1>
-              <p className="text-lg" style={{ color: theme.text.secondary }}>
-                Answer a few questions to get matched with the perfect designer for your project
-              </p>
-            </div>
-            <div className="animate-slideUp" style={{ animationDelay: '0.1s' }}>
-              <EnhancedClientBrief
-                isDarkMode={isDarkMode}
-                onSubmit={handleBriefSubmit}
-              />
-            </div>
-          </>
-        )}
+      {/* Progress indicator */}
+      <div className="max-w-6xl mx-auto px-8 py-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.accent }}></div>
+          <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.accent }}></div>
+          <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.border }}></div>
+        </div>
+        <p className="text-xs mt-2 text-center" style={{ color: theme.text.muted }}>
+          Step 2 of 3: Tell us about your project
+        </p>
+      </div>
+      
+      {/* Brief Form */}
+      <div className="flex-1 px-8 pb-16">
+        <div className="max-w-6xl mx-auto">
+          <EnhancedClientBrief 
+            onSubmit={handleBriefSubmit}
+            theme={theme}
+            isDarkMode={isDarkMode}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </div>
     </main>

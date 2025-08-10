@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { createSession } from '@/lib/auth/session-handlers'
+import { createServiceClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,10 +21,76 @@ export async function POST(request: NextRequest) {
       return apiResponse.unauthorized('Invalid or expired code')
     }
 
-    // Return success - the actual designer check will be done in a separate call
+    // Check if designer exists or create a new one
+    const supabase = createServiceClient()
+    const { data: existingDesigner } = await supabase
+      .from('designers')
+      .select('id, email, first_name, last_name, is_approved')
+      .eq('email', email)
+      .single()
+
+    let designerId = existingDesigner?.id
+
+    if (!existingDesigner) {
+      // Create a new designer record with all required fields
+      const { data: newDesigner, error: createError } = await supabase
+        .from('designers')
+        .insert({
+          email,
+          first_name: '', // Will be filled in application form
+          last_name: '',  // Will be filled in application form
+          last_initial: '', // Required field - will be set when last_name is provided
+          title: '', // Professional title - will be filled in application form
+          city: '', // Location - will be filled in application form
+          country: '', // Location - will be filled in application form
+          years_experience: '', // Experience - will be filled in application form
+          is_verified: true,
+          is_approved: false,
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single()
+
+      if (createError) {
+        console.error('Error creating designer:', createError)
+        return apiResponse.error('Failed to create designer account')
+      }
+
+      designerId = newDesigner.id
+    }
+
+    // Create designer session
+    console.log('📝 Creating designer session for:', email, 'with ID:', designerId)
+    
+    // Set the cookie directly to ensure it's properly created
+    const cookieStore = cookies()
+    const sessionData = {
+      email,
+      userId: designerId,
+      designerId,
+      userType: 'designer',
+      authenticatedAt: new Date().toISOString()
+    }
+    
+    cookieStore.set(AUTH_COOKIES.DESIGNER, JSON.stringify(sessionData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/'
+    })
+    
+    console.log('✅ Designer session created successfully with cookie:', AUTH_COOKIES.DESIGNER)
+
+    // Return success
     return apiResponse.success({ 
       success: true,
-      message: 'OTP verified successfully'
+      message: 'OTP verified successfully',
+      designer: {
+        id: designerId,
+        email,
+        isExisting: !!existingDesigner
+      }
     })
   } catch (error) {
     console.error('Error verifying designer OTP:', error)

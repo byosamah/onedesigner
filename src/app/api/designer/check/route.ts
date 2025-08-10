@@ -3,6 +3,57 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { apiResponse } from '@/lib/api/responses'
+import { getSession } from '@/lib/auth/session-handlers'
+
+// GET method to check if designer is authenticated via session
+export async function GET() {
+  try {
+    // Check for designer session
+    const session = await getSession('DESIGNER')
+    
+    console.log('🔍 Designer session check:', session ? 'Found' : 'Not found')
+    console.log('🔍 Session data:', session)
+    
+    if (!session || !session.email) {
+      console.log('❌ No valid session found')
+      return apiResponse.success({ 
+        exists: false,
+        designer: null 
+      })
+    }
+
+    const supabase = createServiceClient()
+
+    // Get designer details from database
+    const { data: designer, error } = await supabase
+      .from('designers')
+      .select('id, email, first_name, last_name, is_verified, is_approved')
+      .eq('email', session.email)
+      .single()
+
+    if (error || !designer) {
+      return apiResponse.success({ 
+        exists: false,
+        designer: null 
+      })
+    }
+
+    return apiResponse.success({ 
+      exists: true, 
+      designer: {
+        id: designer.id,
+        email: designer.email,
+        firstName: designer.first_name,
+        lastName: designer.last_name,
+        isVerified: designer.is_verified,
+        isApproved: designer.is_approved
+      }
+    })
+  } catch (error) {
+    console.error('Error checking designer session:', error)
+    return apiResponse.serverError('Failed to check designer session')
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
