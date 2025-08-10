@@ -20,6 +20,8 @@ interface EnhancedClientBriefProps {
   isDarkMode: boolean
   onSubmit: (data: ClientBriefData) => Promise<void>
   initialData?: Partial<ClientBriefData>
+  theme?: any  // Theme object from design system
+  isSubmitting?: boolean  // External submitting state
 }
 
 interface ClientBriefData {
@@ -117,12 +119,17 @@ const STEPS = [
 export function EnhancedClientBrief({ 
   isDarkMode, 
   onSubmit, 
-  initialData = {} 
+  initialData = {},
+  theme: externalTheme,
+  isSubmitting: externalIsSubmitting
 }: EnhancedClientBriefProps) {
-  const theme = getTheme(isDarkMode)
+  const theme = externalTheme || getTheme(isDarkMode)
   const [currentStep, setCurrentStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [internalIsSubmitting, setInternalIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  
+  // Use external isSubmitting if provided, otherwise use internal state
+  const isSubmitting = externalIsSubmitting !== undefined ? externalIsSubmitting : internalIsSubmitting
   
   const [formData, setFormData] = useState<ClientBriefData>({
     design_category: '',
@@ -238,15 +245,35 @@ export function EnhancedClientBrief({
   }
 
   const handleSubmit = async () => {
-    if (!validateStep(3)) return
+    if (!validateStep(3)) {
+      // Validation failed - scroll to first error field
+      const firstErrorField = document.querySelector('[data-error="true"]')
+      if (firstErrorField) {
+        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      console.error('Step 3 validation failed. Errors:', errors)
+      // Show alert to user about validation errors
+      const errorMessages = Object.values(errors).join('\n')
+      alert('Please complete all required fields:\n\n' + errorMessages)
+      return
+    }
 
-    setIsSubmitting(true)
+    // Set internal submitting state if not controlled externally
+    if (externalIsSubmitting === undefined) {
+      setInternalIsSubmitting(true)
+    }
+    
     try {
       await onSubmit(formData)
     } catch (error) {
       console.error('Failed to submit brief:', error)
+      // Re-throw to let parent handle the error
+      throw error
     } finally {
-      setIsSubmitting(false)
+      // Reset internal submitting state if not controlled externally
+      if (externalIsSubmitting === undefined) {
+        setInternalIsSubmitting(false)
+      }
     }
   }
 
@@ -1056,6 +1083,25 @@ export function EnhancedClientBrief({
 
           {currentStep === 3 && (
             <div className="space-y-6 sm:space-y-8">
+              {/* Show validation errors if any */}
+              {Object.keys(errors).length > 0 && (
+                <div className="p-4 rounded-2xl border-2 animate-pulse" style={{ 
+                  backgroundColor: theme.error + '10',
+                  borderColor: theme.error 
+                }}>
+                  <p className="font-semibold mb-2" style={{ color: theme.error }}>
+                    Please fill in all required fields:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(errors).map(([field, message]) => (
+                      <li key={field} className="text-sm" style={{ color: theme.error }}>
+                        {message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
               {/* Involvement Level */}
               <div>
                 <label className="block text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>

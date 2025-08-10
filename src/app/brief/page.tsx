@@ -52,6 +52,9 @@ export default function BriefPage() {
     setIsSubmitting(true)
     
     try {
+      // Log the data being sent to help debug
+      console.log('Submitting brief data:', briefData)
+      
       // Submit brief with authenticated client email
       const response = await fetch('/api/briefs/public', {
         method: 'POST',
@@ -64,11 +67,17 @@ export default function BriefPage() {
 
       const result = await response.json()
       
+      // Log the response for debugging
+      console.log('API Response:', { status: response.status, ok: response.ok, result })
+      
       if (response.ok && result.briefId) {
         // Redirect to match finding page
         router.push(`/match/${result.briefId}`)
       } else {
-        throw new Error(result.error || 'Failed to create brief')
+        // More detailed error message
+        const errorMsg = result.error || result.message || 'Failed to create brief'
+        console.error('Brief submission failed:', { status: response.status, error: errorMsg, result })
+        throw new Error(errorMsg)
       }
     } catch (error) {
       console.error('Brief submission error:', error)
