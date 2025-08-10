@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
       return apiResponse.validationError('Brief must have design category, timeline, and budget information')
     }
 
-    // Get approved designers with portfolio images
+    // Get approved designers
     const { data: designers, error: designersError } = await supabase
       .from('designers')
-      .select('*, portfolio_image_1, portfolio_image_2, portfolio_image_3')
+      .select('*')
       .eq('is_verified', true)
       .eq('is_approved', true)
       .neq('availability', 'busy')
