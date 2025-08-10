@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       .select('*, portfolio_image_1, portfolio_image_2, portfolio_image_3')
       .eq('is_verified', true)
       .eq('is_approved', true)
-      .eq('availability', 'available')
+      .neq('availability', 'busy')
 
     if (designersError || !designers || designers.length === 0) {
       console.error('No available designers')

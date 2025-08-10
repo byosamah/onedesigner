@@ -20,7 +20,7 @@ export class SimpleMatcher {
         .select('*')
         .eq('is_verified', true)
         .eq('is_approved', true)
-        .eq('availability', 'available')
+        .neq('availability', 'busy')
 
       if (error || !designers || designers.length === 0) {
         console.log('No available designers found')

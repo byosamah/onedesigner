@@ -216,7 +216,7 @@ export class OptimizedMatcher extends EventEmitter {
         `)
         .eq('is_approved', true)
         .eq('is_verified', true)
-        .in('availability', ['available', 'busy'])
+        .neq('availability', 'busy')
         .limit(100) // Limit for performance
       
       // Exclude already matched designers if provided
@@ -253,7 +253,7 @@ export class OptimizedMatcher extends EventEmitter {
         .select('*')
         .eq('is_approved', true)
         .eq('is_verified', true)
-        .in('availability', ['available', 'busy'])
+        .neq('availability', 'busy')
         .limit(100) // Limit for performance
       
       // Exclude already matched designers if provided

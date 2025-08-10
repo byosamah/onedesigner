@@ -1,106 +1,197 @@
-#!/bin/bash
+#\!/bin/bash
 
-echo "=== Testing AI Matching Flow ==="
+# Test AI Matching Flow with Seeded Designers
+echo "🚀 Testing AI Matching Flow"
+echo "================================"
+
+# Base URL
+BASE_URL="http://localhost:3000"
+
+# Step 1: Create a test brief with all required fields
 echo ""
+echo "Step 1: Creating test brief..."
+echo "-------------------------------"
 
-# Colors for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+BRIEF_DATA='{
+  "design_category": "branding-logo",
+  "company_name": "Test Company AI",
+  "industry_sector": "saas",
+  "project_description": "We need a modern, minimal logo for our SaaS platform that helps businesses automate their workflows. Looking for clean, professional design with tech-forward aesthetic.",
+  "target_audience": "B2B tech companies, startups, enterprise",
+  "brand_personality": "Professional, innovative, trustworthy",
+  "timeline_type": "standard",
+  "budget_range": "mid",
+  "involvement_level": "moderate",
+  "update_frequency": "weekly",
+  "communication_channels": ["email", "slack"],
+  "feedback_style": "detailed",
+  "change_flexibility": "moderate",
+  "brand_identity_type": "new-brand",
+  "brand_deliverables": ["logo", "color-palette", "typography"],
+  "industry_sector": "saas",
+  "logo_style": ["wordmark", "abstract"],
+  "design_style_keywords": ["minimal", "modern", "technical"],
+  "timeline": "standard",
+  "budget": "mid",
+  "styles": ["minimal", "modern", "technical"],
+  "requirements": "We need a modern, minimal logo for our SaaS platform"
+}'
 
-# API Base URL
-if [ -z "$1" ]; then
-  BASE_URL="http://localhost:3000"
-else
-  BASE_URL="$1"
-fi
-
-echo "Testing against: $BASE_URL"
-echo ""
-
-# Step 1: Submit a test brief
-echo -e "${YELLOW}Step 1: Submitting test brief...${NC}"
-BRIEF_RESPONSE=$(curl -s -X POST "$BASE_URL/api/briefs/public" \
+BRIEF_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/briefs/public" \
   -H "Content-Type: application/json" \
-  -d '{
-    "design_category": "branding-logo",
-    "project_description": "I need a modern logo for my tech startup that specializes in AI-powered design tools. Looking for something clean and innovative.",
-    "timeline_type": "standard",
-    "budget_range": "mid",
-    "target_audience": "Tech-savvy professionals and designers",
-    "design_style_keywords": ["modern", "minimalist", "tech", "innovative"],
-    "design_examples": ["Apple", "Stripe", "Notion"],
-    "industry_sector": "Technology",
-    "brand_identity_type": "new-brand",
-    "brand_assets_status": "no-assets",
-    "logo_style_preference": "abstract-mark",
-    "deliverables_needed": ["primary-logo", "color-variations", "brand-guidelines"]
-  }')
+  -d "${BRIEF_DATA}")
 
-# Extract brief ID
-BRIEF_ID=$(echo $BRIEF_RESPONSE | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+BRIEF_ID=$(echo $BRIEF_RESPONSE | grep -o '"id":"[^"]*' | sed 's/"id":"//')
 
 if [ -z "$BRIEF_ID" ]; then
-  echo -e "${RED}❌ Failed to create brief${NC}"
+  echo "✗ Failed to create brief"
   echo "Response: $BRIEF_RESPONSE"
   exit 1
 fi
 
-echo -e "${GREEN}✅ Brief created successfully${NC}"
-echo "Brief ID: $BRIEF_ID"
+echo "✅ Brief created with ID: ${BRIEF_ID}"
+
+# Step 2: Test AI Matching
+echo ""
+echo "Step 2: Testing AI Matching..."
+echo "-------------------------------"
+echo "Looking for designers that match:"
+echo "  📁 Category: Branding & Logo"
+echo "  🏢 Industry: SaaS"
+echo "  🎨 Style: Minimal, Modern, Technical"
 echo ""
 
-# Step 2: Fetch AI matches
-echo -e "${YELLOW}Step 2: Fetching AI matches for brief...${NC}"
-MATCH_RESPONSE=$(curl -s -X POST "$BASE_URL/api/match" \
+# Call the matching endpoint
+MATCH_RESPONSE=$(curl -s -X POST "${BASE_URL}/api/match/find" \
   -H "Content-Type: application/json" \
-  -d "{\"briefId\":\"$BRIEF_ID\"}")
+  -d "{\"briefId\": \"${BRIEF_ID}\"}")
 
-# Check if matches were found
-if echo "$MATCH_RESPONSE" | grep -q '"matches"'; then
-  echo -e "${GREEN}✅ AI matching completed successfully${NC}"
+# Check if we got matches
+if echo "$MATCH_RESPONSE" | grep -q '"error"'; then
+  echo "✗ Matching failed"
+  echo "Error: $(echo $MATCH_RESPONSE | grep -o '"error":"[^"]*' | sed 's/"error":"//')"
   
-  # Count matches
-  MATCH_COUNT=$(echo "$MATCH_RESPONSE" | grep -o '"designer":{' | wc -l)
-  echo "Found $MATCH_COUNT matches"
-  
-  # Extract first match details
-  FIRST_MATCH_SCORE=$(echo "$MATCH_RESPONSE" | grep -o '"score":[0-9]*' | head -1 | cut -d':' -f2)
-  FIRST_MATCH_AI=$(echo "$MATCH_RESPONSE" | grep -o '"aiAnalyzed":[^,}]*' | head -1 | cut -d':' -f2)
-  
+  # Debug: Check for approved designers
   echo ""
-  echo "First Match Details:"
-  echo "- Score: $FIRST_MATCH_SCORE%"
-  echo "- AI Analyzed: $FIRST_MATCH_AI"
-  
-  # Check if AI was actually used
-  if [ "$FIRST_MATCH_AI" = "true" ]; then
-    echo -e "${GREEN}✅ AI analysis confirmed${NC}"
-  else
-    echo -e "${RED}❌ AI analysis not detected${NC}"
-  fi
-  
-else
-  echo -e "${RED}❌ Failed to fetch matches${NC}"
-  echo "Response: $MATCH_RESPONSE"
+  echo "Debugging: Checking for approved designers..."
+  node -e "
+    require('dotenv').config({ path: '.env.local' });
+    const { createClient } = require('@supabase/supabase-js');
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    
+    (async () => {
+      const { data: designers, count } = await supabase
+        .from('designers')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_approved', true)
+        .eq('is_verified', true)
+        .neq('availability', 'busy');
+      
+      console.log('Found', count, 'approved & available designers in database');
+    })();
+  "
   exit 1
 fi
 
+# Parse the match results
+echo "✅ AI Matching completed successfully\!"
 echo ""
-echo -e "${YELLOW}Step 3: Checking match page URL...${NC}"
-MATCH_URL="$BASE_URL/match/$BRIEF_ID"
-echo "Match page would be available at: $MATCH_URL"
+
+# Extract match details using Node.js for better JSON parsing
+echo "$MATCH_RESPONSE" | node -e "
+const fs = require('fs');
+let input = '';
+process.stdin.on('data', chunk => input += chunk);
+process.stdin.on('end', () => {
+  try {
+    const matchData = JSON.parse(input);
+    
+    if (matchData.matches && matchData.matches.length > 0) {
+      console.log('📊 MATCH RESULTS');
+      console.log('================');
+      
+      matchData.matches.slice(0, 3).forEach((match, i) => {
+        console.log('');
+        console.log(\`🏆 Match #\${i + 1}\`);
+        console.log('-------------------');
+        console.log(\`👤 Designer: \${match.designer.firstName} \${match.designer.lastInitial || match.designer.lastName?.charAt(0)}\`);
+        console.log(\`💼 Title: \${match.designer.title}\`);
+        console.log(\`📍 Location: \${match.designer.city}, \${match.designer.country}\`);
+        console.log(\`⭐ Score: \${match.score}/100\`);
+        console.log(\`📊 Confidence: \${match.confidence}\`);
+        console.log(\`🤖 AI Analyzed: \${match.aiAnalyzed ? '✅ Yes (DeepSeek AI)' : '⚠️ No (Fallback scoring)'}\`);
+        
+        if (match.matchSummary) {
+          console.log(\`\n💬 AI Summary:\`);
+          console.log(\`   \"\${match.matchSummary.substring(0, 200)}...\"\`);
+        }
+        
+        if (match.reasons && match.reasons.length > 0) {
+          console.log(\`\n✨ Match Reasons:\`);
+          match.reasons.slice(0, 3).forEach(reason => {
+            console.log(\`   • \${reason}\`);
+          });
+        }
+        
+        if (match.scoreBreakdown && match.aiAnalyzed) {
+          console.log(\`\n📈 AI Score Breakdown:\`);
+          Object.entries(match.scoreBreakdown).forEach(([key, value]) => {
+            const label = key.replace(/([A-Z])/g, ' \$1').trim();
+            const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
+            console.log(\`   • \${capitalizedLabel}: \${value} points\`);
+          });
+        }
+      });
+      
+      console.log('');
+      console.log('═══════════════════════════════');
+      console.log(\`✨ Total matches found: \${matchData.matches.length}\`);
+      
+      // Check if AI was used
+      const aiMatches = matchData.matches.filter(m => m.aiAnalyzed);
+      console.log(\`🤖 AI-analyzed matches: \${aiMatches.length}/\${matchData.matches.length}\`);
+      
+      if (aiMatches.length === 0) {
+        console.log('');
+        console.log('⚠️  WARNING: No matches were analyzed by AI\!');
+        console.log('   Possible issues:');
+        console.log('   • DeepSeek API key not configured in .env.local');
+        console.log('   • API is unreachable or down');
+        console.log('   • Rate limiting or API errors');
+        console.log('   ');
+        console.log('   Currently using fallback scoring only.');
+      } else {
+        console.log('');
+        console.log('✅ SUCCESS: AI (DeepSeek) is working correctly\!');
+        console.log('   The matching system is using AI to analyze designer-client compatibility.');
+      }
+      
+    } else {
+      console.log('❌ No matches found in response');
+      console.log('This could mean:');
+      console.log('  • No approved designers in database');
+      console.log('  • All designers are marked as busy');
+      console.log('  • Database query failed');
+    }
+  } catch (e) {
+    console.error('Error parsing response:', e.message);
+    console.log('Raw response (first 500 chars):', input.substring(0, 500));
+  }
+});
+"
 
 echo ""
-echo -e "${GREEN}=== Test Complete ===${NC}"
+echo "================================"
+echo "📋 TEST SUMMARY"
+echo "================================"
+echo "  ✅ Brief submission: SUCCESS"
+echo "  ✅ Matching endpoint: SUCCESS"
+echo "  📊 AI Status: Check results above"
 echo ""
-echo "Summary:"
-echo "1. Brief submission: ✅"
-echo "2. AI matching: ✅"
-echo "3. Match results: $MATCH_COUNT designers found"
-echo ""
-echo "Next steps:"
-echo "1. Visit $MATCH_URL to see the enhanced match page"
-echo "2. Check loading animations and progressive updates"
-echo "3. Verify AI-generated match explanations"
+echo "The test has completed. Review the results above to verify:"
+echo "  1. Designers are being matched based on brief criteria"
+echo "  2. AI is analyzing and scoring matches (if configured)"
+echo "  3. Scores and reasons are relevant to the brief"

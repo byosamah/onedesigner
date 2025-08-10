@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
       .select('id, first_name, last_name, email, is_verified, is_approved, availability, *')
       .eq('is_verified', true)
       .eq('is_approved', true)
-      .in('availability', ['available', 'busy'])
+      .neq('availability', 'busy')
     
     if (excludedDesignerIds.length > 0) {
       designersQuery = designersQuery.not('id', 'in', `(${excludedDesignerIds.join(',')})`)
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('is_verified', true)
         .eq('is_approved', true)
-        .in('availability', ['available', 'busy'])
+        .neq('availability', 'busy')
       
       const totalApproved = totalApprovedDesigners?.length || 0
       
