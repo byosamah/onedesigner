@@ -139,6 +139,11 @@ export function EnhancedClientBrief({
     communication_preference: '',
     previous_designer_experience: '',
     has_brand_guidelines: false,
+    // Working preference fields required by Step 3
+    update_frequency: '',
+    communication_channels: [],
+    feedback_style: '',
+    change_flexibility: '',
     ...initialData
   })
 
