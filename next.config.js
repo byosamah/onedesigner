@@ -2,12 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
-    // Disable ESLint during builds
-    ignoreDuringBuilds: true,
+    // Enable ESLint during builds for security
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Disable TypeScript errors during builds
-    ignoreBuildErrors: true,
+    // Enable TypeScript validation during builds
+    ignoreBuildErrors: false,
   },
   experimental: {
     // Disable problematic static generation

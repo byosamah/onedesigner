@@ -130,8 +130,11 @@ export async function validateSession(
       break
       
     case 'ADMIN':
-      // For admin, we just validate the session exists
-      // Add admin table query if needed
+      // Verify admin email against whitelist
+      const adminEmails = ['osamah96@gmail.com'] // Add other admin emails as needed
+      if (!adminEmails.includes(session.email)) {
+        return { valid: false }
+      }
       userData = { email: session.email, role: 'admin' }
       break
   }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/shared'
@@ -16,11 +16,19 @@ export default function PurchasePage() {
   const [purchasing, setPurchasing] = useState(false)
   const { theme, isDarkMode, toggleTheme } = useTheme()
   const { isAuthenticated } = useAuth()
+  
+  // Log authentication status
+  useEffect(() => {
+    console.log('🔐 Purchase page - isAuthenticated:', isAuthenticated)
+  }, [isAuthenticated])
 
   const handlePurchase = async (packageId: string) => {
+    console.log('🛒 Purchase clicked - Package:', packageId)
+    console.log('🔐 Is Authenticated:', isAuthenticated)
+    
     if (!isAuthenticated) {
       handleError('Please sign in to purchase matches')
-      router.push('/auth/signin?redirect=/client/purchase')
+      router.push('/client/login?redirect=/client/purchase')
       return
     }
 
@@ -28,18 +36,32 @@ export default function PurchasePage() {
     setPurchasing(true)
 
     try {
-      const response = await paymentService.createCheckout({
-        productKey: packageId,
-        matchId: null
+      console.log('📡 Calling /api/checkout/create with:', { productKey: packageId, matchId: null })
+      
+      // Use direct fetch to match the EnhancedMatchCard approach
+      const response = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productKey: packageId,
+          matchId: null 
+        }),
       })
-
-      if (!response.success || !response.data?.checkoutUrl) {
-        throw new Error(response.error || 'No checkout URL received')
+      
+      console.log('📡 Response status:', response.status)
+      const data = await response.json()
+      console.log('📡 Response data:', data)
+      
+      if (!response.ok || !data.checkoutUrl) {
+        console.error('❌ Error - No checkout URL:', data)
+        throw new Error(data.error || 'No checkout URL received')
       }
       
+      console.log('✅ Redirecting to:', data.checkoutUrl)
       // Redirect to Lemon Squeezy checkout
-      window.location.href = response.data.checkoutUrl
+      window.location.href = data.checkoutUrl
     } catch (error) {
+      console.error('❌ Purchase error:', error)
       handleError(error)
       setPurchasing(false)
       setSelectedPackage(null)

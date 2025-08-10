@@ -449,7 +449,7 @@ export default function ClientDashboard() {
                     <strong style={{ color: theme.text.primary }}>Why this match:</strong> {match.matchSummary || match.reasons.join(' • ')}
                   </p>
                   <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
-                    {match.brief.designCategory || 'Not specified'} • {match.brief.timeline} • {match.brief.budget}
+                    {match.brief?.designCategory || 'Not specified'} • {match.brief?.timeline || 'Not specified'} • {match.brief?.budget || 'Not specified'}
                   </p>
                 </div>
 

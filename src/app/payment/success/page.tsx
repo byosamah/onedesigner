@@ -7,9 +7,10 @@ import { Logo, ThemeToggle } from '@/components/shared'
 import { getTheme } from '@/lib/design-system'
 
 export default function PaymentSuccessPage() {
-  // const router = useRouter()
+  const router = useRouter()
   const [isVerifying, setIsVerifying] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const [lastBriefId, setLastBriefId] = useState<string | null>(null)
   const theme = getTheme(isDarkMode)
 
   const toggleTheme = () => {
@@ -17,6 +18,12 @@ export default function PaymentSuccessPage() {
   }
 
   useEffect(() => {
+    // Get the last brief ID from sessionStorage
+    const briefId = sessionStorage.getItem('currentBriefId')
+    if (briefId) {
+      setLastBriefId(briefId)
+    }
+    
     // Simulate verification delay
     setTimeout(() => {
       setIsVerifying(false)
@@ -83,11 +90,11 @@ export default function PaymentSuccessPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
-                href="/client/dashboard" 
+                href={lastBriefId ? `/match/${lastBriefId}` : "/client/dashboard"} 
                 className="font-bold py-4 px-8 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                 style={{ backgroundColor: theme.accent, color: '#000' }}
               >
-                View Your Matches ✨
+                View Your Match ✨
               </Link>
               <Link 
                 href="/client/dashboard" 

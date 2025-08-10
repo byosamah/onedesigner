@@ -107,6 +107,8 @@ interface DesignerProfile {
   dribbbleUrl?: string
   behanceUrl?: string
   linkedinUrl?: string
+  portfolioImages?: string[]
+  profilePicture?: string
   projectPriceFrom: number
   projectPriceTo: number
   styles?: string[]
@@ -222,6 +224,56 @@ export default function DesignerProfilePage() {
   const handleArrayInputChange = (field: string, value: string) => {
     const items = value.split(',').map(item => item.trim()).filter(Boolean)
     setFormData(prev => ({ ...prev, [field]: items }))
+  }
+
+  const handlePortfolioImageUpload = async (index: number, file: File | null) => {
+    if (!file) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    // Convert to base64 for preview (in production, you'd upload to a service)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setFormData(prev => {
+        const newImages = [...(prev.portfolioImages || [])]
+        newImages[index] = base64String
+        return { ...prev, portfolioImages: newImages }
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removePortfolioImage = (index: number) => {
+    setFormData(prev => {
+      const newImages = [...(prev.portfolioImages || [])]
+      newImages.splice(index, 1)
+      return { ...prev, portfolioImages: newImages }
+    })
+  }
+
+  const handleProfilePictureUpload = async (file: File | null) => {
+    if (!file) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    // Convert to base64 for preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setFormData(prev => ({ ...prev, profilePicture: base64String }))
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
@@ -544,6 +596,73 @@ export default function DesignerProfilePage() {
 
             {/* Profile Form */}
             <div className="space-y-6">
+              {/* Profile Picture */}
+              <div className="rounded-2xl p-6 transition-all duration-300" style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`,
+                boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <h3 className="text-lg font-bold mb-4" style={{ color: theme.text.primary }}>
+                  Profile Picture
+                </h3>
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="profile-picture-edit"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => handleProfilePictureUpload(e.target.files?.[0] || null)}
+                      disabled={!isEditing}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="profile-picture-edit"
+                      className={`block w-32 h-32 rounded-full border-2 overflow-hidden transition-all duration-300 ${
+                        isEditing ? 'cursor-pointer hover:scale-105 border-dashed' : 'cursor-not-allowed opacity-70'
+                      }`}
+                      style={{
+                        backgroundColor: theme.nestedBg,
+                        borderColor: theme.border
+                      }}
+                    >
+                      {formData.profilePicture ? (
+                        <img
+                          src={formData.profilePicture}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <span className="text-3xl mb-2">📷</span>
+                          <span className="text-xs text-center px-2" style={{ color: theme.text.muted }}>
+                            {isEditing ? 'Click to upload' : 'No photo'}
+                          </span>
+                        </div>
+                      )}
+                    </label>
+                    {formData.profilePicture && isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, profilePicture: '' }))}
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                        style={{
+                          backgroundColor: theme.error,
+                          color: '#fff'
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-sm" style={{ color: theme.text.secondary }}>
+                    <p>• Your professional photo or personal logo</p>
+                    <p>• JPG, PNG, or WebP format (max 5MB)</p>
+                    <p>• Square image recommended</p>
+                    <p>• Shown to potential clients in matches</p>
+                  </div>
+                </div>
+              </div>
+
               {/* Basic Information */}
               <div className="rounded-2xl p-6 transition-all duration-300" style={{
                 backgroundColor: theme.cardBg,
@@ -911,6 +1030,72 @@ export default function DesignerProfilePage() {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Portfolio Images */}
+              <div className="rounded-2xl p-6 transition-all duration-300" style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`,
+                boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <h3 className="text-lg font-bold mb-4" style={{ color: theme.text.primary }}>
+                  Portfolio Samples
+                </h3>
+                <p className="text-sm mb-4" style={{ color: theme.text.secondary }}>
+                  Upload your best work samples (max 3 images, 5MB each)
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  {[0, 1, 2].map((index) => (
+                    <div key={index} className="relative">
+                      <input
+                        type="file"
+                        id={`portfolio-image-edit-${index}`}
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={(e) => handlePortfolioImageUpload(index, e.target.files?.[0] || null)}
+                        disabled={!isEditing}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor={`portfolio-image-edit-${index}`}
+                        className={`block aspect-square rounded-xl border-2 border-dashed overflow-hidden transition-all duration-300 ${
+                          isEditing ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-70'
+                        }`}
+                        style={{
+                          backgroundColor: theme.nestedBg,
+                          borderColor: theme.border
+                        }}
+                      >
+                        {formData.portfolioImages?.[index] ? (
+                          <img
+                            src={formData.portfolioImages[index]}
+                            alt={`Portfolio ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center">
+                            <span className="text-2xl mb-2">📸</span>
+                            <span className="text-xs text-center px-2" style={{ color: theme.text.muted }}>
+                              {isEditing ? 'Click to upload' : 'No image'}
+                            </span>
+                          </div>
+                        )}
+                      </label>
+                      {formData.portfolioImages?.[index] && isEditing && (
+                        <button
+                          type="button"
+                          onClick={() => removePortfolioImage(index)}
+                          className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: theme.error,
+                            color: '#fff'
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 

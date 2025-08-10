@@ -34,8 +34,14 @@ export default function EnhancedMatchPage() {
   const [error, setError] = useState<string | null>(null)
   const [loadingMessage, setLoadingMessage] = useState(loadingMessages[0].message)
   const [currentPhase, setCurrentPhase] = useState<'instant' | 'refined' | 'final' | null>(null)
+  const [isFindingNewMatch, setIsFindingNewMatch] = useState(false)
 
   useEffect(() => {
+    // Store brief ID in sessionStorage for payment success redirect
+    if (briefId && briefId !== 'undefined') {
+      sessionStorage.setItem('currentBriefId', briefId)
+    }
+    
     // Update loading messages
     const messageTimer = setInterval(() => {
       const elapsed = Date.now() - startTime.current
@@ -46,10 +52,13 @@ export default function EnhancedMatchPage() {
       setLoadingMessage(currentMessage.message)
     }, 100)
 
-    fetchProgressiveMatches()
+    // Only fetch matches on initial load, not when finding new match
+    if (!isFindingNewMatch) {
+      fetchProgressiveMatches()
+    }
 
     return () => clearInterval(messageTimer)
-  }, [briefId])
+  }, [briefId, isFindingNewMatch])
 
   const startTime = useRef(Date.now())
 
@@ -97,17 +106,18 @@ export default function EnhancedMatchPage() {
       
       setBriefData(data.briefData || null)
       
-      // Get client data for credits info
-      if (data.briefData?.client_email) {
-        try {
-          const clientResponse = await fetch('/api/auth/session')
-          if (clientResponse.ok) {
-            const clientSession = await clientResponse.json()
-            setClientData(clientSession.client)
-          }
-        } catch (error) {
-          console.error('Error fetching client data:', error)
+      // Always get client data for credits info
+      try {
+        const clientResponse = await fetch('/api/auth/session')
+        if (clientResponse.ok) {
+          const clientSession = await clientResponse.json()
+          setClientData(clientSession.client || clientSession.user)
+          console.log('🏦 Client data loaded:', clientSession.client || clientSession.user)
+        } else {
+          console.log('❌ Client session not found')
         }
+      } catch (error) {
+        console.error('Error fetching client data:', error)
       }
       
       // Keep loading for minimum time to show animations
@@ -170,13 +180,90 @@ export default function EnhancedMatchPage() {
         })
       }
 
-      // Refresh matches to update unlock status
+      // Update the match status locally immediately for better UX
+      setMatches(prevMatches => 
+        prevMatches.map(m => 
+          m.id === matchId 
+            ? { ...m, status: 'unlocked' }
+            : m
+        )
+      )
+      
+      // Also refresh from server to ensure consistency
       await fetchRegularMatches()
       
-      alert('Designer unlocked successfully!')
+      // Don't show alert - the UI will update to show unlocked state
+      console.log('✅ Designer unlocked successfully!')
     } catch (error) {
       console.error('Error unlocking match:', error)
       alert(error instanceof Error ? error.message : 'Failed to unlock designer')
+    }
+  }
+
+  const handleFindNewMatch = async () => {
+    try {
+      console.log('🎯 Finding new match with auto-unlock for briefId:', briefId)
+      
+      // Clear existing matches and show loading state
+      setMatches([])
+      setIsFindingNewMatch(true)
+      setIsLoading(true)
+      setCurrentPhase(null)
+      
+      // Reset loading message
+      startTime.current = Date.now()
+      setLoadingMessage(loadingMessages[0].message)
+      
+      // Simulate progressive loading phases
+      setTimeout(() => setCurrentPhase('instant'), 500)
+      setTimeout(() => setCurrentPhase('refined'), 1500)
+      setTimeout(() => setCurrentPhase('final'), 2500)
+      
+      const response = await fetch('/api/match/find-new', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          briefId,
+          autoUnlock: true // This will deduct 1 credit and auto-unlock
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to find new match')
+      }
+
+      const data = await response.json()
+      
+      if (data.match) {
+        // Update credits if returned
+        if (data.remainingCredits !== undefined && clientData) {
+          setClientData({
+            ...clientData,
+            match_credits: data.remainingCredits
+          })
+        }
+        
+        // Keep loading for minimum time to show animations
+        setTimeout(() => {
+          setMatches([data.match])
+          setIsLoading(false)
+          setIsFindingNewMatch(false)
+        }, 3000)
+        
+        console.log('✅ New match found and unlocked automatically!')
+      } else {
+        setIsLoading(false)
+        setIsFindingNewMatch(false)
+      }
+
+    } catch (error) {
+      console.error('Error finding new match:', error)
+      alert(error instanceof Error ? error.message : 'Failed to find new match')
+      setIsLoading(false)
+      setIsFindingNewMatch(false)
     }
   }
 
@@ -258,58 +345,62 @@ export default function EnhancedMatchPage() {
             OneDesigner
           </Link>
 
-          {/* Center - Match Info (only show when matches are loaded) */}
-          {!isLoading && matches.length > 0 && (
-            <div className="flex items-center gap-6">
-              <div 
-                className="px-4 py-2 rounded-full text-sm font-bold"
+          {/* Right side - Match Info and Theme Toggle */}
+          <div className="flex items-center gap-4">
+            {!isLoading && matches.length > 0 && (
+              <>
+                <button 
+                  onClick={() => window.location.href = '/client/dashboard'}
+                  className="text-sm font-medium hover:underline transition-colors duration-300"
+                  style={{ color: theme.text.secondary }}
+                >
+                  Previous matches
+                </button>
+                
+                <button
+                  onClick={() => {
+                    if (clientData?.match_credits > 0) {
+                      // Do nothing, just display info
+                    } else {
+                      // Navigate to purchase page
+                      window.location.href = '/client/purchase'
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-full text-sm transition-all duration-300 ${
+                    clientData?.match_credits > 0 ? 'cursor-default' : 'cursor-pointer hover:scale-[1.02]'
+                  }`}
+                  style={{
+                    backgroundColor: theme.accent,
+                    color: '#000'
+                  }}
+                >
+                  <span className="font-normal">You have</span> <span className="font-bold">{clientData?.match_credits || 0} match{(clientData?.match_credits || 0) !== 1 ? 'es' : ''}</span>
+                </button>
+                
+                {/* Divider */}
+                <div className="h-6 w-px" style={{ backgroundColor: theme.border }}></div>
+              </>
+            )}
+            
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+              style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+              aria-label="Toggle theme"
+            >
+              <div
+                className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
                 style={{
-                  backgroundColor: theme.accent + '20',
-                  color: theme.accent
+                  left: isDarkMode ? '2px' : '32px',
+                  backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
                 }}
               >
-                {clientData?.match_credits > 0 ? (
-                  <>You have {matches.length} match{matches.length !== 1 ? 'es' : ''}</>
-                ) : (
-                  <>Match found - Purchase credits to unlock</>
-                )}
+                {isDarkMode ? '🌙' : '☀️'}
               </div>
-              
-              {clientData && (
-                <div className="flex items-center gap-2 text-sm" style={{ color: theme.text.secondary }}>
-                  <span>💳</span>
-                  <span>{clientData.match_credits || 0} credits</span>
-                </div>
-              )}
-              
-              <button 
-                onClick={() => window.location.href = '/client/dashboard'}
-                className="text-sm font-medium hover:underline transition-colors duration-300"
-                style={{ color: theme.text.secondary }}
-              >
-                Previous matches →
-              </button>
-            </div>
-          )}
-          
-          {/* Right - Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
-            style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
-            aria-label="Toggle theme"
-          >
-            <div
-              className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
-              style={{
-                left: isDarkMode ? '2px' : '32px',
-                backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
-                transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
-              }}
-            >
-              {isDarkMode ? '🌙' : '☀️'}
-            </div>
-          </button>
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -413,7 +504,7 @@ export default function EnhancedMatchPage() {
             )}
 
             <div className="space-y-6">
-              {matches.map((match, index) => (
+              {matches.slice(0, 1).map((match, index) => (
                 <div 
                   key={match.id || match.designer.id}
                   className="animate-slideUp"
@@ -423,28 +514,34 @@ export default function EnhancedMatchPage() {
                     match={match}
                     isDarkMode={isDarkMode}
                     onUnlock={() => handleUnlock(match.id)}
-                    isTopMatch={index === 0}
+                    onFindNewMatch={handleFindNewMatch}
+                    isUnlocked={match.status === 'unlocked' || match.status === 'accepted'}
+                    isTopMatch={true}
+                    matchCredits={clientData?.match_credits || 0}
                   />
                 </div>
               ))}
               
               {/* AI-powered notice */}
               {!isLoading && (
-                <div 
-                  className="text-center py-8 animate-fadeIn"
-                  style={{
-                    borderTop: `1px solid ${theme.border}`,
-                    animationDelay: '300ms'
-                  }}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-2xl">✨</span>
-                    <p 
-                      className="text-sm font-medium"
-                      style={{ color: theme.text.muted }}
-                    >
-                      AI-powered matching analyzing 15+ compatibility factors
-                    </p>
+                <div className="text-center py-8">
+                  <div 
+                    className="animate-fadeIn"
+                    style={{
+                      borderTop: `1px solid ${theme.border}`,
+                      paddingTop: '2rem',
+                      animationDelay: '300ms'
+                    }}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-2xl">✨</span>
+                      <p 
+                        className="text-sm font-medium"
+                        style={{ color: theme.text.muted }}
+                      >
+                        AI-powered matching analyzing 15+ compatibility factors
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -460,13 +557,13 @@ export default function EnhancedMatchPage() {
               className="text-2xl font-bold mb-4"
               style={{ color: theme.text.primary }}
             >
-              No Matches Found
+              No Match Found
             </h3>
             <p 
               className="text-lg"
               style={{ color: theme.text.secondary }}
             >
-              We couldn't find any designers matching your criteria.
+              We couldn't find a designer matching your criteria.
             </p>
           </div>
         )}

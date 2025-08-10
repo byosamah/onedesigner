@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
     const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
 
     // Verify webhook signature - MANDATORY for security
-    if (!secret || secret === 'your-webhook-secret-here' || secret === 'temp-skip-for-now') {
-      console.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not properly configured!')
+    if (!secret) {
+      console.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not configured!')
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }

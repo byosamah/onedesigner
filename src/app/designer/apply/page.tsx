@@ -291,6 +291,7 @@ export default function DesignerApplyPage() {
     lastName: '',
     email: designerEmail,
     phone: '',
+    profilePicture: '',
     
     // Step 2: Professional Info
     title: '',
@@ -316,6 +317,7 @@ export default function DesignerApplyPage() {
     dribbbleUrl: '',
     behanceUrl: '',
     linkedinUrl: '',
+    portfolioImages: [] as string[],
     specializations: [] as string[],
     softwareSkills: [] as string[],
     
@@ -465,6 +467,56 @@ export default function DesignerApplyPage() {
     }))
   }
 
+  const handlePortfolioImageUpload = async (index: number, file: File | null) => {
+    if (!file) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    // Convert to base64 for preview (in production, you'd upload to a service)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setFormData(prev => {
+        const newImages = [...prev.portfolioImages]
+        newImages[index] = base64String
+        return { ...prev, portfolioImages: newImages }
+      })
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const removePortfolioImage = (index: number) => {
+    setFormData(prev => {
+      const newImages = [...prev.portfolioImages]
+      newImages.splice(index, 1)
+      return { ...prev, portfolioImages: newImages }
+    })
+  }
+
+  const handleProfilePictureUpload = async (file: File | null) => {
+    if (!file) return
+
+    // Validate file size (5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      alert('Image must be less than 5MB')
+      return
+    }
+
+    // Convert to base64 for preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64String = reader.result as string
+      setFormData(prev => ({ ...prev, profilePicture: base64String }))
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmit = async () => {
     setIsLoading(true)
     console.log('Submitting form data:', formData)
@@ -550,6 +602,69 @@ export default function DesignerApplyPage() {
                   )}
                 </div>
               </div>
+
+              {/* Profile Picture Upload */}
+              <div className="col-span-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Profile Picture or Logo
+                </label>
+                <p className="text-xs mb-4" style={{ color: theme.text.secondary }}>
+                  Upload your professional photo or personal logo (max 5MB)
+                </p>
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <input
+                      type="file"
+                      id="profile-picture"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => handleProfilePictureUpload(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="profile-picture"
+                      className="block w-32 h-32 rounded-full border-2 border-dashed cursor-pointer hover:scale-105 transition-transform duration-300 overflow-hidden"
+                      style={{
+                        backgroundColor: theme.nestedBg,
+                        borderColor: theme.border
+                      }}
+                    >
+                      {formData.profilePicture ? (
+                        <img
+                          src={formData.profilePicture}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center">
+                          <span className="text-3xl mb-2">📷</span>
+                          <span className="text-xs text-center px-2" style={{ color: theme.text.muted }}>
+                            Click to upload
+                          </span>
+                        </div>
+                      )}
+                    </label>
+                    {formData.profilePicture && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, profilePicture: '' })}
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                        style={{
+                          backgroundColor: theme.error,
+                          color: '#fff'
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-sm" style={{ color: theme.text.secondary }}>
+                    <p>• JPG, PNG, or WebP format</p>
+                    <p>• Square image recommended</p>
+                    <p>• Will be shown to potential clients</p>
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
                   Email <span style={{ color: theme.error }}>*</span>
@@ -1118,6 +1233,64 @@ export default function DesignerApplyPage() {
                     } as any}
                     placeholder="https://linkedin.com/in/username"
                   />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
+                  Portfolio Samples (Upload 3 Images)
+                </label>
+                <p className="text-xs mb-4" style={{ color: theme.text.secondary }}>
+                  Upload your best work samples. These will be shown to potential clients. Max 5MB per image.
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  {[0, 1, 2].map((index) => (
+                    <div key={index} className="relative">
+                      <input
+                        type="file"
+                        id={`portfolio-image-${index}`}
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={(e) => handlePortfolioImageUpload(index, e.target.files?.[0] || null)}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor={`portfolio-image-${index}`}
+                        className="block aspect-square rounded-xl border-2 border-dashed cursor-pointer hover:scale-105 transition-transform duration-300 overflow-hidden"
+                        style={{
+                          backgroundColor: theme.nestedBg,
+                          borderColor: theme.border
+                        }}
+                      >
+                        {formData.portfolioImages?.[index] ? (
+                          <img
+                            src={formData.portfolioImages[index]}
+                            alt={`Portfolio ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center">
+                            <span className="text-2xl mb-2">📸</span>
+                            <span className="text-xs text-center px-2" style={{ color: theme.text.muted }}>
+                              Click to upload
+                            </span>
+                          </div>
+                        )}
+                      </label>
+                      {formData.portfolioImages?.[index] && (
+                        <button
+                          type="button"
+                          onClick={() => removePortfolioImage(index)}
+                          className="absolute top-2 right-2 w-6 h-6 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: theme.error,
+                            color: '#fff'
+                          }}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
