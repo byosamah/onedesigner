@@ -158,20 +158,31 @@ export async function POST(
     }
 
     // Track this designer as unlocked by this client to prevent future matches
-    const { error: clientDesignerError } = await supabase
+    // First check if the record already exists
+    const { data: existingRecord } = await supabase
       .from('client_designers')
-      .insert({
-        client_id: clientId,
-        designer_id: match.designer_id,
-        unlocked_at: new Date().toISOString()
-      })
-      .onConflict('client_id,designer_id') // Ignore if already exists
-      .select()
-
-    if (clientDesignerError) {
-      console.error('Error tracking unlocked designer:', clientDesignerError)
+      .select('id')
+      .eq('client_id', clientId)
+      .eq('designer_id', match.designer_id)
+      .single()
+    
+    if (!existingRecord) {
+      // Only insert if it doesn't exist
+      const { error: clientDesignerError } = await supabase
+        .from('client_designers')
+        .insert({
+          client_id: clientId,
+          designer_id: match.designer_id,
+          unlocked_at: new Date().toISOString()
+        })
+      
+      if (clientDesignerError) {
+        console.error('Error tracking unlocked designer:', clientDesignerError)
+      } else {
+        console.log('✅ Tracked designer as unlocked for client')
+      }
     } else {
-      console.log('✅ Tracked designer as unlocked for client')
+      console.log('✅ Designer already tracked as unlocked for this client')
     }
 
     return apiResponse.success({

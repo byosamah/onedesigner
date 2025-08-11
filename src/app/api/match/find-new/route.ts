@@ -254,20 +254,29 @@ Provide a JSON response with:
       }
 
       // Track this designer as unlocked by this client to prevent future matches
-      const { error: clientDesignerError } = await supabase
+      // First check if the record already exists
+      const { data: existingRecord } = await supabase
         .from('client_designers')
-        .insert({
-          client_id: brief.client_id,
-          designer_id: bestMatch.designer.id,
-          unlocked_at: new Date().toISOString()
-        })
-        .onConflict('client_id,designer_id') // Ignore if already exists
-        .select()
-
-      if (clientDesignerError) {
-        console.error('Error tracking unlocked designer:', clientDesignerError)
-      } else {
-        console.log('✅ Tracked designer as unlocked for client')
+        .select('id')
+        .eq('client_id', brief.client_id)
+        .eq('designer_id', bestMatch.designer.id)
+        .single()
+      
+      if (!existingRecord) {
+        // Only insert if it doesn't exist
+        const { error: clientDesignerError } = await supabase
+          .from('client_designers')
+          .insert({
+            client_id: brief.client_id,
+            designer_id: bestMatch.designer.id,
+            unlocked_at: new Date().toISOString()
+          })
+        
+        if (clientDesignerError) {
+          console.error('Error tracking unlocked designer:', clientDesignerError)
+        } else {
+          console.log('✅ Tracked designer as unlocked for client')
+        }
       }
     }
 
