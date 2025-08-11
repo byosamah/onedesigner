@@ -96,26 +96,40 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json()
-    logger.info('Received designer application from authenticated user:', sessionResult.user.email)
+    logger.info('Received designer application from authenticated user:', {
+      email: sessionResult.user?.email,
+      userId: sessionResult.user?.id,
+      sessionEmail: sessionResult.session?.email
+    })
     
     // Validate input
     const validatedData = designerApplicationSchema.parse(body)
+    logger.info('Validated application data successfully')
     
     const supabase = createClient()
     
     // Get the designer using the authenticated user's email (from session)
     const designerEmail = sessionResult.user.email || sessionResult.session?.email
     
-    const { data: existingDesigner } = await supabase
+    logger.info('Looking for designer with email:', designerEmail)
+    
+    const { data: existingDesigner, error: findError } = await supabase
       .from('designers')
       .select('id, email')
       .eq('email', designerEmail)
       .single()
       
+    if (findError && findError.code !== 'PGRST116') { // PGRST116 is "not found"
+      logger.error('Error finding designer:', {
+        error: findError,
+        email: designerEmail
+      })
+    }
+      
     let designerId: string
     
     if (!existingDesigner) {
-      logger.error('Designer not found for authenticated email:', designerEmail)
+      logger.warn('Designer not found for authenticated email:', designerEmail)
       
       // This shouldn't happen since they're authenticated, but let's create the designer record if needed
       const { data: newDesigner, error: createError } = await supabase
@@ -146,51 +160,89 @@ export async function POST(request: NextRequest) {
     }
     
     // Update the designer record with all the application data
+    // Ensure arrays are properly formatted for PostgreSQL
     const updateData = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
       last_initial: validatedData.lastName.charAt(0).toUpperCase(),
-      phone: validatedData.phone || '',
+      phone: validatedData.phone || null,
       title: validatedData.title,
       years_experience: validatedData.yearsExperience,
       website_url: validatedData.websiteUrl,
-      project_price_from: parseInt(validatedData.projectPriceFrom),
-      project_price_to: parseInt(validatedData.projectPriceTo),
+      project_price_from: parseInt(validatedData.projectPriceFrom.toString().replace(/[^0-9]/g, '')) || 0,
+      project_price_to: parseInt(validatedData.projectPriceTo.toString().replace(/[^0-9]/g, '')) || 0,
       city: validatedData.city,
       country: validatedData.country,
       timezone: validatedData.timezone,
       availability: validatedData.availability,
-      styles: validatedData.styles,
-      project_types: validatedData.projectTypes,
-      industries: validatedData.industries,
+      // PostgreSQL array fields - wrap in {} format if needed
+      styles: Array.isArray(validatedData.styles) ? validatedData.styles : [],
+      project_types: Array.isArray(validatedData.projectTypes) ? validatedData.projectTypes : [],
+      industries: Array.isArray(validatedData.industries) ? validatedData.industries : [],
       bio: validatedData.bio,
-      portfolio_url: validatedData.portfolioUrl || '',
-      dribbble_url: validatedData.dribbbleUrl || '',
-      behance_url: validatedData.behanceUrl || '',
-      linkedin_url: validatedData.linkedinUrl || '',
-      specializations: validatedData.specializations,
-      software_skills: validatedData.softwareSkills,
-      previous_clients: validatedData.previousClients || '',
+      portfolio_url: validatedData.portfolioUrl || null,
+      dribbble_url: validatedData.dribbbleUrl || null,
+      behance_url: validatedData.behanceUrl || null,
+      linkedin_url: validatedData.linkedinUrl || null,
+      specializations: Array.isArray(validatedData.specializations) ? validatedData.specializations : [],
+      software_skills: Array.isArray(validatedData.softwareSkills) ? validatedData.softwareSkills : [],
+      previous_clients: validatedData.previousClients || null,
       project_preferences: validatedData.projectPreferences,
       working_style: validatedData.workingStyle,
       communication_style: validatedData.communicationStyle,
       remote_experience: validatedData.remoteExperience,
-      team_collaboration: validatedData.teamCollaboration || '',
+      team_collaboration: validatedData.teamCollaboration || null,
       is_approved: false, // Reset approval status since they updated their profile
       updated_at: new Date().toISOString()
     }
     
-    logger.info('📝 Updating designer with data:', updateData)
+    logger.info('📝 Updating designer with ID:', designerId)
+    logger.info('Update data:', JSON.stringify(updateData, null, 2))
     
-    const { error: updateError } = await supabase
+    const { data: updatedDesigner, error: updateError } = await supabase
       .from('designers')
       .update(updateData)
       .eq('id', designerId)
+      .select()
+      .single()
     
     if (updateError) {
-      logger.error('Failed to update designer profile:', updateError)
+      logger.error('Failed to update designer profile:', {
+        error: updateError,
+        designerId,
+        email: designerEmail,
+        errorMessage: updateError.message,
+        errorCode: updateError.code,
+        errorDetails: updateError.details,
+        errorHint: updateError.hint,
+        updateData: JSON.stringify(updateData)
+      })
+      
+      // More specific error messages based on error code
+      let errorMessage = 'Failed to save application data'
+      if (updateError.code === '22P02') {
+        errorMessage = 'Invalid data format. Please check your input and try again.'
+      } else if (updateError.code === '23502') {
+        errorMessage = 'Missing required fields. Please complete all required information.'
+      } else if (updateError.message?.includes('array')) {
+        errorMessage = 'Invalid selection format. Please refresh and try again.'
+      }
+      
       return NextResponse.json(
-        { error: 'Failed to save application data' },
+        { 
+          error: errorMessage,
+          details: updateError.message || 'Database update failed',
+          code: updateError.code,
+          hint: updateError.hint
+        },
+        { status: 500 }
+      )
+    }
+    
+    if (!updatedDesigner) {
+      logger.error('Designer update succeeded but no data returned', { designerId })
+      return NextResponse.json(
+        { error: 'Update succeeded but could not verify the changes' },
         { status: 500 }
       )
     }
