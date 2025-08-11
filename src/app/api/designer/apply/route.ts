@@ -117,6 +117,15 @@ export async function POST(request: NextRequest) {
     
     logger.info('Looking for designer with email:', designerEmail)
     
+    // First, let's make sure we have a valid email
+    if (!designerEmail) {
+      logger.error('No email found in session:', sessionResult)
+      return NextResponse.json(
+        { error: 'Session email not found. Please log in again.' },
+        { status: 401 }
+      )
+    }
+    
     const { data: existingDesigner, error: findError } = await supabase
       .from('designers')
       .select('id, email')
@@ -126,9 +135,17 @@ export async function POST(request: NextRequest) {
     if (findError && findError.code !== 'PGRST116') { // PGRST116 is "not found"
       logger.error('Error finding designer:', {
         error: findError,
+        errorCode: findError.code,
+        errorMessage: findError.message,
         email: designerEmail
       })
     }
+    
+    logger.info('Designer lookup result:', {
+      found: !!existingDesigner,
+      designerId: existingDesigner?.id,
+      email: designerEmail
+    })
       
     let designerId: string
     
@@ -143,16 +160,35 @@ export async function POST(request: NextRequest) {
           first_name: validatedData.firstName,
           last_name: validatedData.lastName,
           last_initial: validatedData.lastName.charAt(0).toUpperCase(),
+          title: validatedData.title || '', // Add required field
+          city: validatedData.city || '', // Add required field
+          country: validatedData.country || '', // Add required field
+          years_experience: validatedData.yearsExperience || '', // Add required field
           is_approved: false,
-          is_verified: true // They're already authenticated
+          is_verified: true, // They're already authenticated
+          created_at: new Date().toISOString()
         })
         .select('id')
         .single()
       
       if (createError) {
-        logger.error('Failed to create designer record:', createError)
+        logger.error('Failed to create designer record:', {
+          error: createError,
+          errorMessage: createError.message,
+          errorCode: createError.code,
+          errorDetails: createError.details,
+          attemptedData: {
+            email: designerEmail,
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName
+          }
+        })
         return NextResponse.json(
-          { error: 'Failed to create designer account' },
+          { 
+            error: 'Failed to create designer account',
+            details: createError.message || 'Database error',
+            code: createError.code
+          },
           { status: 500 }
         )
       }
