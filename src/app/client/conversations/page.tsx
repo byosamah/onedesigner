@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 interface Conversation {
   id: string
@@ -48,7 +49,7 @@ export default function ConversationsListPage() {
       
       setConversations(data.data || [])
     } catch (error) {
-      console.error('Error loading conversations:', error)
+      logger.error('Error loading conversations:', error)
     } finally {
       setLoading(false)
     }

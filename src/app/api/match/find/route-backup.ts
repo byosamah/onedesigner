@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { createAIProvider } from '@/lib/ai'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Match API received:', body)
+    logger.info('Match API received:', body)
     
     const { briefId } = body
 
     if (!briefId) {
-      console.error('No briefId provided in request body')
+      logger.error('No briefId provided in request body')
       return NextResponse.json(
         { error: 'Brief ID is required' },
         { status: 400 }
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (briefError || !brief) {
-      console.error('Brief not found:', briefError)
+      logger.error('Brief not found:', briefError)
       return NextResponse.json(
         { error: 'Brief not found' },
         { status: 404 }
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (existingMatches && existingMatches.length > 0 && !existingMatchError) {
       const existingMatch = existingMatches[0]
-      console.log('Match already exists for brief:', briefId)
+      logger.info('Match already exists for brief:', briefId)
       // Return the existing match
       return NextResponse.json({
         success: true,
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       .in('availability', ['available', 'busy'])
 
     if (designersError || !designers || designers.length === 0) {
-      console.error('No designers found:', designersError)
+      logger.error('No designers found:', designersError)
       return NextResponse.json(
         { error: 'No designers available' },
         { status: 404 }
@@ -97,14 +98,14 @@ export async function POST(request: NextRequest) {
     try {
       aiProvider = createAIProvider()
     } catch (error) {
-      console.error('Failed to create AI provider:', error)
+      logger.error('Failed to create AI provider:', error)
       return NextResponse.json(
         { error: 'AI service configuration error' },
         { status: 500 }
       )
     }
     
-    console.log(`Analyzing ${designers.length} designers for brief ${briefId}`)
+    logger.info(`Analyzing ${designers.length} designers for brief ${briefId}`)
     
     // Limit the number of designers to analyze to avoid rate limits
     // Free tier allows 15 requests per minute, so we'll analyze top 10 designers
@@ -131,7 +132,7 @@ export async function POST(request: NextRequest) {
       preFilteredDesigners = preFilteredDesigners.slice(0, MAX_DESIGNERS_TO_ANALYZE)
     }
     
-    console.log(`Pre-filtered to ${preFilteredDesigners.length} most relevant designers`)
+    logger.info(`Pre-filtered to ${preFilteredDesigners.length} most relevant designers`)
     
     // Use AI to analyze matches
     let aiQuotaExceeded = false
@@ -144,22 +145,22 @@ export async function POST(request: NextRequest) {
           await new Promise(resolve => setTimeout(resolve, 100 * index))
         }
         
-        console.log(`Analyzing designer ${index + 1}/${preFilteredDesigners.length}: ${designer.first_name} ${designer.last_name}`)
+        logger.info(`Analyzing designer ${index + 1}/${preFilteredDesigners.length}: ${designer.first_name} ${designer.last_name}`)
         const matchResult = await aiProvider.analyzeMatch(designer, brief)
-        console.log(`Designer ${designer.id} scored: ${matchResult.score}`)
+        logger.info(`Designer ${designer.id} scored: ${matchResult.score}`)
         return {
           designer,
           ...matchResult
         }
       } catch (error: any) {
-        console.error(`AI matching failed for designer ${designer.id}:`, error)
+        logger.error(`AI matching failed for designer ${designer.id}:`, error)
         
         // Check for specific AI errors
         if (error.message === 'AI_QUOTA_EXCEEDED') {
           aiQuotaExceeded = true
         } else if (error.message === 'AI_RATE_LIMITED') {
           // Don't treat rate limiting as a complete failure
-          console.log('Rate limited - will continue with matches we have')
+          logger.info('Rate limited - will continue with matches we have')
         } else if (error.message === 'AI_SERVICE_ERROR') {
           aiServiceError = true
         }
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
       const results = await Promise.all(matchPromises)
       // Filter out null results (failed AI matches)
       scoredDesigners = results.filter(result => result !== null)
-      console.log(`Successfully scored ${scoredDesigners.length} out of ${designers.length} designers`)
+      logger.info(`Successfully scored ${scoredDesigners.length} out of ${designers.length} designers`)
       
       // If AI quota was exceeded (daily limit), return error
       if (aiQuotaExceeded) {
@@ -211,7 +212,7 @@ export async function POST(request: NextRequest) {
         )
       }
     } catch (error) {
-      console.error('Error scoring designers:', error)
+      logger.error('Error scoring designers:', error)
       return NextResponse.json(
         { 
           error: 'MATCHING_ERROR',
@@ -226,7 +227,7 @@ export async function POST(request: NextRequest) {
     const sortedDesigners = scoredDesigners.sort((a, b) => b.score - a.score)
     
     if (sortedDesigners.length === 0) {
-      console.error('No designers scored')
+      logger.error('No designers scored')
       return NextResponse.json(
         { error: 'No suitable designers found' },
         { status: 404 }
@@ -240,7 +241,7 @@ export async function POST(request: NextRequest) {
     const bestMatch = topDesigners[randomIndex]
     
     if (!bestMatch || !bestMatch.designer) {
-      console.error('No best match found')
+      logger.error('No best match found')
       return NextResponse.json(
         { error: 'Failed to find a suitable match' },
         { status: 500 }
@@ -282,8 +283,8 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (matchError) {
-      console.error('Error creating match:', matchError)
-      console.error('Match error details:', {
+      logger.error('Error creating match:', matchError)
+      logger.error('Match error details:', {
         code: matchError.code,
         message: matchError.message,
         details: matchError.details,
@@ -339,7 +340,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (requestError) {
-      console.error('Error creating designer request:', requestError)
+      logger.error('Error creating designer request:', requestError)
     }
 
     // Return match with designer info
@@ -367,8 +368,8 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in match API:', error)
-    console.error('Error details:', {
+    logger.error('Error in match API:', error)
+    logger.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       type: error?.constructor?.name,

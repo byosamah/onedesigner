@@ -5,6 +5,7 @@ import { MatchingCache } from './matching-cache'
 import { generateMatchExplanation } from './explanation-generator'
 import { createAIProvider } from '@/lib/ai'
 import { performanceMonitor } from '@/lib/monitoring/performance'
+import { logger } from '@/lib/core/logging-service'
 
 export interface Designer {
   id: string
@@ -95,7 +96,7 @@ export class OptimizedMatcher extends EventEmitter {
     try {
       this.aiProvider = createAIProvider()
     } catch (error) {
-      console.warn('AI provider not available, using local scoring only')
+      logger.warn('AI provider not available, using local scoring only')
     }
   }
 
@@ -139,7 +140,7 @@ export class OptimizedMatcher extends EventEmitter {
     const eligibleDesigners = await this.getEligibleDesigners(brief)
     performanceMonitor.endTimer('database_query')
     
-    console.log(`[INSTANT] Found ${eligibleDesigners.length} eligible designers in ${Date.now() - startTime}ms`)
+    logger.info(`[INSTANT] Found ${eligibleDesigners.length} eligible designers in ${Date.now() - startTime}ms`)
     
     // Step 2: Calculate local scores in parallel
     const scoringPromises = eligibleDesigners.map(async (designer) => {
@@ -174,7 +175,7 @@ export class OptimizedMatcher extends EventEmitter {
     scores.sort((a, b) => b.score - a.score)
     
     const elapsed = performanceMonitor.endTimer('instant_match')
-    console.log(`[INSTANT] Scoring completed in ${elapsed}ms`)
+    logger.info(`[INSTANT] Scoring completed in ${elapsed}ms`)
     
     return {
       topMatch: scores[0],
@@ -192,7 +193,7 @@ export class OptimizedMatcher extends EventEmitter {
     let designers = await this.tryQueryWithQuickStats(brief)
     
     if (!designers || designers.length === 0) {
-      console.log('[FALLBACK] Using basic designer query without quick stats')
+      logger.info('[FALLBACK] Using basic designer query without quick stats')
       designers = await this.tryQueryWithoutQuickStats(brief)
     }
     
@@ -227,7 +228,7 @@ export class OptimizedMatcher extends EventEmitter {
       const { data: designers, error } = await query
       
       if (error) {
-        console.log('[QUICK_STATS] Query failed, will try fallback:', error.message)
+        logger.info('[QUICK_STATS] Query failed, will try fallback:', error.message)
         return null
       }
       
@@ -241,7 +242,7 @@ export class OptimizedMatcher extends EventEmitter {
         quickStats: d.designer_quick_stats?.[0] || this.generateMockQuickStats(d)
       }))
     } catch (error) {
-      console.log('[QUICK_STATS] Exception, trying fallback:', error)
+      logger.info('[QUICK_STATS] Exception, trying fallback:', error)
       return null
     }
   }
@@ -264,7 +265,7 @@ export class OptimizedMatcher extends EventEmitter {
       const { data: designers, error } = await query
       
       if (error || !designers) {
-        console.error('Error fetching designers (fallback):', error)
+        logger.error('Error fetching designers (fallback):', error)
         return []
       }
       
@@ -274,7 +275,7 @@ export class OptimizedMatcher extends EventEmitter {
         quickStats: this.generateMockQuickStats(d)
       }))
     } catch (error) {
-      console.error('Fallback query failed:', error)
+      logger.error('Fallback query failed:', error)
       return []
     }
   }
@@ -370,7 +371,7 @@ export class OptimizedMatcher extends EventEmitter {
           })
         }
       } catch (error) {
-        console.error('[REFINED] Quick scoring failed:', error)
+        logger.error('[REFINED] Quick scoring failed:', error)
         // Instant match already sent, so failures here are non-critical
       }
     }, 0)
@@ -434,7 +435,7 @@ Most scores should be 50-80. Only exceptional matches should score 85+.`
       performanceMonitor.endTimer('refined_match')
       return candidates
     } catch (error) {
-      console.error('[REFINED] AI quick scoring error:', error)
+      logger.error('[REFINED] AI quick scoring error:', error)
       performanceMonitor.endTimer('refined_match')
       return candidates // Return original scores if AI fails
     }
@@ -463,7 +464,7 @@ Most scores should be 50-80. Only exceptional matches should score 85+.`
           })
         }
       } catch (error) {
-        console.error('[FINAL] Deep analysis failed:', error)
+        logger.error('[FINAL] Deep analysis failed:', error)
       }
     }, 1000)
   }
@@ -519,7 +520,7 @@ Most scores should be 50-80. Only exceptional matches should score 85+.`
           
           return finalResult
         } catch (error) {
-          console.error(`[FINAL] Analysis failed for designer ${candidate.designer.id}:`, error)
+          logger.error(`[FINAL] Analysis failed for designer ${candidate.designer.id}:`, error)
           return candidate // Return original if analysis fails
         }
       })

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/core/logging-service'
 
 export async function DELETE(request: NextRequest) {
   // Check for admin secret
@@ -25,7 +26,7 @@ export async function DELETE(request: NextRequest) {
 
     const designerIds = designers?.map(d => d.id) || []
     
-    console.log('Found designers to remove:', designers)
+    logger.info('Found designers to remove:', designers)
 
     if (designerIds.length > 0) {
       // Delete related records first (foreign key constraints)
@@ -36,7 +37,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .in('designer_id', designerIds)
       
-      if (requestError) console.error('Error deleting designer_requests:', requestError)
+      if (requestError) logger.error('Error deleting designer_requests:', requestError)
 
       // Delete client_designers
       const { error: clientDesignersError } = await supabase
@@ -44,7 +45,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .in('designer_id', designerIds)
       
-      if (clientDesignersError) console.error('Error deleting client_designers:', clientDesignersError)
+      if (clientDesignersError) logger.error('Error deleting client_designers:', clientDesignersError)
 
       // Delete matches
       const { error: matchesError } = await supabase
@@ -52,7 +53,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .in('designer_id', designerIds)
       
-      if (matchesError) console.error('Error deleting matches:', matchesError)
+      if (matchesError) logger.error('Error deleting matches:', matchesError)
 
       // Delete designer_embeddings
       const { error: embeddingsError } = await supabase
@@ -60,7 +61,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .in('designer_id', designerIds)
       
-      if (embeddingsError) console.error('Error deleting designer_embeddings:', embeddingsError)
+      if (embeddingsError) logger.error('Error deleting designer_embeddings:', embeddingsError)
 
       // Delete match_analytics
       const { error: analyticsError } = await supabase
@@ -68,7 +69,7 @@ export async function DELETE(request: NextRequest) {
         .delete()
         .in('designer_id', designerIds)
       
-      if (analyticsError) console.error('Error deleting match_analytics:', analyticsError)
+      if (analyticsError) logger.error('Error deleting match_analytics:', analyticsError)
 
       // Finally delete designers
       const { error: designerError } = await supabase
@@ -77,7 +78,7 @@ export async function DELETE(request: NextRequest) {
         .in('id', designerIds)
       
       if (designerError) {
-        console.error('Error deleting designers:', designerError)
+        logger.error('Error deleting designers:', designerError)
         throw designerError
       }
     }
@@ -88,7 +89,7 @@ export async function DELETE(request: NextRequest) {
       .delete()
       .in('email', emailsToRemove)
     
-    if (clientError) console.error('Error deleting clients:', clientError)
+    if (clientError) logger.error('Error deleting clients:', clientError)
 
     // Remove OTP records
     const { error: otpError } = await supabase
@@ -96,7 +97,7 @@ export async function DELETE(request: NextRequest) {
       .delete()
       .in('email', emailsToRemove)
     
-    if (otpError) console.error('Error deleting OTPs:', otpError)
+    if (otpError) logger.error('Error deleting OTPs:', otpError)
 
     return NextResponse.json({ 
       success: true, 
@@ -104,7 +105,7 @@ export async function DELETE(request: NextRequest) {
       removedEmails: emailsToRemove
     })
   } catch (error) {
-    console.error('Cleanup error:', error)
+    logger.error('Cleanup error:', error)
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to cleanup emails' 
     }, { status: 500 })

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { EnhancedMatchCard } from '@/components/match/EnhancedMatchCard'
+import { logger } from '@/lib/core/logging-service'
 
 interface MatchResult {
   phase: 'instant' | 'refined' | 'final'
@@ -64,7 +65,7 @@ export default function EnhancedMatchPage() {
 
   const fetchProgressiveMatches = async () => {
     try {
-      console.log('🎯 Starting match fetch for briefId:', briefId)
+      logger.info('🎯 Starting match fetch for briefId:', briefId)
       setIsLoading(true)
       setError(null)
       startTime.current = Date.now()
@@ -80,7 +81,7 @@ export default function EnhancedMatchPage() {
       setTimeout(() => setCurrentPhase('final'), 2500)
 
       // Use regular API with AI matching
-      console.log('📡 Making API request to /api/match with briefId:', briefId)
+      logger.info('📡 Making API request to /api/match with briefId:', briefId)
       const response = await fetch('/api/match', {
         method: 'POST',
         headers: {
@@ -89,11 +90,11 @@ export default function EnhancedMatchPage() {
         body: JSON.stringify({ briefId }),
       })
 
-      console.log('📡 Response status:', response.status)
+      logger.info('📡 Response status:', response.status)
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('❌ API Error:', errorData)
+        logger.error('❌ API Error:', errorData)
         throw new Error(errorData.error || errorData.message || 'Failed to fetch matches')
       }
 
@@ -112,12 +113,12 @@ export default function EnhancedMatchPage() {
         if (clientResponse.ok) {
           const clientSession = await clientResponse.json()
           setClientData(clientSession.client || clientSession.user)
-          console.log('🏦 Client data loaded:', clientSession.client || clientSession.user)
+          logger.info('🏦 Client data loaded:', clientSession.client || clientSession.user)
         } else {
-          console.log('❌ Client session not found')
+          logger.info('❌ Client session not found')
         }
       } catch (error) {
-        console.error('Error fetching client data:', error)
+        logger.error('Error fetching client data:', error)
       }
       
       // Keep loading for minimum time to show animations
@@ -126,7 +127,7 @@ export default function EnhancedMatchPage() {
       }, 3000)
 
     } catch (error) {
-      console.error('Error fetching matches:', error)
+      logger.error('Error fetching matches:', error)
       setError(error instanceof Error ? error.message : 'Failed to load matches')
       setIsLoading(false)
     }
@@ -153,7 +154,7 @@ export default function EnhancedMatchPage() {
       setIsLoading(false)
 
     } catch (error) {
-      console.error('Error fetching matches:', error)
+      logger.error('Error fetching matches:', error)
       setError(error instanceof Error ? error.message : 'Failed to load matches')
       setIsLoading(false)
     }
@@ -193,16 +194,16 @@ export default function EnhancedMatchPage() {
       await fetchRegularMatches()
       
       // Don't show alert - the UI will update to show unlocked state
-      console.log('✅ Designer unlocked successfully!')
+      logger.info('✅ Designer unlocked successfully!')
     } catch (error) {
-      console.error('Error unlocking match:', error)
+      logger.error('Error unlocking match:', error)
       alert(error instanceof Error ? error.message : 'Failed to unlock designer')
     }
   }
 
   const handleFindNewMatch = async () => {
     try {
-      console.log('🎯 Finding new match with auto-unlock for briefId:', briefId)
+      logger.info('🎯 Finding new match with auto-unlock for briefId:', briefId)
       
       // Clear existing matches and show loading state
       setMatches([])
@@ -253,14 +254,14 @@ export default function EnhancedMatchPage() {
           setIsFindingNewMatch(false)
         }, 3000)
         
-        console.log('✅ New match found and unlocked automatically!')
+        logger.info('✅ New match found and unlocked automatically!')
       } else {
         setIsLoading(false)
         setIsFindingNewMatch(false)
       }
 
     } catch (error) {
-      console.error('Error finding new match:', error)
+      logger.error('Error finding new match:', error)
       alert(error instanceof Error ? error.message : 'Failed to find new match')
       setIsLoading(false)
       setIsFindingNewMatch(false)

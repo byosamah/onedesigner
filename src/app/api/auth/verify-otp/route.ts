@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/email/send-email'
 import { welcomeClientEmail } from '@/lib/email/templates/welcome-client'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating client:', error)
+      logger.error('Error creating client:', error)
     }
     
     // Send welcome email for new users
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       client
     })
   } catch (error) {
-    console.error('Error verifying OTP:', error)
+    logger.error('Error verifying OTP:', error)
     if (error instanceof Error) {
       return apiResponse.serverError(error.message)
     }

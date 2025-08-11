@@ -11,6 +11,8 @@
     "format": "prettier --write \"**/*.{js,ts,tsx,md,json}\"",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
+    "db:check": "node test/run-migration.js",
+    "db:migrate": "psql -h db.frwchtwxpnrlpzksupgm.supabase.co -U postgres -d postgres -f test/fix-missing-tables.sql",
     "check-env": "node scripts/check-env-production.mjs",
     "deploy": "./deploy.sh",
     "postbuild": "echo '✅ Build completed successfully!'"

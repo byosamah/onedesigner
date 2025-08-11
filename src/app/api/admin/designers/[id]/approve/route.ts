@@ -4,6 +4,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -21,7 +22,7 @@ export async function POST(
     const session = JSON.parse(sessionCookie.value)
     const supabase = createServiceClient()
     
-    console.log(`=== APPROVING DESIGNER ${params.id} ===`)
+    logger.info(`=== APPROVING DESIGNER ${params.id} ===`)
     
     // Update designer approval status
     const { data: designer, error } = await supabase
@@ -38,16 +39,16 @@ export async function POST(
       .single()
 
     if (error || !designer) {
-      console.error('Error approving designer:', error)
-      console.error('Designer ID:', params.id)
-      console.error('Admin ID:', session.adminId)
+      logger.error('Error approving designer:', error)
+      logger.error('Designer ID:', params.id)
+      logger.error('Admin ID:', session.adminId)
       return apiResponse.serverError('Failed to approve designer', error)
     }
 
-    console.log(`✅ Designer approved successfully:`, designer.id)
-    console.log(`   Name: ${designer.first_name} ${designer.last_name}`)
-    console.log(`   Email: ${designer.email}`)
-    console.log(`   is_approved: ${designer.is_approved}`)
+    logger.info(`✅ Designer approved successfully:`, designer.id)
+    logger.info(`   Name: ${designer.first_name} ${designer.last_name}`)
+    logger.info(`   Email: ${designer.email}`)
+    logger.info(`   is_approved: ${designer.is_approved}`)
 
     // Send approval email to designer
     try {
@@ -74,7 +75,7 @@ export async function POST(
         text: `Congratulations ${designer.first_name}! Your application to join OneDesigner has been approved. You can now log in to your dashboard at ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
       })
     } catch (emailError) {
-      console.error('Failed to send approval email:', emailError)
+      logger.error('Failed to send approval email:', emailError)
       // Don't fail the approval if email fails
     }
 

@@ -2,12 +2,14 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
     // Validate client session
     const sessionResult = await validateSession('CLIENT')
-    if (!sessionResult.success || !sessionResult.clientId) {
+    if (!sessionResult.valid || !sessionResult.user) {
+      logger.warn('Unauthorized message send attempt - no valid session')
       return apiResponse.unauthorized()
     }
 
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceClient()
-    const clientId = sessionResult.clientId
+    const clientId = sessionResult.user.id
     
     // Get client email for notification
     const { data: client } = await supabase
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (matchError || !match) {
-      console.error('Match not found:', matchError)
+      logger.error('Match not found:', matchError)
       return apiResponse.notFound('Match')
     }
 
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (existingConvo) {
       conversationId = existingConvo.id
-      console.log('Using existing conversation:', conversationId)
+      logger.info('Using existing conversation:', conversationId)
     } else {
       // Create new conversation
       const { data: newConvo, error: convoError } = await supabase
@@ -83,12 +85,12 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (convoError || !newConvo) {
-        console.error('Error creating conversation:', convoError)
+        logger.error('Error creating conversation:', convoError)
         return apiResponse.error('Failed to create conversation')
       }
 
       conversationId = newConvo.id
-      console.log('Created new conversation:', conversationId)
+      logger.info('Created new conversation:', conversationId)
     }
 
     // Create the message
@@ -104,7 +106,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (messageError || !newMessage) {
-      console.error('Error creating message:', messageError)
+      logger.error('Error creating message:', messageError)
       return apiResponse.error('Failed to send message')
     }
 
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (requestError) {
-        console.error('Error creating match request:', requestError)
+        logger.error('Error creating match request:', requestError)
         // Non-critical, continue
       }
 
@@ -177,17 +179,17 @@ export async function POST(request: NextRequest) {
         })
         
         if (emailError) {
-          console.error('Error sending email notification:', emailError)
+          logger.error('Error sending email notification:', emailError)
         } else {
-          console.log('✅ Email notification sent to designer:', designer.email)
+          logger.info('✅ Email notification sent to designer:', designer.email)
         }
       } catch (emailError) {
-        console.error('Error sending email notification:', emailError)
+        logger.error('Error sending email notification:', emailError)
         // Non-critical, continue
       }
     }
 
-    console.log('✅ Message sent successfully')
+    logger.info('✅ Message sent successfully')
 
     return apiResponse.success({
       conversationId,

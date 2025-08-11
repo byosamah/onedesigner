@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -49,7 +50,7 @@ export async function GET(_request: NextRequest) {
       session
     })
   } catch (error) {
-    console.error('Session error:', error)
+    logger.error('Session error:', error)
     return NextResponse.json({
       authenticated: false,
       user: null,

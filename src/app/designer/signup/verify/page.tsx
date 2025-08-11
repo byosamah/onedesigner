@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerSignupVerifyPage() {
   const router = useRouter()
@@ -51,20 +52,31 @@ export default function DesignerSignupVerifyPage() {
       }
 
       if (data.success) {
-        console.log('✅ Verification successful, data:', data)
+        logger.info('✅ Verification successful, data:', data)
         
         // Clear signup storage
         sessionStorage.removeItem('designerSignupEmail')
         
         // Small delay to ensure cookie is set
         setTimeout(() => {
-          console.log('🔄 Redirecting to /designer/apply')
-          // Redirect to designer application form
-          router.push('/designer/apply')
+          // Redirect based on designer status
+          const status = data.designer?.status
+          logger.info('🔄 Designer status:', status)
+          
+          if (status === 'approved') {
+            logger.info('➡️ Redirecting to dashboard (approved designer)')
+            router.push('/designer/dashboard')
+          } else if (status === 'pending') {
+            logger.info('➡️ Redirecting to under-review page (pending approval)')
+            router.push('/designer/application-pending')
+          } else {
+            logger.info('➡️ Redirecting to application form (new/incomplete)')
+            router.push('/designer/apply')
+          }
         }, 500)
       }
     } catch (error) {
-      console.error('Verification error:', error)
+      logger.error('Verification error:', error)
       setError(error instanceof Error ? error.message : 'Invalid or expired code')
       setOtp('')
     } finally {

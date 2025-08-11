@@ -9,6 +9,7 @@ import { PRICING_PACKAGES } from '@/lib/constants'
 import { useTheme, useAuth } from '@/lib/hooks'
 import { paymentService } from '@/lib/api'
 import { handleError } from '@/lib/errors'
+import { logger } from '@/lib/core/logging-service'
 
 export default function PurchasePage() {
   const router = useRouter()
@@ -19,12 +20,12 @@ export default function PurchasePage() {
   
   // Log authentication status
   useEffect(() => {
-    console.log('🔐 Purchase page - isAuthenticated:', isAuthenticated)
+    logger.info('🔐 Purchase page - isAuthenticated:', isAuthenticated)
   }, [isAuthenticated])
 
   const handlePurchase = async (packageId: string) => {
-    console.log('🛒 Purchase clicked - Package:', packageId)
-    console.log('🔐 Is Authenticated:', isAuthenticated)
+    logger.info('🛒 Purchase clicked - Package:', packageId)
+    logger.info('🔐 Is Authenticated:', isAuthenticated)
     
     if (!isAuthenticated) {
       handleError('Please sign in to purchase matches')
@@ -36,7 +37,7 @@ export default function PurchasePage() {
     setPurchasing(true)
 
     try {
-      console.log('📡 Calling /api/checkout/create with:', { productKey: packageId, matchId: null })
+      logger.info('📡 Calling /api/checkout/create with:', { productKey: packageId, matchId: null })
       
       // Use direct fetch to match the EnhancedMatchCard approach
       const response = await fetch('/api/checkout/create', {
@@ -48,20 +49,20 @@ export default function PurchasePage() {
         }),
       })
       
-      console.log('📡 Response status:', response.status)
+      logger.info('📡 Response status:', response.status)
       const data = await response.json()
-      console.log('📡 Response data:', data)
+      logger.info('📡 Response data:', data)
       
       if (!response.ok || !data.checkoutUrl) {
-        console.error('❌ Error - No checkout URL:', data)
+        logger.error('❌ Error - No checkout URL:', data)
         throw new Error(data.error || 'No checkout URL received')
       }
       
-      console.log('✅ Redirecting to:', data.checkoutUrl)
+      logger.info('✅ Redirecting to:', data.checkoutUrl)
       // Redirect to Lemon Squeezy checkout
       window.location.href = data.checkoutUrl
     } catch (error) {
-      console.error('❌ Purchase error:', error)
+      logger.error('❌ Purchase error:', error)
       handleError(error)
       setPurchasing(false)
       setSelectedPackage(null)

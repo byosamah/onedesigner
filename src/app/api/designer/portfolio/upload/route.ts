@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
       return apiResponse.validationError('Maximum 3 images allowed')
     }
 
-    console.log(`Uploading ${files.length} portfolio images for designer ${session.designerId}`)
+    logger.info(`Uploading ${files.length} portfolio images for designer ${session.designerId}`)
 
     const supabase = createServiceClient()
     const uploadedImages = []
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (imageError) {
-          console.error('Error saving portfolio image:', imageError)
+          logger.error('Error saving portfolio image:', imageError)
           continue
         }
 
@@ -82,10 +83,10 @@ export async function POST(request: NextRequest) {
           displayOrder: imageRecord.display_order
         })
 
-        console.log(`✅ Uploaded portfolio image ${i + 1}:`, title)
+        logger.info(`✅ Uploaded portfolio image ${i + 1}:`, title)
 
       } catch (uploadError) {
-        console.error(`Error uploading file ${file.name}:`, uploadError)
+        logger.error(`Error uploading file ${file.name}:`, uploadError)
         continue
       }
     }
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', session.designerId)
 
-    console.log(`✅ Uploaded ${uploadedImages.length} portfolio images`)
+    logger.info(`✅ Uploaded ${uploadedImages.length} portfolio images`)
 
     return apiResponse.success({
       images: uploadedImages,
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
       .order('display_order', { ascending: true })
 
     if (error) {
-      console.error('Error fetching portfolio images:', error)
+      logger.error('Error fetching portfolio images:', error)
       return apiResponse.serverError('Failed to fetch portfolio images', error)
     }
 
@@ -184,11 +185,11 @@ export async function DELETE(request: NextRequest) {
       .eq('designer_id', session.designerId) // Ensure designer can only delete their own images
 
     if (error) {
-      console.error('Error deleting portfolio image:', error)
+      logger.error('Error deleting portfolio image:', error)
       return apiResponse.serverError('Failed to delete image', error)
     }
 
-    console.log(`✅ Deleted portfolio image: ${imageId}`)
+    logger.info(`✅ Deleted portfolio image: ${imageId}`)
 
     return apiResponse.success({
       message: 'Portfolio image deleted successfully'

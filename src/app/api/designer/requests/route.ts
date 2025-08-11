@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/core/logging-service'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
       .order('sent_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching requests:', error)
+      logger.error('Error fetching requests:', error)
       return NextResponse.json(
         { error: 'Failed to fetch requests' },
         { status: 500 }
@@ -123,7 +124,7 @@ export async function GET(request: NextRequest) {
       requests: formattedRequests
     })
   } catch (error) {
-    console.error('Error in designer requests:', error)
+    logger.error('Error in designer requests:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch requests' },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/core/logging-service'
 
 // POST /api/match/feedback - Record match feedback and update analytics
 export async function POST(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       .eq('client_id', clientId)
 
     if (analyticsError) {
-      console.error('Error updating match analytics:', analyticsError)
+      logger.error('Error updating match analytics:', analyticsError)
       return NextResponse.json(
         { error: 'Failed to update feedback' },
         { status: 500 }
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
       message: 'Feedback recorded successfully'
     })
   } catch (error) {
-    console.error('Error in feedback API:', error)
+    logger.error('Error in feedback API:', error)
     return NextResponse.json(
       { error: 'Failed to record feedback' },
       { status: 500 }
@@ -170,7 +171,7 @@ async function updateClientPreferences(
         updated_at: new Date().toISOString()
       })
   } catch (error) {
-    console.error('Error updating client preferences:', error)
+    logger.error('Error updating client preferences:', error)
   }
 }
 
@@ -238,7 +239,7 @@ async function updateDesignerMetrics(
       .eq('id', designerId)
 
   } catch (error) {
-    console.error('Error updating designer metrics:', error)
+    logger.error('Error updating designer metrics:', error)
   }
 }
 
@@ -264,7 +265,7 @@ export async function GET(request: NextRequest) {
       `)
 
     if (error) {
-      console.error('Error fetching analytics:', error)
+      logger.error('Error fetching analytics:', error)
       return NextResponse.json(
         { error: 'Failed to fetch analytics' },
         { status: 500 }
@@ -303,7 +304,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in analytics API:', error)
+    logger.error('Error in analytics API:', error)
     return NextResponse.json(
       { error: 'Failed to fetch analytics' },
       { status: 500 }

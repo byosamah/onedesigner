@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function PUT(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const profileData = await request.json()
-    console.log('Profile update data:', profileData)
+    logger.info('Profile update data:', profileData)
 
     const supabase = createServiceClient()
 
@@ -60,7 +61,7 @@ export async function PUT(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error updating designer profile:', error)
+      logger.error('Error updating designer profile:', error)
       return apiResponse.serverError('Failed to update profile', error)
     }
 
@@ -167,8 +168,8 @@ export async function PUT(request: NextRequest) {
       .select('specialization')
       .eq('designer_id', session.designerId)
 
-    console.log('✅ Designer profile updated:', designer.id)
-    console.log('⚠️ Designer marked as unapproved after edit')
+    logger.info('✅ Designer profile updated:', designer.id)
+    logger.info('⚠️ Designer marked as unapproved after edit')
 
     return apiResponse.success({
       designer: {
@@ -231,11 +232,11 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error || !designer) {
-      console.error('Error fetching designer profile:', error)
+      logger.error('Error fetching designer profile:', error)
       return apiResponse.notFound('Designer profile')
     }
     
-    console.log('Designer data from DB:', {
+    logger.info('Designer data from DB:', {
       id: designer.id,
       country: designer.country,
       city: designer.city,

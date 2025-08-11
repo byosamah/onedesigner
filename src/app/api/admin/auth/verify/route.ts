@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error verifying admin:', error)
+    logger.error('Error verifying admin:', error)
     return NextResponse.json(
       { error: 'Failed to verify' },
       { status: 500 }

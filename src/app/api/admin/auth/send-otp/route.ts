@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendCustomOTP } from '@/lib/auth/custom-otp'
 import { isAdminEmail } from '@/lib/admin/config'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!isAdminEmail(email)) {
       // If not in hardcoded list, check database
       if (error || !admin) {
-        console.error('Not an authorized admin email:', email)
+        logger.error('Not an authorized admin email:', email)
         return NextResponse.json(
           { error: 'Not authorized. This email is not registered as an admin.' },
           { status: 403 }
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error sending admin OTP:', error)
+    logger.error('Error sending admin OTP:', error)
     return NextResponse.json(
       { error: 'Failed to send verification code' },
       { status: 500 }

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { getTheme } from '@/lib/design-system'
 import { EnhancedMatchCard } from '@/components/match/EnhancedMatchCard'
 import { LoadingSpinner } from '@/components/shared'
+import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedMatch {
   id: string
@@ -88,10 +89,10 @@ export default function MatchPage() {
       setMatches(data.matches || [])
       setBriefData(data.briefData || null)
 
-      console.log('✅ Enhanced matches loaded:', data.matches?.length)
+      logger.info('✅ Enhanced matches loaded:', data.matches?.length)
 
     } catch (error) {
-      console.error('Error fetching enhanced matches:', error)
+      logger.error('Error fetching enhanced matches:', error)
       setError(error instanceof Error ? error.message : 'Failed to load matches')
     } finally {
       setIsLoading(false)
@@ -101,11 +102,11 @@ export default function MatchPage() {
   const handleUnlock = async (matchId: string) => {
     try {
       // This would integrate with the existing unlock system
-      console.log('Unlocking match:', matchId)
+      logger.info('Unlocking match:', matchId)
       // TODO: Implement unlock logic with credits/payments
       alert('Unlock functionality would connect to existing payment system')
     } catch (error) {
-      console.error('Error unlocking match:', error)
+      logger.error('Error unlocking match:', error)
     }
   }
 

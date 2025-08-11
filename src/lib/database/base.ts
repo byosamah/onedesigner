@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/core/logging-service'
 
 /**
  * Base database service with common functionality
@@ -11,7 +12,7 @@ export abstract class DatabaseService {
    * Handle database errors consistently
    */
   protected handleError(error: any, operation: string): never {
-    console.error(`Database error in ${operation}:`, error)
+    logger.error(`Database error in ${operation}:`, error)
     
     // Handle specific PostgreSQL error codes
     if (error?.code === 'PGRST116') {

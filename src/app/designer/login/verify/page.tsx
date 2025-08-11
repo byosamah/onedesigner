@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerLoginVerifyPage() {
   const router = useRouter()
@@ -35,7 +36,7 @@ export default function DesignerLoginVerifyPage() {
         throw new Error('Email not found')
       }
 
-      // First verify the OTP
+      // Verify the OTP
       const response = await fetch('/api/designer/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,25 +49,29 @@ export default function DesignerLoginVerifyPage() {
         throw new Error(data.error || 'Invalid code')
       }
 
-      // Then check if designer exists
-      const designerResponse = await fetch('/api/designer/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-        credentials: 'include'
-      })
-
-      const designerData = await designerResponse.json()
-
-      if (designerResponse.ok && designerData.exists) {
-        // Designer exists, redirect to dashboard
-        sessionStorage.setItem('designerId', designerData.designer.id)
-        router.push('/designer/dashboard')
-      } else {
-        // Designer doesn't exist, redirect to apply page
-        sessionStorage.setItem('designerEmail', email)
-        alert('No designer account found. Please complete your designer application first.')
-        router.push('/designer/apply')
+      if (data.success) {
+        logger.info('✅ Login verification successful, data:', data)
+        
+        // Clear login storage
+        sessionStorage.removeItem('designerLoginEmail')
+        
+        // Small delay to ensure cookie is set
+        setTimeout(() => {
+          // Redirect based on designer status
+          const status = data.designer?.status
+          logger.info('🔄 Designer status:', status)
+          
+          if (status === 'approved') {
+            logger.info('➡️ Redirecting to dashboard (approved designer)')
+            router.push('/designer/dashboard')
+          } else if (status === 'pending') {
+            logger.info('➡️ Redirecting to under-review page (pending approval)')
+            router.push('/designer/application-pending')
+          } else {
+            logger.info('➡️ Redirecting to application form (new/incomplete)')
+            router.push('/designer/apply')
+          }
+        }, 500)
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Invalid code. Please try again.')
@@ -91,7 +96,7 @@ export default function DesignerLoginVerifyPage() {
         alert('New code sent! Check your email.')
       }
     } catch (error) {
-      console.error('Error resending code:', error)
+      logger.error('Error resending code:', error)
     }
   }
 

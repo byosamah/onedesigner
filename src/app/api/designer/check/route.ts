@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { apiResponse } from '@/lib/api/responses'
 import { getSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 // GET method to check if designer is authenticated via session
 export async function GET() {
@@ -11,11 +12,11 @@ export async function GET() {
     // Check for designer session
     const session = await getSession('DESIGNER')
     
-    console.log('🔍 Designer session check:', session ? 'Found' : 'Not found')
-    console.log('🔍 Session data:', session)
+    logger.info('🔍 Designer session check:', session ? 'Found' : 'Not found')
+    logger.info('🔍 Session data:', session)
     
     if (!session || !session.email) {
-      console.log('❌ No valid session found')
+      logger.info('❌ No valid session found')
       return apiResponse.success({ 
         exists: false,
         designer: null 
@@ -50,7 +51,7 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Error checking designer session:', error)
+    logger.error('Error checking designer session:', error)
     return apiResponse.serverError('Failed to check designer session')
   }
 }
@@ -101,7 +102,7 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error checking designer:', error)
+    logger.error('Error checking designer:', error)
     return apiResponse.serverError('Failed to check designer')
   }
 }

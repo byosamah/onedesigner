@@ -1,3 +1,5 @@
+import { logger } from '@/lib/core/logging-service'
+
 // Simple toast notifications
 // In production, you might want to use react-hot-toast or sonner
 
@@ -9,11 +11,11 @@ class Toast {
     // In production, replace with a proper toast library
     if (typeof window !== 'undefined') {
       // Simple notification for now
-      console.log(`[${type.toUpperCase()}] ${message}`)
+      logger.info(`[${type.toUpperCase()}] ${message}`)
       
       // You can also use the browser's Notification API if you want
       if (type === 'error') {
-        console.error(message)
+        logger.error(message)
       }
     }
   }

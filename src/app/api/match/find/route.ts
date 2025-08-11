@@ -28,6 +28,7 @@ async function getClientPreferences(supabase: any, clientId: string): Promise<Cl
 }
 
 import { OptimizedMatcher } from '@/lib/matching/optimized-matcher'
+import { logger } from '@/lib/core/logging-service'
 
 // Streaming endpoint for progressive match results
 export async function POST(request: NextRequest) {
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest) {
     const matchedIds = previousMatches?.map(m => m.designer_id) || []
     const excludedDesignerIds = [...new Set([...unlockedIds, ...matchedIds])]
     
-    console.log(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
+    logger.info(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
 
     // Get all available designers excluding previously matched ones
     // Only include designers that are both verified AND approved
@@ -87,15 +88,15 @@ export async function POST(request: NextRequest) {
     const { data: designers, error: designersError } = await designersQuery
     
     // Debug logging
-    console.log('=== MATCH DEBUG INFO ===')
-    console.log('Query filters: is_verified=true, is_approved=true')
-    console.log('Available designers found:', designers?.length || 0)
+    logger.info('=== MATCH DEBUG INFO ===')
+    logger.info('Query filters: is_verified=true, is_approved=true')
+    logger.info('Available designers found:', designers?.length || 0)
     if (designers && designers.length > 0) {
       designers.forEach(d => {
-        console.log(`- Name: ${d.first_name} ${d.last_name}`)
-        console.log(`  Title: ${d.title}`)
-        console.log(`  Location: ${d.city}, ${d.country}`)
-        console.log(`  Status: verified=${d.is_verified}, approved=${d.is_approved}`)
+        logger.info(`- Name: ${d.first_name} ${d.last_name}`)
+        logger.info(`  Title: ${d.title}`)
+        logger.info(`  Location: ${d.city}, ${d.country}`)
+        logger.info(`  Status: verified=${d.is_verified}, approved=${d.is_approved}`)
       })
     }
 
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log(`Found ${designers.length} verified and approved designers`)
+    logger.info(`Found ${designers.length} verified and approved designers`)
 
     // Get client preferences for AI context
     const clientPrefs = await getClientPreferences(supabase, brief.client_id)
@@ -132,7 +133,7 @@ export async function POST(request: NextRequest) {
       d.is_verified === true
     )
     
-    console.log(`${eligibleDesigners.length} eligible designers will be analyzed by AI`)
+    logger.info(`${eligibleDesigners.length} eligible designers will be analyzed by AI`)
 
     // Initialize AI provider - required for matching
     let aiProvider = null
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
     try {
       aiProvider = createAIProvider()
     } catch (error: any) {
-      console.error('AI provider initialization failed:', error.message)
+      logger.error('AI provider initialization failed:', error.message)
       return apiResponse.serverError('AI matching service is not configured')
     }
     
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
     // DeepSeek has no rate limits - we can analyze all designers
     const maxAnalyze = Math.min(eligibleDesigners.length, 50) // Increased cap since no rate limits
     
-    console.log(`AI will analyze ${maxAnalyze} designers to find the best match`)
+    logger.info(`AI will analyze ${maxAnalyze} designers to find the best match`)
     
     // Process designers in parallel batches for faster results
     const batchSize = 5
@@ -161,20 +162,20 @@ export async function POST(request: NextRequest) {
       // Analyze batch in parallel
       const batchPromises = batch.map(async (designer, idx) => {
         try {
-          console.log(`AI analyzing designer ${i + idx + 1}/${maxAnalyze}: ${designer.first_name} ${designer.last_name}`)
+          logger.info(`AI analyzing designer ${i + idx + 1}/${maxAnalyze}: ${designer.first_name} ${designer.last_name}`)
           
           const matchResult = await aiProvider.analyzeMatch(designer, brief)
           
           // Only add matches that the AI considers viable (50+ score)
           if (matchResult.score >= 50) {
-            console.log(`  -> Match score: ${matchResult.score} (${matchResult.confidence} confidence)`)
+            logger.info(`  -> Match score: ${matchResult.score} (${matchResult.confidence} confidence)`)
             return matchResult
           } else {
-            console.log(`  -> Poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
+            logger.info(`  -> Poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
             return null
           }
         } catch (error: any) {
-          console.error(`AI matching failed for designer ${designer.id}:`, error.message)
+          logger.error(`AI matching failed for designer ${designer.id}:`, error.message)
           return null
         }
       })
@@ -185,12 +186,12 @@ export async function POST(request: NextRequest) {
       // Add successful matches
       matchResults.push(...batchResults.filter(result => result !== null))
       
-      console.log(`Batch ${Math.floor(i/batchSize) + 1} complete. Total matches so far: ${matchResults.length}`)
+      logger.info(`Batch ${Math.floor(i/batchSize) + 1} complete. Total matches so far: ${matchResults.length}`)
     }
     
     // If no matches found after AI analysis
     if (matchResults.length === 0) {
-      console.log('No suitable matches found after AI analysis - implementing fallback strategy')
+      logger.info('No suitable matches found after AI analysis - implementing fallback strategy')
       
       // Check if the brief has incomplete data that might be causing low scores
       const hasIncompleteData = !brief.industry || brief.industry.length <= 3 || 
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
                                !brief.description || brief.description.length < 20
       
       if (hasIncompleteData && eligibleDesigners.length > 0) {
-        console.log('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
+        logger.info('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
         
         // Use a much lower threshold for incomplete briefs (30+ instead of 50+)
         // and try to find the best available match
@@ -211,33 +212,33 @@ export async function POST(request: NextRequest) {
           const designer = topDesigners[i]
           
           try {
-            console.log(`Fallback analysis for designer ${i + 1}/5: ${designer.first_name} ${designer.last_name}`)
+            logger.info(`Fallback analysis for designer ${i + 1}/5: ${designer.first_name} ${designer.last_name}`)
             
             const matchResult = await aiProvider.analyzeMatch(designer, brief)
             
             // Accept matches with scores of 30+ for incomplete briefs
             if (matchResult.score >= 30) {
-              console.log(`  -> Acceptable fallback match: ${matchResult.score} (${matchResult.confidence} confidence)`)
+              logger.info(`  -> Acceptable fallback match: ${matchResult.score} (${matchResult.confidence} confidence)`)
               fallbackResults.push({
                 ...matchResult,
                 fallbackMatch: true,
                 matchSummary: `${designer.first_name} is a qualified designer ready to work on your ${brief.project_type} project. While your brief could use more details, this designer has the experience to deliver quality results.`
               })
             } else {
-              console.log(`  -> Still poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
+              logger.info(`  -> Still poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
             }
           } catch (error: any) {
-            console.error(`Fallback matching failed for designer ${designer.id}:`, error.message)
+            logger.error(`Fallback matching failed for designer ${designer.id}:`, error.message)
           }
         }
         
         // If we found at least one fallback match, use it
         if (fallbackResults.length > 0) {
-          console.log(`Found ${fallbackResults.length} fallback matches - using best one`)
+          logger.info(`Found ${fallbackResults.length} fallback matches - using best one`)
           matchResults = fallbackResults.sort((a, b) => b.score - a.score)
         } else {
           // Last resort: just pick the first available designer with basic scoring
-          console.log('No fallback matches found - using simple selection')
+          logger.info('No fallback matches found - using simple selection')
           const selectedDesigner = eligibleDesigners[0]
           matchResults = [{
             designer: selectedDesigner,
@@ -262,15 +263,15 @@ export async function POST(request: NextRequest) {
     const sortedMatches = matchResults.sort((a, b) => b.score - a.score)
     const bestMatch = sortedMatches[0]
     
-    console.log(`\n=== MATCH RESULTS ===`)
-    console.log(`Best match: ${bestMatch.designer.first_name} ${bestMatch.designer.last_name}`)
-    console.log(`Score: ${bestMatch.score}% (${bestMatch.confidence || 'medium'} confidence)`)
-    console.log(`AI Analysis: ${bestMatch.aiAnalyzed ? 'Complete' : 'Fallback'}`)
+    logger.info(`\n=== MATCH RESULTS ===`)
+    logger.info(`Best match: ${bestMatch.designer.first_name} ${bestMatch.designer.last_name}`)
+    logger.info(`Score: ${bestMatch.score}% (${bestMatch.confidence || 'medium'} confidence)`)
+    logger.info(`AI Analysis: ${bestMatch.aiAnalyzed ? 'Complete' : 'Fallback'}`)
     if (bestMatch.matchSummary) {
-      console.log(`Summary: ${bestMatch.matchSummary}`)
+      logger.info(`Summary: ${bestMatch.matchSummary}`)
     }
-    console.log(`Total matches found: ${matchResults.length}`)
-    console.log(`Other matches:`, sortedMatches.slice(1, 4).map(m => 
+    logger.info(`Total matches found: ${matchResults.length}`)
+    logger.info(`Other matches:`, sortedMatches.slice(1, 4).map(m => 
       `${m.designer.first_name} ${m.designer.last_name} (${m.score}%)`
     ))
     
@@ -292,7 +293,7 @@ export async function POST(request: NextRequest) {
     let finalMatch = match
     
     if (matchError) {
-      console.error('Error creating match:', matchError)
+      logger.error('Error creating match:', matchError)
       
       // Check if it's a unique constraint error (duplicate match)
       if (matchError.code === '23505') {
@@ -305,7 +306,7 @@ export async function POST(request: NextRequest) {
           .single()
           
         if (existingMatch) {
-          console.log('Using existing match:', existingMatch.id)
+          logger.info('Using existing match:', existingMatch.id)
           finalMatch = existingMatch // Use the existing match
         }
       } else {
@@ -329,7 +330,7 @@ export async function POST(request: NextRequest) {
         })
       
       if (requestError) {
-        console.error('Error creating designer request:', requestError)
+        logger.error('Error creating designer request:', requestError)
       } else {
         // Send email notification to designer
         try {
@@ -370,9 +371,9 @@ export async function POST(request: NextRequest) {
             `,
             text: `You've been matched with a new ${brief.project_type} project on OneDesigner! Match score: ${bestMatch.score}%. Please respond within 48 hours. View details at: ${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
           })
-          console.log('Designer notification email sent')
+          logger.info('Designer notification email sent')
         } catch (emailError) {
-          console.error('Failed to send designer notification:', emailError)
+          logger.error('Failed to send designer notification:', emailError)
         }
       }
     }
@@ -416,9 +417,9 @@ export async function POST(request: NextRequest) {
           `,
           text: `We found the perfect designer for your ${brief.project_type} project! Match score: ${bestMatch.score}%. View your match at: ${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}`
         })
-        console.log('Client notification email sent')
+        logger.info('Client notification email sent')
       } catch (emailError) {
-        console.error('Failed to send client notification:', emailError)
+        logger.error('Failed to send client notification:', emailError)
       }
     }
 

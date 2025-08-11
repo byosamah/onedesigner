@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
         .eq('designer_id', designerId)
       styles = stylesData?.map(s => s.style) || []
     } catch (e) {
-      console.log('Designer styles table not found, using empty array')
+      logger.info('Designer styles table not found, using empty array')
     }
     
     try {
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
         .eq('designer_id', designerId)
       projectTypes = projectTypesData?.map(pt => pt.project_type) || []
     } catch (e) {
-      console.log('Designer project types table not found, using empty array')
+      logger.info('Designer project types table not found, using empty array')
     }
     
     try {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
         .eq('designer_id', designerId)
       industries = industriesData?.map(i => i.industry) || []
     } catch (e) {
-      console.log('Designer industries table not found, using empty array')
+      logger.info('Designer industries table not found, using empty array')
     }
     
     // Transform the data

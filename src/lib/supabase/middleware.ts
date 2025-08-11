@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/lib/core/logging-service'
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
@@ -10,7 +11,7 @@ export async function updateSession(request: NextRequest) {
 
   // Check if required environment variables exist
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error('Missing Supabase environment variables')
+    logger.error('Missing Supabase environment variables')
     return response
   }
 
@@ -63,7 +64,7 @@ export async function updateSession(request: NextRequest) {
 
     await supabase.auth.getUser()
   } catch (error) {
-    console.error('Middleware error:', error)
+    logger.error('Middleware error:', error)
   }
 
   return response

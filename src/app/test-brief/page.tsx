@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { EnhancedClientBrief } from '@/components/forms/EnhancedClientBrief'
+import { logger } from '@/lib/core/logging-service'
 
 export default function TestBriefPage() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -16,7 +17,7 @@ export default function TestBriefPage() {
   const theme = getTheme(isDarkMode)
 
   const handleSubmit = async (data: any) => {
-    console.log('Form submitted with data:', data)
+    logger.info('Form submitted with data:', data)
     setResult(data)
   }
 

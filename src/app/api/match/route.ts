@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createAIProvider } from '@/lib/ai'
 import { AI_CONFIG } from '@/lib/ai/config'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,8 +13,8 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Brief ID is required')
     }
 
-    console.log('=== AI MATCHING START ===')
-    console.log('Brief ID:', briefId)
+    logger.info('=== AI MATCHING START ===')
+    logger.info('Brief ID:', briefId)
 
     const supabase = createServiceClient()
 
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (briefError || !brief) {
-      console.error('Brief not found:', briefError)
+      logger.error('Brief not found:', briefError)
       return apiResponse.notFound('Brief')
     }
 
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       project_description: brief.project_description || brief.requirements || ''
     }
 
-    console.log('Brief found:', {
+    logger.info('Brief found:', {
       category: briefData.design_category,
       timeline: briefData.timeline_type,
       budget: briefData.budget_range
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!briefData.design_category || !briefData.timeline_type || !briefData.budget_range) {
-      console.error('Brief missing required fields')
+      logger.error('Brief missing required fields')
       return apiResponse.validationError('Brief must have design category, timeline, and budget information')
     }
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (existingMatches && existingMatches.length > 0) {
-      console.log(`Found ${existingMatches.length} existing matches for brief ${briefId}`)
+      logger.info(`Found ${existingMatches.length} existing matches for brief ${briefId}`)
       
       // Format existing matches to match expected structure
       const formattedMatches = existingMatches.map(match => ({
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
         aiAnalyzed: true
       }))
 
-      console.log('✅ Returning existing matches')
+      logger.info('✅ Returning existing matches')
       return apiResponse.success({
         matches: formattedMatches,
         briefData: {
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
       .neq('availability', 'busy')
 
     if (designersError || !designers || designers.length === 0) {
-      console.error('No available designers')
+      logger.error('No available designers')
       return apiResponse.error('No designers available yet. Please check back later.')
     }
 
@@ -155,16 +156,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Use AI to analyze matches
-    console.log(`\n🚀 === STARTING AI MATCHING ===`)
-    console.log(`📊 Available designers: ${availableDesigners.length}`)
-    console.log(`🎯 Will analyze top 5 designers with AI`)
+    logger.info(`\n🚀 === STARTING AI MATCHING ===`)
+    logger.info(`📊 Available designers: ${availableDesigners.length}`)
+    logger.info(`🎯 Will analyze top 5 designers with AI`)
     
     let ai
     try {
       ai = createAIProvider()
-      console.log(`✅ AI Provider initialized successfully`)
+      logger.info(`✅ AI Provider initialized successfully`)
     } catch (error) {
-      console.error(`❌ Failed to initialize AI provider:`, error)
+      logger.error(`❌ Failed to initialize AI provider:`, error)
       return apiResponse.error('AI service unavailable')
     }
     
@@ -223,7 +224,7 @@ Provide a JSON response with:
 }
 `
 
-        console.log(`🤖 Calling AI for designer ${designer.id} (${designer.first_name})...`)
+        logger.info(`🤖 Calling AI for designer ${designer.id} (${designer.first_name})...`)
         const completion = await ai.generateText({
           messages: [{ role: 'user', content: prompt }],
           model: AI_CONFIG.models.fast,
@@ -233,7 +234,7 @@ Provide a JSON response with:
         })
 
         const analysis = JSON.parse(completion.text)
-        console.log(`✅ AI Score for ${designer.first_name}: ${analysis.score}% (${analysis.confidence} confidence)`)
+        logger.info(`✅ AI Score for ${designer.first_name}: ${analysis.score}% (${analysis.confidence} confidence)`)
         
         matches.push({
           designer: {
@@ -272,10 +273,10 @@ Provide a JSON response with:
         })
 
       } catch (error) {
-        console.error('❌ AI analysis FAILED for designer:', designer.id, designer.first_name)
-        console.error('Error details:', error)
+        logger.error('❌ AI analysis FAILED for designer:', designer.id, designer.first_name)
+        logger.error('Error details:', error)
         // Fallback to simple scoring if AI fails
-        console.log('⚠️ Using FALLBACK score of 70 for', designer.first_name)
+        logger.info('⚠️ Using FALLBACK score of 70 for', designer.first_name)
         matches.push({
           designer: {
             ...designer,
@@ -325,11 +326,11 @@ Provide a JSON response with:
     // Sort matches by score
     matches.sort((a, b) => b.score - a.score)
 
-    console.log(`Found ${matches.length} enhanced matches`)
+    logger.info(`Found ${matches.length} enhanced matches`)
 
     // If no matches found after AI analysis, implement fallback strategy
     if (matches.length === 0) {
-      console.log('No suitable matches found after AI analysis - implementing fallback strategy')
+      logger.info('No suitable matches found after AI analysis - implementing fallback strategy')
       
       // Check if the brief has incomplete data that might be causing low scores
       const hasIncompleteData = !briefData.industry || briefData.industry.length <= 3 || 
@@ -337,7 +338,7 @@ Provide a JSON response with:
                                !briefData.project_description || briefData.project_description.length < 20
       
       if (hasIncompleteData && availableDesigners.length > 0) {
-        console.log('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
+        logger.info('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
         
         // Use a much lower threshold for incomplete briefs (30+ instead of 50+)
         const fallbackMatches = []
@@ -435,16 +436,16 @@ Provide JSON response:
               })
             }
           } catch (error) {
-            console.error('Fallback analysis failed for designer:', designer.id, error)
+            logger.error('Fallback analysis failed for designer:', designer.id, error)
           }
         }
         
         if (fallbackMatches.length > 0) {
-          console.log(`Found ${fallbackMatches.length} fallback matches - using best one`)
+          logger.info(`Found ${fallbackMatches.length} fallback matches - using best one`)
           matches = fallbackMatches.sort((a, b) => b.score - a.score)
         } else {
           // Last resort: select first available designer with reasonable defaults
-          console.log('No fallback matches found - using last resort selection')
+          logger.info('No fallback matches found - using last resort selection')
           const selectedDesigner = availableDesigners[0]
           matches = [{
             designer: {
@@ -523,11 +524,11 @@ Provide JSON response:
       .single()
 
     if (matchError) {
-      console.error('Error creating match record:', matchError)
+      logger.error('Error creating match record:', matchError)
       // Continue anyway, we can still return the match results
     }
 
-    console.log('✅ Enhanced matching complete')
+    logger.info('✅ Enhanced matching complete')
 
     return apiResponse.success({
       matches: matches.map(match => ({

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email/send-email'
+import { logger } from '@/lib/core/logging-service'
 
 export async function GET(request: NextRequest) {
   // Only allow in development
@@ -13,11 +14,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Email parameter required' }, { status: 400 })
   }
 
-  console.log('Test email endpoint called')
-  console.log('EMAIL_FROM:', process.env.EMAIL_FROM)
-  console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
-  console.log('RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length)
-  console.log('RESEND_API_KEY starts with:', process.env.RESEND_API_KEY?.substring(0, 10))
+  logger.info('Test email endpoint called')
+  logger.info('EMAIL_FROM:', process.env.EMAIL_FROM)
+  logger.info('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+  logger.info('RESEND_API_KEY length:', process.env.RESEND_API_KEY?.length)
+  logger.info('RESEND_API_KEY starts with:', process.env.RESEND_API_KEY?.substring(0, 10))
 
   try {
     // Test direct Resend API call
@@ -37,8 +38,8 @@ export async function GET(request: NextRequest) {
     })
 
     const responseText = await response.text()
-    console.log('Resend response status:', response.status)
-    console.log('Resend response:', responseText)
+    logger.info('Resend response status:', response.status)
+    logger.info('Resend response:', responseText)
 
     if (!response.ok) {
       return NextResponse.json({ 
@@ -54,7 +55,7 @@ export async function GET(request: NextRequest) {
       response: JSON.parse(responseText)
     })
   } catch (error) {
-    console.error('Test email error:', error)
+    logger.error('Test email error:', error)
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to send test email',
       details: error

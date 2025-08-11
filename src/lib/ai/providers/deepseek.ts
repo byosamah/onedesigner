@@ -1,6 +1,7 @@
 import { AIProvider, MatchResult } from '../types'
 import { API_ENDPOINTS } from '@/lib/constants'
 import { MATCHING_PROMPT_CONFIG } from '@/config/matching/prompt.config'
+import { logger } from '@/lib/core/logging-service'
 
 export class DeepSeekProvider implements AIProvider {
   private apiKey: string
@@ -48,7 +49,7 @@ export class DeepSeekProvider implements AIProvider {
 
       if (!response.ok) {
         const error = await response.text()
-        console.error('DeepSeek API error:', error)
+        logger.error('DeepSeek API error:', error)
         throw new Error(`DeepSeek API error: ${response.status}`)
       }
 
@@ -61,7 +62,7 @@ export class DeepSeekProvider implements AIProvider {
 
       return this.parseMatchResults(content, designers)
     } catch (error) {
-      console.error('DeepSeek matching error:', error)
+      logger.error('DeepSeek matching error:', error)
       throw error
     }
   }
@@ -200,7 +201,7 @@ REMEMBER: Select THE ONE designer who seems custom-built for this project. Make 
       // Handle single match response
       if (!parsed.isRecommended || parsed.selectedDesignerIndex === -1) {
         // No suitable match found
-        console.log('No suitable match found:', parsed.recommendedAction)
+        logger.info('No suitable match found:', parsed.recommendedAction)
         return []
       }
 
@@ -230,7 +231,7 @@ REMEMBER: Select THE ONE designer who seems custom-built for this project. Make 
         nextSteps: parsed.nextSteps
       }]
     } catch (error) {
-      console.error('Error parsing DeepSeek response:', error)
+      logger.error('Error parsing DeepSeek response:', error)
       // Fallback to best available designer
       if (designers.length === 0) return []
       
@@ -285,7 +286,7 @@ Consider all aspects: category expertise, style alignment, project fit, working 
 
       if (!response.ok) {
         const error = await response.text()
-        console.error('DeepSeek API error:', error)
+        logger.error('DeepSeek API error:', error)
         throw new Error(`DeepSeek API error: ${response.status}`)
       }
 
@@ -298,7 +299,7 @@ Consider all aspects: category expertise, style alignment, project fit, working 
 
       return this.parseDetailedMatchResult(content, designer)
     } catch (error) {
-      console.error('DeepSeek match analysis error:', error)
+      logger.error('DeepSeek match analysis error:', error)
       throw error
     }
   }
@@ -440,7 +441,7 @@ REMEMBER: Only recommend if this designer seems custom-built for this project (7
         nextSteps: parsed.nextSteps
       }
     } catch (error) {
-      console.error('Error parsing DeepSeek match analysis:', error)
+      logger.error('Error parsing DeepSeek match analysis:', error)
       // Return NO MATCH if parsing fails
       return {
         designer,
@@ -499,7 +500,7 @@ REMEMBER: Only recommend if this designer seems custom-built for this project (7
 
       if (!response.ok) {
         const error = await response.text()
-        console.error('DeepSeek API error:', error)
+        logger.error('DeepSeek API error:', error)
         throw new Error(`DeepSeek API error: ${response.status}`)
       }
 
@@ -512,7 +513,7 @@ REMEMBER: Only recommend if this designer seems custom-built for this project (7
 
       return { text: content }
     } catch (error) {
-      console.error('DeepSeek generateText error:', error)
+      logger.error('DeepSeek generateText error:', error)
       throw error
     }
   }

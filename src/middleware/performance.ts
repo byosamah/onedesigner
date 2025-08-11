@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { performanceMonitor } from '@/lib/monitoring/performance'
+import { logger } from '@/lib/core/logging-service'
 
 export function performanceMiddleware(request: NextRequest) {
   const startTime = Date.now()
@@ -31,7 +32,7 @@ export function performanceMiddleware(request: NextRequest) {
 
   // Log slow requests
   if (duration > 1000) {
-    console.warn(`[PERF] Slow request: ${method} ${pathname} took ${duration}ms`)
+    logger.warn(`[PERF] Slow request: ${method} ${pathname} took ${duration}ms`)
   }
 
   return response

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { DESIGN_CATEGORIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 interface Designer {
   id: string
@@ -53,7 +54,7 @@ export function DesignersList({
     try {
       await onApprove(designerId)
     } catch (error) {
-      console.error('Failed to approve designer:', error)
+      logger.error('Failed to approve designer:', error)
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)
@@ -70,7 +71,7 @@ export function DesignersList({
     try {
       await onReject(designerId)
     } catch (error) {
-      console.error('Failed to reject designer:', error)
+      logger.error('Failed to reject designer:', error)
     } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev)

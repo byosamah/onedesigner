@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { EnhancedMatchCard } from './EnhancedMatchCard'
 import { LoadingButton } from '@/components/shared'
+import { logger } from '@/lib/core/logging-service'
 
 interface MatchData {
   id: string
@@ -55,7 +56,7 @@ export function EnhancedMatchResults({
       await onUnlockDesigner(matchId)
       setUnlockedMatches(prev => new Set([...prev, matchId]))
     } catch (error) {
-      console.error('Failed to unlock designer:', error)
+      logger.error('Failed to unlock designer:', error)
       throw error
     }
   }
@@ -67,7 +68,7 @@ export function EnhancedMatchResults({
     try {
       await onFindNewMatch()
     } catch (error) {
-      console.error('Failed to find new match:', error)
+      logger.error('Failed to find new match:', error)
     } finally {
       setIsFindingNew(false)
     }

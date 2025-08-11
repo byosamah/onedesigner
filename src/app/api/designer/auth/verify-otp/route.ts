@@ -5,6 +5,7 @@ import { createSession } from '@/lib/auth/session-handlers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,12 +26,13 @@ export async function POST(request: NextRequest) {
     const supabase = createServiceClient()
     const { data: existingDesigner } = await supabase
       .from('designers')
-      .select('id, email, first_name, last_name, is_approved')
+      .select('*')
       .eq('email', email)
       .single()
 
     let designerId = existingDesigner?.id
-
+    let designerStatus = 'new' // 'new', 'incomplete', 'pending', 'approved'
+    
     if (!existingDesigner) {
       // Create a new designer record with all required fields
       const { data: newDesigner, error: createError } = await supabase
@@ -52,15 +54,27 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (createError) {
-        console.error('Error creating designer:', createError)
+        logger.error('Error creating designer:', createError)
         return apiResponse.error('Failed to create designer account')
       }
 
       designerId = newDesigner.id
+      designerStatus = 'new'
+    } else {
+      // Determine designer status based on their profile
+      if (existingDesigner.is_approved) {
+        designerStatus = 'approved'
+      } else if (existingDesigner.first_name && existingDesigner.last_name && existingDesigner.title && existingDesigner.portfolio_url) {
+        // Has filled out application but not approved
+        designerStatus = 'pending'
+      } else {
+        // Has account but incomplete profile
+        designerStatus = 'incomplete'
+      }
     }
 
     // Create designer session
-    console.log('📝 Creating designer session for:', email, 'with ID:', designerId)
+    logger.info('📝 Creating designer session for:', email, 'with ID:', designerId)
     
     // Set the cookie directly to ensure it's properly created
     const cookieStore = cookies()
@@ -80,20 +94,24 @@ export async function POST(request: NextRequest) {
       path: '/'
     })
     
-    console.log('✅ Designer session created successfully with cookie:', AUTH_COOKIES.DESIGNER)
+    logger.info('✅ Designer session created successfully with cookie:', AUTH_COOKIES.DESIGNER)
 
-    // Return success
+    // Return success with status
     return apiResponse.success({ 
       success: true,
       message: 'OTP verified successfully',
       designer: {
         id: designerId,
         email,
-        isExisting: !!existingDesigner
+        isExisting: !!existingDesigner,
+        status: designerStatus,
+        isApproved: existingDesigner?.is_approved || false,
+        firstName: existingDesigner?.first_name || '',
+        lastName: existingDesigner?.last_name || ''
       }
     })
   } catch (error) {
-    console.error('Error verifying designer OTP:', error)
+    logger.error('Error verifying designer OTP:', error)
     return handleApiError(error, 'designer/auth/verify-otp')
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -42,7 +43,7 @@ export async function POST(
       .single()
 
     if (error || !designer) {
-      console.error('Error rejecting designer:', error)
+      logger.error('Error rejecting designer:', error)
       return NextResponse.json(
         { error: 'Failed to reject designer' },
         { status: 500 }
@@ -65,7 +66,7 @@ export async function POST(
         text: `Hello ${designer.first_name}, Thank you for your interest in joining OneDesigner. After careful review, we're unable to approve your application at this time. Reason: ${reason}. We encourage you to address the feedback and reapply in the future.`
       })
     } catch (emailError) {
-      console.error('Failed to send rejection email:', emailError)
+      logger.error('Failed to send rejection email:', emailError)
       // Don't fail the rejection if email fails
     }
 
@@ -73,7 +74,7 @@ export async function POST(
       success: true
     })
   } catch (error) {
-    console.error('Error in reject route:', error)
+    logger.error('Error in reject route:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

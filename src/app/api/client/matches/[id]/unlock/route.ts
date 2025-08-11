@@ -3,13 +3,111 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { Features } from '@/lib/features'
+import { DataService, InsufficientCreditsError, ValidationError, NotFoundError } from '@/lib/services/data-service'
+import { ErrorManager, handleApiError as handleApiErrorNew } from '@/lib/core/error-manager'
+import { getBusinessRules } from '@/lib/core/business-rules'
+import { logger } from '@/lib/core/logging-service'
+import { 
+  withPipeline, 
+  createAuthenticatedPipeline, 
+  AuthenticatedRequest,
+  rateLimitMiddleware 
+} from '@/lib/core/pipeline'
+
+// Pipeline handler for unlock match
+async function unlockMatchHandler(
+  req: AuthenticatedRequest,
+  context?: { params: { id: string } }
+) {
+  const matchId = context?.params?.id
+  if (!matchId) {
+    return apiResponse.error('Match ID is required')
+  }
+
+  logger.info('🔓 Pipeline unlock request for match:', matchId)
+  logger.info('👤 Client ID from pipeline:', req.clientId)
+
+  // Use BusinessRules validation if enabled
+  if (Features.USE_BUSINESS_RULES && req.clientId) {
+    logger.info('✨ Using BusinessRules validation in pipeline')
+    
+    const businessRules = getBusinessRules()
+    const dataService = DataService.getInstance()
+    
+    // Get client and match details for validation
+    const client = await dataService.getClientWithCredits(req.clientId)
+    const match = await dataService.getMatchWithDetails(matchId)
+    
+    // Get unlocked designers for this client
+    const { data: unlockedDesigners } = await dataService['supabase']
+      .from('client_designers')
+      .select('designer_id')
+      .eq('client_id', req.clientId)
+    
+    const unlockedDesignerIds = unlockedDesigners?.map(d => d.designer_id) || []
+    
+    // Validate the entire unlock workflow
+    const validation = businessRules.validateMatchUnlock(
+      client.match_credits,
+      match.designer_id,
+      unlockedDesignerIds,
+      match.score
+    )
+    
+    if (!validation.isValid) {
+      return apiResponse.error(validation.message!, 400, validation.code)
+    }
+    
+    logger.info('✅ BusinessRules validation passed')
+  }
+
+  // Use DataService if enabled
+  if (Features.USE_NEW_DATA_SERVICE && req.clientId) {
+    logger.info('✨ Using DataService in pipeline')
+    const dataService = DataService.getInstance()
+    const result = await dataService.unlockMatch(matchId, req.clientId)
+    
+    return apiResponse.success({
+      success: result.success,
+      message: result.alreadyUnlocked 
+        ? 'Match is already unlocked' 
+        : 'Match unlocked successfully',
+      remainingCredits: result.remainingCredits,
+      alreadyUnlocked: result.alreadyUnlocked,
+      requestId: req.context?.requestId
+    })
+  }
+
+  // Legacy implementation would go here
+  return apiResponse.error('DataService required for pipeline unlock')
+}
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Use new RequestPipeline if feature flag is enabled
+  if (Features.USE_REQUEST_PIPELINE) {
+    logger.info('✨ Using new RequestPipeline for unlock operation')
+    
+    const pipeline = createAuthenticatedPipeline('client', {
+      enableRateLimit: true,
+      enableLogging: true,
+      rateLimit: {
+        windowMs: 60 * 1000, // 1 minute window for unlock operations
+        max: 10 // Max 10 unlocks per minute per client
+      }
+    })
+
+    return pipeline.execute(request, unlockMatchHandler, { params })
+  }
+
+  // Legacy implementation (existing code)
   try {
-    console.log('🔓 Unlock request for match:', params.id)
+    logger.info('🔓 Unlock request for match:', params.id)
+    logger.info('📊 DataService enabled:', Features.USE_NEW_DATA_SERVICE)
+    logger.info('🚨 ErrorManager enabled:', Features.USE_ERROR_MANAGER)
     
     // Get client session
     const cookieStore = cookies()
@@ -26,6 +124,47 @@ export async function POST(
       return apiResponse.error('Client ID not found')
     }
 
+    // Use new DataService if feature flag is enabled
+    if (Features.USE_NEW_DATA_SERVICE) {
+      logger.info('✨ Using new DataService for unlock operation')
+      
+      try {
+        const dataService = DataService.getInstance()
+        const result = await dataService.unlockMatch(params.id, clientId)
+        
+        return apiResponse.success({
+          success: result.success,
+          message: result.alreadyUnlocked 
+            ? 'Match is already unlocked' 
+            : 'Match unlocked successfully',
+          remainingCredits: result.remainingCredits,
+          alreadyUnlocked: result.alreadyUnlocked
+        })
+      } catch (error) {
+        // Handle specific error types
+        if (error instanceof InsufficientCreditsError) {
+          return apiResponse.error('Insufficient credits. Please purchase more credits.')
+        }
+        if (error instanceof ValidationError) {
+          return apiResponse.error(error.message)
+        }
+        if (error instanceof NotFoundError) {
+          return apiResponse.notFound('Match')
+        }
+        
+        // For any other errors, fall back to legacy if in development
+        if (process.env.NODE_ENV === 'development') {
+          logger.error('❌ DataService error, falling back to legacy:', error)
+          // Continue to legacy code below
+        } else {
+          throw error // Re-throw in production
+        }
+      }
+    }
+
+    // ========== LEGACY CODE (to be removed after full migration) ==========
+    logger.info('📦 Using legacy database operations')
+    
     const supabase = createServiceClient()
 
     // Check client has enough credits
@@ -39,7 +178,7 @@ export async function POST(
       return apiResponse.notFound('Client')
     }
 
-    console.log('📊 Client credits:', client.match_credits)
+    logger.info('📊 Client credits:', client.match_credits)
     
     if (!client.match_credits || client.match_credits < 1) {
       return apiResponse.error('Insufficient credits. Please purchase more credits.')
@@ -53,12 +192,12 @@ export async function POST(
       .single()
 
     if (matchExistsError || !matchExists) {
-      console.error('❌ Match does not exist at all:', matchExistsError)
-      console.error('❌ Match ID:', params.id)
+      logger.error('❌ Match does not exist at all:', matchExistsError)
+      logger.error('❌ Match ID:', params.id)
       return apiResponse.notFound('Match')
     }
 
-    console.log('📋 Match found:', {
+    logger.info('📋 Match found:', {
       matchId: matchExists.id,
       matchClientId: matchExists.client_id,
       currentClientId: clientId,
@@ -83,18 +222,18 @@ export async function POST(
 
       if (brief && brief.client_id === clientId) {
         isAuthorized = true
-        console.log('✅ Match authorized via brief ownership')
+        logger.info('✅ Match authorized via brief ownership')
       }
     }
 
     if (!isAuthorized) {
-      console.error('❌ Match does not belong to this client')
-      console.error('❌ Match client_id:', matchExists.client_id)
-      console.error('❌ Current client_id:', clientId)
+      logger.error('❌ Match does not belong to this client')
+      logger.error('❌ Match client_id:', matchExists.client_id)
+      logger.error('❌ Current client_id:', clientId)
       return apiResponse.error('You are not authorized to unlock this match')
     }
 
-    console.log('🔍 Match status:', match.status)
+    logger.info('🔍 Match status:', match.status)
     
     if (match.status === 'unlocked' || match.status === 'accepted') {
       return apiResponse.success({
@@ -126,7 +265,7 @@ export async function POST(
     // If the match doesn't have a client_id, set it now
     if (!match.client_id) {
       updateData.client_id = clientId
-      console.log('📝 Setting client_id on match record')
+      logger.info('📝 Setting client_id on match record')
     }
     
     const { error: matchUpdateError } = await supabase
@@ -154,7 +293,7 @@ export async function POST(
       })
 
     if (unlockError) {
-      console.error('Error recording unlock:', unlockError)
+      logger.error('Error recording unlock:', unlockError)
     }
 
     // Track this designer as unlocked by this client to prevent future matches
@@ -177,12 +316,12 @@ export async function POST(
         })
       
       if (clientDesignerError) {
-        console.error('Error tracking unlocked designer:', clientDesignerError)
+        logger.error('Error tracking unlocked designer:', clientDesignerError)
       } else {
-        console.log('✅ Tracked designer as unlocked for client')
+        logger.info('✅ Tracked designer as unlocked for client')
       }
     } else {
-      console.log('✅ Designer already tracked as unlocked for this client')
+      logger.info('✅ Designer already tracked as unlocked for this client')
     }
 
     return apiResponse.success({
@@ -191,6 +330,17 @@ export async function POST(
       remainingCredits: client.match_credits - 1
     })
   } catch (error) {
+    // Use new ErrorManager if feature flag is enabled
+    if (Features.USE_ERROR_MANAGER) {
+      logger.info('✨ Using new ErrorManager for error handling')
+      return handleApiErrorNew(error, 'client/matches/[id]/unlock', {
+        clientId,
+        matchId: params.id,
+        operation: 'unlock_match'
+      })
+    }
+    
+    // Legacy error handling
     return handleApiError(error, 'client/matches/[id]/unlock')
   }
 }

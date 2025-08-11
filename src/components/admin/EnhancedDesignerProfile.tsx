@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { DESIGN_CATEGORIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 interface DesignerData {
   id: string
@@ -67,7 +68,7 @@ export function EnhancedDesignerProfile({
     try {
       await onApprove(designer.id)
     } catch (error) {
-      console.error('Failed to approve designer:', error)
+      logger.error('Failed to approve designer:', error)
     } finally {
       setIsProcessing(false)
     }
@@ -79,7 +80,7 @@ export function EnhancedDesignerProfile({
     try {
       await onReject(designer.id)
     } catch (error) {
-      console.error('Failed to reject designer:', error)
+      logger.error('Failed to reject designer:', error)
     } finally {
       setIsProcessing(false)
     }

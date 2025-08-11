@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { logger } from '@/lib/core/logging-service'
 
 export class EmbeddingService {
   private embeddings: Map<string, number[]> = new Map()
@@ -30,7 +31,7 @@ export class EmbeddingService {
       // Convert to 0-100 scale
       return Math.round(similarity * 100)
     } catch (error) {
-      console.error('Embedding calculation error:', error)
+      logger.error('Embedding calculation error:', error)
       return 50 // Fallback score
     }
   }
@@ -203,7 +204,7 @@ export class EmbeddingService {
    * Precompute embeddings for all designers (background job)
    */
   async precomputeDesignerEmbeddings(): Promise<void> {
-    console.log('Starting designer embeddings precomputation...')
+    logger.info('Starting designer embeddings precomputation...')
     
     const { data: designers } = await this.supabase
       .from('designers')
@@ -240,10 +241,10 @@ export class EmbeddingService {
           updated++
         }
       } catch (error) {
-        console.error(`Failed to compute embedding for designer ${designer.id}:`, error)
+        logger.error(`Failed to compute embedding for designer ${designer.id}:`, error)
       }
     }
     
-    console.log(`Embeddings precomputation complete. Updated ${updated} embeddings.`)
+    logger.info(`Embeddings precomputation complete. Updated ${updated} embeddings.`)
   }
 }

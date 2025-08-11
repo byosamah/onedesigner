@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 interface EmailOptions {
   to: string
@@ -33,15 +34,15 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
       return { success: true }
     } else {
       // Development mode - log email instead of sending
-      console.log('📧 Email would be sent:')
-      console.log('To:', to)
-      console.log('Subject:', subject)
-      console.log('Content preview:', (text || html).substring(0, 200) + '...')
+      logger.info('📧 Email would be sent:')
+      logger.info('To:', to)
+      logger.info('Subject:', subject)
+      logger.info('Content preview:', (text || html).substring(0, 200) + '...')
       
       return { success: true }
     }
   } catch (error) {
-    console.error('Email sending error:', error)
+    logger.error('Email sending error:', error)
     return { success: false, error }
   }
 }

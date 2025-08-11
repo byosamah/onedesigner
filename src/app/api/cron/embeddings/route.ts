@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { EmbeddingService } from '@/lib/matching/embedding-service'
 import { createServiceClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
+import { logger } from '@/lib/core/logging-service'
 
 // This endpoint should be called by a cron job service (e.g., Vercel Cron, GitHub Actions, or external service)
 export async function GET(request: NextRequest) {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log('[CRON] Starting embedding precomputation job...')
+    logger.info('[CRON] Starting embedding precomputation job...')
     
     const embeddingService = new EmbeddingService()
     const supabase = createServiceClient()
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
       .limit(50) // Process in batches
     
     if (needsUpdate && needsUpdate.length > 0) {
-      console.log(`[CRON] Updating ${needsUpdate.length} designer embeddings...`)
+      logger.info(`[CRON] Updating ${needsUpdate.length} designer embeddings...`)
       
       for (const row of needsUpdate) {
         await embeddingService.calculateEmbeddingScore(row.designer_id, {
@@ -60,11 +61,11 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    console.log('[CRON] Embedding job completed:', response)
+    logger.info('[CRON] Embedding job completed:', response)
     
     return NextResponse.json(response)
   } catch (error) {
-    console.error('[CRON] Embedding job failed:', error)
+    logger.error('[CRON] Embedding job failed:', error)
     
     return NextResponse.json(
       { 

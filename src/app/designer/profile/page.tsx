@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 // Country and city data - same as application form
 const COUNTRIES = [
@@ -163,10 +164,10 @@ export default function DesignerProfilePage() {
       }
 
       const data = await response.json()
-      console.log('Profile data received:', data.designer)
+      logger.info('Profile data received:', data.designer)
       
       // Log specific fields to debug
-      console.log('Field values:', {
+      logger.info('Field values:', {
         bio: data.designer.bio,
         projectPreferences: data.designer.projectPreferences,
         workingStyle: data.designer.workingStyle,
@@ -210,7 +211,7 @@ export default function DesignerProfilePage() {
       setFormData(profileWithDefaults)
 
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      logger.error('Error fetching profile:', error)
       setError(error instanceof Error ? error.message : 'Failed to load profile')
     } finally {
       setIsLoading(false)
@@ -302,7 +303,7 @@ export default function DesignerProfilePage() {
       setTimeout(() => setSuccessMessage(null), 3000)
 
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error('Error updating profile:', error)
       setError(error instanceof Error ? error.message : 'Failed to update profile')
     } finally {
       setIsSaving(false)
@@ -317,7 +318,7 @@ export default function DesignerProfilePage() {
       })
       router.push('/designer/login')
     } catch (error) {
-      console.error('Signout error:', error)
+      logger.error('Signout error:', error)
     }
   }
 

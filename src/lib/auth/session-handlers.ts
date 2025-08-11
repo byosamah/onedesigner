@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 /**
  * Centralized session management for all user types
@@ -37,15 +38,15 @@ export async function getSession(type: keyof typeof AUTH_COOKIES): Promise<Sessi
   try {
     const cookieStore = cookies()
     const cookieName = AUTH_COOKIES[type]
-    console.log(`🍪 Looking for cookie: ${cookieName}`)
+    logger.info(`🍪 Looking for cookie: ${cookieName}`)
     
     const sessionCookie = cookieStore.get(cookieName)
-    console.log(`🍪 Cookie found: ${sessionCookie ? 'Yes' : 'No'}`)
+    logger.info(`🍪 Cookie found: ${sessionCookie ? 'Yes' : 'No'}`)
     
     if (!sessionCookie) return null
     
     const session = JSON.parse(sessionCookie.value)
-    console.log(`🍪 Session parsed:`, session)
+    logger.info(`🍪 Session parsed:`, session)
     
     // Validate session structure
     if (!session.email) return null
@@ -55,7 +56,7 @@ export async function getSession(type: keyof typeof AUTH_COOKIES): Promise<Sessi
     
     return session
   } catch (error) {
-    console.error(`Error parsing ${type} session:`, error)
+    logger.error(`Error parsing ${type} session:`, error)
     return null
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { logger } from '@/lib/core/logging-service'
 
 export default function ClientBriefContactPage() {
   const router = useRouter()
@@ -27,7 +28,7 @@ export default function ClientBriefContactPage() {
         return
       }
     } catch (error) {
-      console.error('Session check error:', error)
+      logger.error('Session check error:', error)
       router.push('/')
     }
   }
@@ -75,7 +76,7 @@ export default function ClientBriefContactPage() {
       // Redirect to match page
       router.push('/match')
     } catch (error) {
-      console.error('Error submitting brief:', error)
+      logger.error('Error submitting brief:', error)
       alert('Failed to create brief. Please try again.')
       setIsSubmitting(false)
     }

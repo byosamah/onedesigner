@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 interface Designer {
   id: string
@@ -85,7 +86,7 @@ export default function AdminDashboardPage() {
 
       await Promise.all([fetchDesigners(), fetchStats()])
     } catch (error) {
-      console.error('Auth check error:', error)
+      logger.error('Auth check error:', error)
       router.push('/admin')
     }
   }
@@ -101,7 +102,7 @@ export default function AdminDashboardPage() {
       const data = await response.json()
       setDesigners(data.designers || [])
     } catch (error) {
-      console.error('Error fetching designers:', error)
+      logger.error('Error fetching designers:', error)
     } finally {
       setIsLoading(false)
     }
@@ -118,7 +119,7 @@ export default function AdminDashboardPage() {
       const data = await response.json()
       setStats(data)
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      logger.error('Error fetching stats:', error)
     }
   }
 
@@ -135,7 +136,7 @@ export default function AdminDashboardPage() {
       await fetchStats()
       alert('Designer approved successfully!')
     } catch (error) {
-      console.error('Error approving designer:', error)
+      logger.error('Error approving designer:', error)
       alert('Failed to approve designer')
     }
   }
@@ -162,7 +163,7 @@ export default function AdminDashboardPage() {
       setRejectionReason('')
       alert('Designer rejected')
     } catch (error) {
-      console.error('Error rejecting designer:', error)
+      logger.error('Error rejecting designer:', error)
       alert('Failed to reject designer')
     }
   }
@@ -174,7 +175,7 @@ export default function AdminDashboardPage() {
         credentials: 'include'
       })
     } catch (error) {
-      console.error('Signout error:', error)
+      logger.error('Signout error:', error)
     }
     
     sessionStorage.removeItem('adminEmail')

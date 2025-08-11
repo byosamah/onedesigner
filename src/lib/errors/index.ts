@@ -4,6 +4,7 @@
  */
 
 import { toast } from '@/lib/toast'
+import { logger } from '@/lib/core/logging-service'
 
 export enum ErrorType {
   NETWORK = 'NETWORK',
@@ -55,7 +56,7 @@ export const handleError = (error: unknown, showToast = true): AppError => {
 
   // Log error to console in development
   if (process.env.NODE_ENV === 'development') {
-    console.error('Error handled:', appError)
+    logger.error('Error handled:', appError)
   }
 
   // Show user-friendly toast message

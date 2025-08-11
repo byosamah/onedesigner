@@ -2,6 +2,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { createAIProvider } from '@/lib/ai'
 import { generateEnhancedMatchingPrompt, EnhancedMatchingContext } from '@/lib/ai/enhanced-matching-prompt'
 import { DESIGN_CATEGORIES, BUDGET_RANGES, TIMELINE_TYPES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export interface EnhancedDesignMatch {
   score: number
@@ -49,33 +50,33 @@ export class EnhancedDesignMatcher {
   private aiProvider = createAIProvider()
 
   async findMatches(brief: ClientBrief): Promise<EnhancedDesignMatch[]> {
-    console.log('=== ENHANCED MATCHING START ===')
-    console.log('Brief category:', brief.design_category)
-    console.log('Brief timeline:', brief.timeline_type)
-    console.log('Brief budget:', brief.budget_range)
+    logger.info('=== ENHANCED MATCHING START ===')
+    logger.info('Brief category:', brief.design_category)
+    logger.info('Brief timeline:', brief.timeline_type)
+    logger.info('Brief budget:', brief.budget_range)
 
     try {
       // 1. CATEGORY FILTERING (Hard requirement)
       const categoryMatches = await this.filterByCategory(brief.design_category)
-      console.log(`Found ${categoryMatches.length} designers in category`)
+      logger.info(`Found ${categoryMatches.length} designers in category`)
 
       if (categoryMatches.length === 0) {
-        console.log('No designers found in category')
+        logger.info('No designers found in category')
         return []
       }
 
       // 2. EXCLUDE PREVIOUSLY MATCHED DESIGNERS
       const availableDesigners = await this.excludePreviousMatches(categoryMatches, brief.client_id)
-      console.log(`${availableDesigners.length} designers available after excluding previous matches`)
+      logger.info(`${availableDesigners.length} designers available after excluding previous matches`)
 
       if (availableDesigners.length === 0) {
-        console.log('All designers in category already matched')
+        logger.info('All designers in category already matched')
         return []
       }
 
       // 3. BUDGET & TIMELINE FILTERING
       const feasibleMatches = this.filterByBudgetTimeline(availableDesigners, brief)
-      console.log(`${feasibleMatches.length} designers after budget/timeline filter`)
+      logger.info(`${feasibleMatches.length} designers after budget/timeline filter`)
 
       // 4. AI SCORING FOR EACH DESIGNER
       const matchPromises = feasibleMatches.map(designer => 
@@ -92,16 +93,16 @@ export class EnhancedDesignMatcher {
         .sort((a, b) => b.score - a.score)
         .slice(0, 3)
 
-      console.log(`=== FINAL MATCHES ===`)
+      logger.info(`=== FINAL MATCHES ===`)
       topMatches.forEach((match, index) => {
-        console.log(`${index + 1}. ${match.designer.firstName} ${match.designer.lastName} - ${match.score}% (${match.confidence})`)
-        console.log(`   Summary: ${match.matchSummary}`)
+        logger.info(`${index + 1}. ${match.designer.firstName} ${match.designer.lastName} - ${match.score}% (${match.confidence})`)
+        logger.info(`   Summary: ${match.matchSummary}`)
       })
 
       return topMatches
 
     } catch (error) {
-      console.error('Enhanced matching failed:', error)
+      logger.error('Enhanced matching failed:', error)
       return []
     }
   }
@@ -128,7 +129,7 @@ export class EnhancedDesignMatcher {
       .or(`primary_categories.cs.{${designCategory}}, secondary_categories.cs.{${designCategory}}`)
 
     if (error) {
-      console.error('Error filtering by category:', error)
+      logger.error('Error filtering by category:', error)
       return []
     }
 
@@ -239,7 +240,7 @@ export class EnhancedDesignMatcher {
       }
 
     } catch (error) {
-      console.error(`AI scoring failed for designer ${designer.id}:`, error)
+      logger.error(`AI scoring failed for designer ${designer.id}:`, error)
       return null
     }
   }

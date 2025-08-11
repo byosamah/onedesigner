@@ -1,9 +1,10 @@
 import { API_ENDPOINTS } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function sendOTPEmail(email: string, otp: string) {
-  console.log('Attempting to send OTP email to:', email)
-  console.log('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>')
-  console.log('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
+  logger.info('Attempting to send OTP email to:', email)
+  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>')
+  logger.info('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
   
   try {
     const response = await fetch(API_ENDPOINTS.RESEND, {
@@ -39,11 +40,11 @@ export async function sendOTPEmail(email: string, otp: string) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Resend API error response:', response.status, errorText)
+      logger.error('Resend API error response:', response.status, errorText)
       
       try {
         const error = JSON.parse(errorText)
-        console.error('Parsed error:', error)
+        logger.error('Parsed error:', error)
         throw new Error(error.message || error.error || 'Failed to send email')
       } catch (e) {
         throw new Error(`Resend API error (${response.status}): ${errorText}`)
@@ -51,19 +52,19 @@ export async function sendOTPEmail(email: string, otp: string) {
     }
 
     const data = await response.json()
-    console.log('OTP email sent successfully:', data.id)
+    logger.info('OTP email sent successfully:', data.id)
     return true
   } catch (error) {
-    console.error('Failed to send OTP email:', error)
+    logger.error('Failed to send OTP email:', error)
     
     // In development, still log the OTP for testing
     if (process.env.NODE_ENV === 'development') {
-      console.log('\n' + '='.repeat(50))
-      console.log('🎨 OneDesigner OTP Code (Email failed, showing for testing)')
-      console.log('='.repeat(50))
-      console.log(`Email: ${email}`)
-      console.log(`Code: ${otp}`)
-      console.log('='.repeat(50) + '\n')
+      logger.info('\n' + '='.repeat(50))
+      logger.info('🎨 OneDesigner OTP Code (Email failed, showing for testing)')
+      logger.info('='.repeat(50))
+      logger.info(`Email: ${email}`)
+      logger.info(`Code: ${otp}`)
+      logger.info('='.repeat(50) + '\n')
     }
     
     return false

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { sendEmail } from '@/lib/email/send-email'
 import { matchAcceptedEmail } from '@/lib/email/templates/match-accepted'
 import { matchDeclinedEmail } from '@/lib/email/templates/match-declined'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -122,7 +123,7 @@ export async function POST(
         : 'Request declined'
     })
   } catch (error) {
-    console.error('Error responding to request:', error)
+    logger.error('Error responding to request:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to respond' },
       { status: 500 }

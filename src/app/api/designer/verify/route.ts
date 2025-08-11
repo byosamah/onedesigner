@@ -6,6 +6,7 @@ import { sendEmail } from '@/lib/email/send-email'
 import { welcomeDesignerEmail } from '@/lib/email/templates/welcome-designer'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating designer:', error)
+      logger.error('Error creating designer:', error)
       return apiResponse.serverError('Failed to create designer profile', error)
     }
 

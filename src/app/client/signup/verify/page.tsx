@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function ClientSignupVerifyPage() {
   const router = useRouter()
@@ -51,7 +52,7 @@ export default function ClientSignupVerifyPage() {
       }
 
       if (data.success) {
-        console.log('✅ Verification successful, data:', data)
+        logger.info('✅ Verification successful, data:', data)
         
         // Clear signup storage
         sessionStorage.removeItem('clientSignupEmail')
@@ -63,7 +64,7 @@ export default function ClientSignupVerifyPage() {
         }, 100)
       }
     } catch (error) {
-      console.error('Verification error:', error)
+      logger.error('Verification error:', error)
       setError(error instanceof Error ? error.message : 'Invalid or expired code')
       setOtp('')
     } finally {

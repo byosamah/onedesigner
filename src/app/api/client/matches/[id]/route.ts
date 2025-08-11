@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function GET(
   request: NextRequest,
@@ -66,7 +67,7 @@ export async function GET(
       .single()
 
     if (error || !match) {
-      console.error('Error fetching match:', error)
+      logger.error('Error fetching match:', error)
       return apiResponse.notFound('Match')
     }
 

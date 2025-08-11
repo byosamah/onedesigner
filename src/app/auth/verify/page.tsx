@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { OTPInput, LoadingButton } from '@/components/forms'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function VerifyPage() {
   const router = useRouter()
@@ -67,7 +68,7 @@ export default function VerifyPage() {
         alert('New code sent! Check your email.')
       }
     } catch (error) {
-      console.error('Error resending code:', error)
+      logger.error('Error resending code:', error)
     }
   }
 

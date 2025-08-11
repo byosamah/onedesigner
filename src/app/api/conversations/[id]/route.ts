@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function GET(
   request: NextRequest,
@@ -45,7 +46,7 @@ export async function GET(
       .single()
 
     if (convError || !conversation) {
-      console.error('Conversation not found:', convError)
+      logger.error('Conversation not found:', convError)
       return apiResponse.notFound('Conversation')
     }
 

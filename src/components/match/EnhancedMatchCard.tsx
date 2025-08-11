@@ -5,6 +5,7 @@ import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { PRICING_PACKAGES } from '@/lib/constants'
 import { MessageModal } from '@/components/messaging/MessageModal'
+import { logger } from '@/lib/core/logging-service'
 
 interface MatchData {
   id: string
@@ -80,7 +81,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
     try {
       await onUnlock(match.id)
     } catch (error) {
-      console.error('Failed to unlock designer:', error)
+      logger.error('Failed to unlock designer:', error)
     } finally {
       setIsUnlocking(false)
     }
@@ -93,7 +94,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
     try {
       await onFindNewMatch()
     } catch (error) {
-      console.error('Failed to find new match:', error)
+      logger.error('Failed to find new match:', error)
     } finally {
       setIsFindingNewMatch(false)
     }
@@ -120,7 +121,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
       // Redirect to checkout
       window.location.href = data.checkoutUrl
     } catch (error) {
-      console.error('Purchase error:', error)
+      logger.error('Purchase error:', error)
       setPurchasingPackage(null)
     }
   }
@@ -505,7 +506,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                     alert('Failed to create checkout. Please try again.')
                   }
                 } catch (error) {
-                  console.error('Checkout error:', error)
+                  logger.error('Checkout error:', error)
                   alert('Failed to create checkout. Please try again.')
                 }
               }}
@@ -545,7 +546,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                     alert('Failed to create checkout. Please try again.')
                   }
                 } catch (error) {
-                  console.error('Checkout error:', error)
+                  logger.error('Checkout error:', error)
                   alert('Failed to create checkout. Please try again.')
                 }
               }}
@@ -594,7 +595,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                     alert('Failed to create checkout. Please try again.')
                   }
                 } catch (error) {
-                  console.error('Checkout error:', error)
+                  logger.error('Checkout error:', error)
                   alert('Failed to create checkout. Please try again.')
                 }
               }}
@@ -865,7 +866,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             // Success - redirect to conversation or show success message
             window.location.href = `/client/conversations/${data.conversationId}`
           } catch (error) {
-            console.error('Error sending message:', error)
+            logger.error('Error sending message:', error)
             throw error
           }
         }}

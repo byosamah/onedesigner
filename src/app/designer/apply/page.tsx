@@ -7,6 +7,7 @@ import { LoadingButton } from '@/components/forms'
 import { LoadingSpinner } from '@/components/shared'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { logger } from '@/lib/core/logging-service'
 
 // Comprehensive list of countries
 const COUNTRIES = [
@@ -235,31 +236,84 @@ export default function DesignerApplyPage() {
   useEffect(() => {
     setMounted(true)
     
-    // Check if designer is authenticated
+    // Check if designer is authenticated and their status
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/designer/check')
         const data = await response.json()
         
-        console.log('🔍 Designer auth check response:', response.status)
-        console.log('🔍 Designer auth check data:', data)
+        logger.info('🔍 Designer auth check response:', response.status)
+        logger.info('🔍 Designer auth check data:', data)
         
         if (data.exists && data.designer?.email) {
-          console.log('✅ Designer authenticated:', data.designer.email)
+          const designer = data.designer
+          logger.info('✅ Designer authenticated:', designer.email)
+          logger.info('📊 Designer status:', {
+            isApproved: designer.is_approved,
+            hasName: !!(designer.first_name && designer.last_name),
+            hasPortfolio: !!designer.portfolio_url,
+            hasTitle: !!designer.title
+          })
+          
+          // Check designer status and redirect accordingly
+          if (designer.is_approved) {
+            logger.info('✅ Designer already approved, redirecting to dashboard')
+            router.push('/designer/dashboard')
+            return
+          }
+          
+          // Check if application is complete but pending approval
+          if (designer.first_name && designer.last_name && designer.portfolio_url && designer.title) {
+            logger.info('⏳ Application pending approval, redirecting to pending page')
+            router.push('/designer/application-pending')
+            return
+          }
+          
+          // Otherwise, let them complete/edit the application
+          logger.info('📝 Designer needs to complete application')
           setIsAuthenticated(true)
-          setDesignerEmail(data.designer.email)
-          // Update formData with the email
-          setFormData(prev => ({ ...prev, email: data.designer.email }))
+          setDesignerEmail(designer.email)
+          
+          // Pre-fill form with existing data
+          setFormData(prev => ({
+            ...prev,
+            email: designer.email,
+            firstName: designer.first_name || '',
+            lastName: designer.last_name || '',
+            country: designer.country || '',
+            city: designer.city || '',
+            title: designer.title || '',
+            yearsExperience: designer.years_experience || '',
+            portfolioUrl: designer.portfolio_url || '',
+            bio: designer.bio || '',
+            profilePicture: designer.profile_picture || '',
+            phone: designer.phone || '',
+            websiteUrl: designer.website_url || '',
+            dribbbleUrl: designer.dribbble_url || '',
+            behanceUrl: designer.behance_url || '',
+            linkedinUrl: designer.linkedin_url || '',
+            availability: designer.availability || 'immediate',
+            communicationStyle: designer.communication_style || 'direct',
+            timezone: designer.timezone || ''
+          }))
+          
+          // Pre-fill arrays if they exist
+          if (designer.styles) setFormData(prev => ({ ...prev, styles: designer.styles }))
+          if (designer.project_types) setFormData(prev => ({ ...prev, projectTypes: designer.project_types }))
+          if (designer.industries) setFormData(prev => ({ ...prev, industries: designer.industries }))
+          if (designer.specializations) setFormData(prev => ({ ...prev, specializations: designer.specializations }))
+          if (designer.software_skills) setFormData(prev => ({ ...prev, softwareSkills: designer.software_skills }))
+          
           setIsCheckingAuth(false)
         } else {
-          console.log('❌ Not authenticated, data:', data)
-          console.log('❌ Redirecting to signup')
+          logger.info('❌ Not authenticated, data:', data)
+          logger.info('❌ Redirecting to signup')
           setTimeout(() => {
             router.push('/designer/signup')
           }, 100)
         }
       } catch (error) {
-        console.error('Auth check error:', error)
+        logger.error('Auth check error:', error)
         setTimeout(() => {
           router.push('/designer/signup')
         }, 100)
@@ -519,7 +573,7 @@ export default function DesignerApplyPage() {
 
   const handleSubmit = async () => {
     setIsLoading(true)
-    console.log('Submitting form data:', formData)
+    logger.info('Submitting form data:', formData)
     try {
       const response = await fetch('/api/designer/apply', {
         method: 'POST',
@@ -530,7 +584,7 @@ export default function DesignerApplyPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        console.error('Submission error details:', data.details)
+        logger.error('Submission error details:', data.details)
         alert(data.error || 'Failed to submit application')
         throw new Error(data.error || 'Failed to submit application')
       }
@@ -538,7 +592,7 @@ export default function DesignerApplyPage() {
       // Navigate to success page since designer is already authenticated
       router.push('/designer/apply/success')
     } catch (error) {
-      console.error('Error submitting application:', error)
+      logger.error('Error submitting application:', error)
       // Handle error (show toast, etc)
     } finally {
       setIsLoading(false)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateSession } from '@/lib/auth/session-handlers'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { logger } from '@/lib/core/logging-service'
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB in bytes
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
         })
 
       if (uploadError) {
-        console.error(`Error uploading image ${i + 1}:`, uploadError)
+        logger.error(`Error uploading image ${i + 1}:`, uploadError)
         return apiResponse.serverError(`Failed to upload image ${i + 1}`)
       }
 
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
       .eq('id', designerId)
 
     if (updateError) {
-      console.error('Error updating designer portfolio:', updateError)
+      logger.error('Error updating designer portfolio:', updateError)
       return apiResponse.serverError('Failed to save portfolio images')
     }
 
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Portfolio upload error:', error)
+    logger.error('Portfolio upload error:', error)
     return handleApiError(error, 'designer/portfolio/images')
   }
 }
@@ -115,7 +116,7 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error fetching portfolio images:', error)
+      logger.error('Error fetching portfolio images:', error)
       return apiResponse.serverError('Failed to fetch portfolio images')
     }
 
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Portfolio fetch error:', error)
+    logger.error('Portfolio fetch error:', error)
     return handleApiError(error, 'designer/portfolio/images')
   }
 }
@@ -159,7 +160,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', designerId)
 
     if (updateError) {
-      console.error('Error removing portfolio image:', updateError)
+      logger.error('Error removing portfolio image:', updateError)
       return apiResponse.serverError('Failed to remove portfolio image')
     }
 
@@ -168,7 +169,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Portfolio delete error:', error)
+    logger.error('Portfolio delete error:', error)
     return handleApiError(error, 'designer/portfolio/images')
   }
 }

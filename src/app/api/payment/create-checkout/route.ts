@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createCheckout } from '@/lib/lemonsqueezy/checkout'
 import { ProductKey } from '@/lib/lemonsqueezy/client'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       checkoutUrl 
     })
   } catch (error) {
-    console.error('Error creating checkout:', error)
+    logger.error('Error creating checkout:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to create checkout' },
       { status: 500 }

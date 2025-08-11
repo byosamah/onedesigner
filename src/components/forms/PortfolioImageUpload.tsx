@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 interface PortfolioImageUploadProps {
   isDarkMode: boolean
@@ -55,7 +56,7 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: Por
       onImagesChange(newImages)
 
     } catch (error) {
-      console.error('Upload error:', error)
+      logger.error('Upload error:', error)
       alert(error instanceof Error ? error.message : 'Upload failed')
     } finally {
       setUploadingIndex(null)
@@ -81,7 +82,7 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: Por
       onImagesChange(newImages)
 
     } catch (error) {
-      console.error('Remove error:', error)
+      logger.error('Remove error:', error)
       alert(error instanceof Error ? error.message : 'Remove failed')
     } finally {
       setUploadingIndex(null)

@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 const THEME_STORAGE_KEY = 'onedesigner-theme'
 
@@ -35,7 +36,7 @@ export const useTheme = (defaultDarkMode?: boolean) => {
         setIsDarkMode(getSystemPreference())
       }
     } catch (error) {
-      console.warn('Failed to load theme from localStorage:', error)
+      logger.warn('Failed to load theme from localStorage:', error)
     }
   }, [])
 
@@ -44,7 +45,7 @@ export const useTheme = (defaultDarkMode?: boolean) => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? 'dark' : 'light')
     } catch (error) {
-      console.warn('Failed to save theme to localStorage:', error)
+      logger.warn('Failed to save theme to localStorage:', error)
     }
   }, [isDarkMode])
 

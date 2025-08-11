@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerVerifyPage() {
   const router = useRouter()
@@ -86,7 +87,7 @@ export default function DesignerVerifyPage() {
         alert('New code sent! Check your email.')
       }
     } catch (error) {
-      console.error('Error resending code:', error)
+      logger.error('Error resending code:', error)
     }
   }
 

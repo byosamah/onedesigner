@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { OTP_CONFIG } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 // Generate a 6-digit OTP
 export function generateOTP(): string {
@@ -13,7 +14,7 @@ export async function createCustomOTP(email: string) {
   const otp = generateOTP()
   const expiresAt = new Date(Date.now() + OTP_CONFIG.EXPIRY_TIME) // 10 minutes
 
-  console.log('Creating OTP for email:', email)
+  logger.info('Creating OTP for email:', email)
 
   // Clean up old OTPs for this email
   const { error: deleteError } = await supabase
@@ -23,7 +24,7 @@ export async function createCustomOTP(email: string) {
     .eq('type', 'otp')
 
   if (deleteError) {
-    console.error('Error deleting old OTPs:', deleteError)
+    logger.error('Error deleting old OTPs:', deleteError)
   }
 
   // Insert new OTP
@@ -37,11 +38,11 @@ export async function createCustomOTP(email: string) {
     })
 
   if (error) {
-    console.error('Error creating OTP in auth_tokens:', error)
+    logger.error('Error creating OTP in auth_tokens:', error)
     throw error
   }
 
-  console.log('OTP created successfully:', otp)
+  logger.info('OTP created successfully:', otp)
   return otp
 }
 

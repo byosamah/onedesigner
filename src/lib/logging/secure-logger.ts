@@ -1,3 +1,5 @@
+import { logger } from '@/lib/core/logging-service'
+
 /**
  * Secure logging utility that sanitizes sensitive data
  */
@@ -85,19 +87,19 @@ export class SecureLogger {
 
   debug(message: string, context?: LogContext): void {
     if (this.shouldLog('debug')) {
-      console.debug(this.formatMessage('debug', message, context))
+      logger.debug(this.formatMessage('debug', message, context))
     }
   }
 
   info(message: string, context?: LogContext): void {
     if (this.shouldLog('info')) {
-      console.info(this.formatMessage('info', message, context))
+      logger.info(this.formatMessage('info', message, context))
     }
   }
 
   warn(message: string, context?: LogContext): void {
     if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage('warn', message, context))
+      logger.warn(this.formatMessage('warn', message, context))
     }
   }
 
@@ -111,7 +113,7 @@ export class SecureLogger {
           stack: error?.stack
         }
       }
-      console.error(this.formatMessage('error', message, errorContext))
+      logger.error(this.formatMessage('error', message, errorContext))
     }
   }
 

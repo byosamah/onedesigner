@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,11 +64,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating brief:', error)
+      logger.error('Error creating brief:', error)
       throw error
     }
 
-    console.log('Brief created successfully:', brief)
+    logger.info('Brief created successfully:', brief)
 
     // Trigger matching process
     try {
@@ -79,10 +80,10 @@ export async function POST(request: NextRequest) {
 
       if (matchResponse.ok) {
         const matchData = await matchResponse.json()
-        console.log('Match found:', matchData)
+        logger.info('Match found:', matchData)
       }
     } catch (matchError) {
-      console.error('Error creating match:', matchError)
+      logger.error('Error creating match:', matchError)
       // Don't fail the whole request if matching fails
     }
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 import { MatchRequestCard } from '@/components/designer/MatchRequestCard'
+import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedDesignerRequest {
   id: string
@@ -110,9 +111,9 @@ export default function DesignerDashboardPage() {
       const requestsData = await requestsResponse.json()
       const matchRequestsData = matchRequestsResponse.ok ? await matchRequestsResponse.json() : { data: [] }
 
-      console.log('Session data:', sessionData)
-      console.log('Requests data:', requestsData)
-      console.log('Match requests data:', matchRequestsData)
+      logger.info('Session data:', sessionData)
+      logger.info('Requests data:', requestsData)
+      logger.info('Match requests data:', matchRequestsData)
 
       if (!sessionData.designer) {
         throw new Error('Designer data not found in session response')
@@ -123,7 +124,7 @@ export default function DesignerDashboardPage() {
       setMatchRequests(matchRequestsData.data || [])
 
     } catch (error) {
-      console.error('Dashboard error:', error)
+      logger.error('Dashboard error:', error)
       setError(error instanceof Error ? error.message : 'Failed to load dashboard')
     } finally {
       setIsLoading(false)
@@ -151,7 +152,7 @@ export default function DesignerDashboardPage() {
       setSelectedRequest(null)
 
     } catch (error) {
-      console.error('Response error:', error)
+      logger.error('Response error:', error)
       alert(error instanceof Error ? error.message : 'Failed to respond to request')
     }
   }
@@ -180,7 +181,7 @@ export default function DesignerDashboardPage() {
       alert('Match request accepted! The client will be notified.')
 
     } catch (error) {
-      console.error('Accept error:', error)
+      logger.error('Accept error:', error)
       alert(error instanceof Error ? error.message : 'Failed to accept request')
     }
   }
@@ -205,7 +206,7 @@ export default function DesignerDashboardPage() {
       await fetchDashboardData()
 
     } catch (error) {
-      console.error('Decline error:', error)
+      logger.error('Decline error:', error)
       alert(error instanceof Error ? error.message : 'Failed to decline request')
     }
   }
@@ -218,7 +219,7 @@ export default function DesignerDashboardPage() {
       })
       router.push('/designer/login')
     } catch (error) {
-      console.error('Signout error:', error)
+      logger.error('Signout error:', error)
     }
   }
 

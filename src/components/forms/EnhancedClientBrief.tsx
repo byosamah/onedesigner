@@ -7,6 +7,7 @@ import { CategorySelector } from './CategorySelector'
 import { RadioGroup } from './RadioGroup'
 import { MultiSelect } from './MultiSelect'
 import { ProgressBar } from './ProgressBar'
+import { logger } from '@/lib/core/logging-service'
 import { 
   DESIGN_CATEGORIES, 
   TIMELINE_TYPES, 
@@ -251,7 +252,7 @@ export function EnhancedClientBrief({
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
-      console.error('Step 3 validation failed. Errors:', errors)
+      logger.error('Step 3 validation failed. Errors:', errors)
       // Show alert to user about validation errors
       const errorMessages = Object.values(errors).join('\n')
       alert('Please complete all required fields:\n\n' + errorMessages)
@@ -266,7 +267,7 @@ export function EnhancedClientBrief({
     try {
       await onSubmit(formData)
     } catch (error) {
-      console.error('Failed to submit brief:', error)
+      logger.error('Failed to submit brief:', error)
       // Re-throw to let parent handle the error
       throw error
     } finally {

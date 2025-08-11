@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { logger } from '@/lib/core/logging-service'
 
 export default function DebugSessionPage() {
   const [sessionData, setSessionData] = useState<any>({})
@@ -40,7 +41,7 @@ export default function DebugSessionPage() {
     // First ensure we have a session
     const response = await fetch('/api/auth/session')
     const session = await response.json()
-    console.log('Current session:', session)
+    logger.info('Current session:', session)
     
     if (!session.clientId) {
       alert('No client session found. Please go through the normal flow first.')
@@ -61,7 +62,7 @@ export default function DebugSessionPage() {
     }
     
     const { brief } = await briefResponse.json()
-    console.log('Created brief:', brief)
+    logger.info('Created brief:', brief)
     
     // Now test match
     const matchResponse = await fetch('/api/match/find', {
@@ -72,7 +73,7 @@ export default function DebugSessionPage() {
     })
     
     const matchText = await matchResponse.text()
-    console.log('Match response:', matchResponse.status, matchText)
+    logger.info('Match response:', matchResponse.status, matchText)
     
     if (matchResponse.ok) {
       alert('Match found! Check console for details.')

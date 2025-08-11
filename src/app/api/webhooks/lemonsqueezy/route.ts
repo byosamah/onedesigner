@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/core/logging-service'
 
 // Webhook event types we care about (one-time payments only)
 const RELEVANT_EVENTS = [
@@ -23,14 +24,14 @@ function verifyWebhookSignature(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🎯 Webhook received at:', new Date().toISOString())
+    logger.info('🎯 Webhook received at:', new Date().toISOString())
     const body = await request.text()
     const signature = request.headers.get('x-signature') || ''
     const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
 
     // Verify webhook signature - MANDATORY for security
     if (!secret) {
-      console.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not configured!')
+      logger.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not configured!')
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }
@@ -38,14 +39,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verifyWebhookSignature(body, signature, secret)) {
-      console.error('🚨 SECURITY ALERT: Webhook signature verification failed')
+      logger.error('🚨 SECURITY ALERT: Webhook signature verification failed')
       return NextResponse.json(
         { error: 'Invalid signature' },
         { status: 401 }
       )
     }
 
-    console.log('✅ Webhook signature verified')
+    logger.info('✅ Webhook signature verified')
 
     const event = JSON.parse(body)
     const eventType = event.meta.event_name
@@ -62,12 +63,12 @@ export async function POST(request: NextRequest) {
         // Custom data is in meta.custom_data for webhooks
         const customData = event.meta?.custom_data
         
-        console.log('📦 Processing order:', order.id)
-        console.log('📝 Custom data from webhook:', customData)
+        logger.info('📦 Processing order:', order.id)
+        logger.info('📝 Custom data from webhook:', customData)
         
         if (!customData?.client_id || !customData?.credits) {
-          console.error('❌ Missing custom data in webhook')
-          console.error('Meta:', event.meta)
+          logger.error('❌ Missing custom data in webhook')
+          logger.error('Meta:', event.meta)
           break
         }
 
@@ -89,13 +90,13 @@ export async function POST(request: NextRequest) {
             .eq('id', client.id)
           
           if (updateError) {
-            console.error('Failed to update client credits:', updateError)
+            logger.error('Failed to update client credits:', updateError)
             throw new Error('Failed to update client credits')
           }
           
-          console.log(`✅ Credits updated: Client ${client.id} now has ${newCredits} credits (added ${credits})`)
+          logger.info(`✅ Credits updated: Client ${client.id} now has ${newCredits} credits (added ${credits})`)
         } else {
-          console.error('❌ Client not found with ID:', customData.client_id)
+          logger.error('❌ Client not found with ID:', customData.client_id)
           throw new Error('Client not found')
         }
 
@@ -114,11 +115,11 @@ export async function POST(request: NextRequest) {
           })
         
         if (paymentError) {
-          console.error('Failed to record payment:', paymentError)
+          logger.error('Failed to record payment:', paymentError)
           // Don't throw here - credits were already added
-          console.warn('⚠️ Payment recorded to database failed, but credits were added')
+          logger.warn('⚠️ Payment recorded to database failed, but credits were added')
         } else {
-          console.log(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
+          logger.info(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
         }
 
         // If there's a specific match to unlock
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
               .update({ status: 'unlocked' })
               .eq('id', customData.match_id)
             
-            console.log(`✅ Match ${customData.match_id} unlocked`)
+            logger.info(`✅ Match ${customData.match_id} unlocked`)
             
             // Track this designer as unlocked by this client to prevent future matches
             // First check if the record already exists
@@ -167,17 +168,17 @@ export async function POST(request: NextRequest) {
                 })
               
               if (clientDesignerError) {
-                console.error('Error tracking unlocked designer:', clientDesignerError)
+                logger.error('Error tracking unlocked designer:', clientDesignerError)
               } else {
-                console.log('✅ Tracked designer as unlocked for client')
+                logger.info('✅ Tracked designer as unlocked for client')
               }
             }
           } else {
-            console.log(`⚠️ Match ID ${customData.match_id} not found, credits added but no specific match unlocked`)
+            logger.info(`⚠️ Match ID ${customData.match_id} not found, credits added but no specific match unlocked`)
           }
         }
 
-        console.log(`Order ${order.id} processed: ${credits} credits added to client ${customData.client_id}`)
+        logger.info(`Order ${order.id} processed: ${credits} credits added to client ${customData.client_id}`)
         break
       }
 
@@ -206,7 +207,7 @@ export async function POST(request: NextRequest) {
               .update({ match_credits: newCredits })
               .eq('id', client.id)
             
-            console.log(`✅ Refund processed: Removed ${payment.credits_purchased} credits from client ${client.id}`)
+            logger.info(`✅ Refund processed: Removed ${payment.credits_purchased} credits from client ${client.id}`)
           }
         }
         
@@ -216,14 +217,14 @@ export async function POST(request: NextRequest) {
           .update({ status: 'refunded' })
           .eq('order_id', order.id)
         
-        console.log(`Order ${order.id} refunded`)
+        logger.info(`Order ${order.id} refunded`)
         break
       }
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook error:', error)
+    logger.error('Webhook error:', error)
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 500 }

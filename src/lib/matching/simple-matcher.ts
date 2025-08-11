@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/core/logging-service'
 
 export interface SimpleMatch {
   designer: any
@@ -10,8 +11,8 @@ export class SimpleMatcher {
   private supabase = createServiceClient()
 
   async findMatches(brief: any): Promise<SimpleMatch[]> {
-    console.log('=== SIMPLE MATCHING START ===')
-    console.log('Looking for designers...')
+    logger.info('=== SIMPLE MATCHING START ===')
+    logger.info('Looking for designers...')
 
     try {
       // Get all approved and verified designers
@@ -23,11 +24,11 @@ export class SimpleMatcher {
         .neq('availability', 'busy')
 
       if (error || !designers || designers.length === 0) {
-        console.log('No available designers found')
+        logger.info('No available designers found')
         return []
       }
 
-      console.log(`Found ${designers.length} available designers`)
+      logger.info(`Found ${designers.length} available designers`)
 
       // Exclude already matched designers (only if client_id exists)
       let availableDesigners = designers
@@ -42,7 +43,7 @@ export class SimpleMatcher {
         availableDesigners = designers.filter(d => !excludedIds.includes(d.id))
 
         if (availableDesigners.length === 0) {
-          console.log('All designers already matched with this client')
+          logger.info('All designers already matched with this client')
           return []
         }
       }
@@ -113,7 +114,7 @@ export class SimpleMatcher {
         .slice(0, 3)
 
     } catch (error) {
-      console.error('Simple matching failed:', error)
+      logger.error('Simple matching failed:', error)
       return []
     }
   }

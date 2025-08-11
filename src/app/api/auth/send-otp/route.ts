@@ -3,16 +3,21 @@ import { createCustomOTP } from '@/lib/auth/custom-otp'
 import { sendOTPEmail } from '@/lib/email/send-otp'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createServiceClient } from '@/lib/supabase/server'
+import { Features } from '@/lib/features'
+import { handleApiError as handleApiErrorNew } from '@/lib/core/error-manager'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
+  let isLogin = false
   try {
-    const { email, isLogin = false } = await request.json()
+    const { email, isLogin: isLoginParam = false } = await request.json()
+    isLogin = isLoginParam
 
     if (!email) {
       return apiResponse.error('Email is required')
     }
 
-    console.log('📧 Processing OTP request for:', email, 'isLogin:', isLogin)
+    logger.info('📧 Processing OTP request for:', email, 'isLogin:', isLogin)
     
     // If this is a login request, check if the user exists
     if (isLogin) {
@@ -26,7 +31,7 @@ export async function POST(request: NextRequest) {
         .single()
       
       if (!client) {
-        console.log('❌ Login attempt for non-existent client:', email)
+        logger.info('❌ Login attempt for non-existent client:', email)
         return apiResponse.error('No account found with this email. Please sign up first.')
       }
     }
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
     try {
       otp = await createCustomOTP(email)
     } catch (error) {
-      console.error('Failed to create OTP:', error)
+      logger.error('Failed to create OTP:', error)
       return apiResponse.error('Failed to generate verification code. Please try again.')
     }
 
@@ -44,7 +49,7 @@ export async function POST(request: NextRequest) {
     const emailSent = await sendOTPEmail(email, otp)
     
     if (!emailSent) {
-      console.log('⚠️ Email sending failed but OTP was created:', otp)
+      logger.info('⚠️ Email sending failed but OTP was created:', otp)
       // In development, we still return success since the OTP is logged
       if (process.env.NODE_ENV === 'development') {
         return apiResponse.success({ success: true })
@@ -54,7 +59,17 @@ export async function POST(request: NextRequest) {
 
     return apiResponse.success({ success: true })
   } catch (error) {
-    console.error('Error in send-otp endpoint:', error)
+    // Use new ErrorManager if feature flag is enabled
+    if (Features.USE_ERROR_MANAGER) {
+      logger.info('✨ Using new ErrorManager for OTP error handling')
+      return handleApiErrorNew(error, 'auth/send-otp', {
+        operation: 'send_otp',
+        metadata: { isLogin }
+      })
+    }
+    
+    // Legacy error handling
+    logger.error('Error in send-otp endpoint:', error)
     if (error instanceof Error) {
       return apiResponse.serverError(error.message)
     }

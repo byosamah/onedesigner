@@ -1,3 +1,5 @@
+import { logger } from '@/lib/core/logging-service'
+
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor
   private metrics: Map<string, number[]> = new Map()
@@ -23,7 +25,7 @@ export class PerformanceMonitor {
   endTimer(operation: string): number {
     const startTime = this.timers.get(operation)
     if (!startTime) {
-      console.warn(`No timer found for operation: ${operation}`)
+      logger.warn(`No timer found for operation: ${operation}`)
       return 0
     }
     
@@ -55,7 +57,7 @@ export class PerformanceMonitor {
     
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[PERF] ${event}: ${duration}ms`)
+      logger.info(`[PERF] ${event}: ${duration}ms`)
     }
   }
   
@@ -74,7 +76,7 @@ export class PerformanceMonitor {
     
     const threshold = thresholds[event]
     if (threshold && duration > threshold) {
-      console.warn(`⚠️ Performance degradation detected: ${event} took ${duration}ms (threshold: ${threshold}ms)`)
+      logger.warn(`⚠️ Performance degradation detected: ${event} took ${duration}ms (threshold: ${threshold}ms)`)
       
       // Could send to monitoring service here
       this.reportToMonitoring(event, duration, threshold)
@@ -157,7 +159,7 @@ export class PerformanceMonitor {
           })
         })
       } catch (error) {
-        console.error('Failed to report to monitoring:', error)
+        logger.error('Failed to report to monitoring:', error)
       }
     }
   }

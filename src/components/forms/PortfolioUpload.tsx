@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
+import { logger } from '@/lib/core/logging-service'
 
 interface PortfolioImage {
   id?: string
@@ -85,7 +86,7 @@ export function PortfolioUpload({
     try {
       await onUpload(validImages)
     } catch (error) {
-      console.error('Failed to upload portfolio:', error)
+      logger.error('Failed to upload portfolio:', error)
     } finally {
       setIsUploading(false)
     }

@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { logger } from '@/lib/core/logging-service'
 
 interface CachedScore {
   designer: any
@@ -106,7 +107,7 @@ export class MatchingCache {
           created_at: new Date().toISOString()
         })
     } catch (error) {
-      console.error('Failed to cache match result:', error)
+      logger.error('Failed to cache match result:', error)
       // Don't throw - caching failures shouldn't break matching
     }
   }
@@ -199,7 +200,7 @@ export class MatchingCache {
       
       return data?.length || 0
     } catch (error) {
-      console.error('Failed to clear expired cache:', error)
+      logger.error('Failed to clear expired cache:', error)
       return 0
     }
   }

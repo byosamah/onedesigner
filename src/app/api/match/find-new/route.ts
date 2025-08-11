@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createAIProvider } from '@/lib/ai'
 import { AI_CONFIG } from '@/lib/ai/config'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,9 +13,9 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Brief ID is required')
     }
 
-    console.log('=== FINDING NEW MATCH START ===')
-    console.log('Brief ID:', briefId)
-    console.log('Auto Unlock:', autoUnlock)
+    logger.info('=== FINDING NEW MATCH START ===')
+    logger.info('Brief ID:', briefId)
+    logger.info('Auto Unlock:', autoUnlock)
 
     const supabase = createServiceClient()
 
@@ -29,14 +30,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (briefError || !brief) {
-      console.error('Brief not found:', briefError)
+      logger.error('Brief not found:', briefError)
       return apiResponse.notFound('Brief')
     }
 
     // If auto-unlock is requested, check client has credits
     if (autoUnlock) {
       if (!brief.client || !brief.client.match_credits || brief.client.match_credits < 1) {
-        console.error('Insufficient credits for auto-unlock:', brief.client?.match_credits || 0)
+        logger.error('Insufficient credits for auto-unlock:', brief.client?.match_credits || 0)
         return apiResponse.error('Insufficient credits. Need at least 1 credit to find and unlock a new match.')
       }
     }
@@ -67,7 +68,7 @@ export async function POST(request: NextRequest) {
     const matchedIds = existingMatches?.map(m => m.designer_id) || []
     const excludedDesignerIds = [...new Set([...unlockedIds, ...matchedIds])]
     
-    console.log(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
+    logger.info(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
 
     // Get approved designers (excluding already matched ones)
     const { data: designers, error: designersError } = await supabase
@@ -79,11 +80,11 @@ export async function POST(request: NextRequest) {
       .not('id', 'in', `(${excludedDesignerIds.join(',') || 'null'})`)
 
     if (designersError || !designers || designers.length === 0) {
-      console.error('No new designers available')
+      logger.error('No new designers available')
       return apiResponse.error('No new designers available for matching.')
     }
 
-    console.log(`Found ${designers.length} new designers to analyze`)
+    logger.info(`Found ${designers.length} new designers to analyze`)
 
     // Use AI to analyze new matches
     const ai = createAIProvider()
@@ -179,7 +180,7 @@ Provide a JSON response with:
         })
 
       } catch (error) {
-        console.error('AI analysis failed for designer:', designer.id, error)
+        logger.error('AI analysis failed for designer:', designer.id, error)
       }
     }
 
@@ -202,11 +203,11 @@ Provide a JSON response with:
         .eq('id', brief.client_id)
       
       if (creditError) {
-        console.error('Error deducting credit:', creditError)
+        logger.error('Error deducting credit:', creditError)
         return apiResponse.error('Failed to process credit payment')
       }
       remainingCredits = brief.client.match_credits - 1
-      console.log('✅ Credit deducted, remaining:', remainingCredits)
+      logger.info('✅ Credit deducted, remaining:', remainingCredits)
     }
     
     // Create match with appropriate status
@@ -225,7 +226,7 @@ Provide a JSON response with:
       .single()
 
     if (matchError) {
-      console.error('Error creating new match record:', matchError)
+      logger.error('Error creating new match record:', matchError)
       
       // If auto-unlock was attempted, refund the credit
       if (autoUnlock) {
@@ -249,7 +250,7 @@ Provide a JSON response with:
         })
       
       if (unlockError) {
-        console.error('Error recording unlock:', unlockError)
+        logger.error('Error recording unlock:', unlockError)
         // Non-critical, continue
       }
 
@@ -273,14 +274,14 @@ Provide a JSON response with:
           })
         
         if (clientDesignerError) {
-          console.error('Error tracking unlocked designer:', clientDesignerError)
+          logger.error('Error tracking unlocked designer:', clientDesignerError)
         } else {
-          console.log('✅ Tracked designer as unlocked for client')
+          logger.info('✅ Tracked designer as unlocked for client')
         }
       }
     }
 
-    console.log('✅ New match found and saved')
+    logger.info('✅ New match found and saved')
 
     return apiResponse.success({
       match: {

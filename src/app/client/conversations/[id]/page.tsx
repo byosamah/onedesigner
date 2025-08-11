@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getTheme } from '@/lib/design-system'
 import Link from 'next/link'
+import { logger } from '@/lib/core/logging-service'
 
 interface Message {
   id: string
@@ -50,7 +51,7 @@ export default function ConversationPage() {
       
       setConversation(data.data)
     } catch (error) {
-      console.error('Error loading conversation:', error)
+      logger.error('Error loading conversation:', error)
     } finally {
       setLoading(false)
     }
@@ -83,7 +84,7 @@ export default function ConversationPage() {
       
       setNewMessage('')
     } catch (error) {
-      console.error('Error sending message:', error)
+      logger.error('Error sending message:', error)
     } finally {
       setSending(false)
     }

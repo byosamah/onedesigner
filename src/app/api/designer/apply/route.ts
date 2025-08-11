@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { otpEmailTemplate } from '@/lib/email/templates/otp'
 import { createCustomOTP } from '@/lib/auth/custom-otp'
+import { logger } from '@/lib/core/logging-service'
 
 const designerApplicationSchema = z.object({
   // Step 1: Basic Info
@@ -84,7 +85,7 @@ const designerApplicationSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Received designer application:', body)
+    logger.info('Received designer application:', body)
     
     // Validate input
     const validatedData = designerApplicationSchema.parse(body)
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
       .single()
       
     if (!existingDesigner) {
-      console.error('Designer not found for authenticated user:', validatedData.email)
+      logger.error('Designer not found for authenticated user:', validatedData.email)
       return NextResponse.json(
         { error: 'Designer account not found. Please sign up first.' },
         { status: 400 }
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
     
-    console.log('📝 Updating designer with data:', updateData)
+    logger.info('📝 Updating designer with data:', updateData)
     
     const { error: updateError } = await supabase
       .from('designers')
@@ -149,14 +150,14 @@ export async function POST(request: NextRequest) {
       .eq('id', existingDesigner.id)
     
     if (updateError) {
-      console.error('Failed to update designer profile:', updateError)
+      logger.error('Failed to update designer profile:', updateError)
       return NextResponse.json(
         { error: 'Failed to save application data' },
         { status: 500 }
       )
     }
     
-    console.log('✅ Designer profile updated successfully for:', validatedData.email)
+    logger.info('✅ Designer profile updated successfully for:', validatedData.email)
     
     return NextResponse.json({
       success: true,
@@ -165,10 +166,10 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error) {
-    console.error('Designer apply error:', error)
+    logger.error('Designer apply error:', error)
     
     if (error instanceof z.ZodError) {
-      console.error('Validation errors:', error.errors)
+      logger.error('Validation errors:', error.errors)
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
         { status: 400 }

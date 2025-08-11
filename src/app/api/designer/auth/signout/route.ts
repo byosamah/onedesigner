@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Signout error:', error)
+    logger.error('Signout error:', error)
     return NextResponse.json(
       { error: 'Failed to sign out' },
       { status: 500 }

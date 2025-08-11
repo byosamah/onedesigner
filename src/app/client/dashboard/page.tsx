@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 import { LoadingSpinner } from '@/components/shared'
+import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedMatch {
   id: string
@@ -91,7 +92,7 @@ export default function ClientDashboard() {
       setMatches(matchesData.matches || [])
 
     } catch (error) {
-      console.error('Dashboard error:', error)
+      logger.error('Dashboard error:', error)
       setError(error instanceof Error ? error.message : 'Failed to load dashboard')
     } finally {
       setIsLoading(false)
@@ -114,7 +115,7 @@ export default function ClientDashboard() {
       fetchDashboardData()
       
     } catch (error) {
-      console.error('Unlock error:', error)
+      logger.error('Unlock error:', error)
       alert(error instanceof Error ? error.message : 'Failed to unlock match')
     }
   }
@@ -186,7 +187,7 @@ export default function ClientDashboard() {
       })
       router.push('/')
     } catch (error) {
-      console.error('Signout error:', error)
+      logger.error('Signout error:', error)
     }
   }
 

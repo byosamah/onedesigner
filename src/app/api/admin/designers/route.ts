@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/core/logging-service'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     const { data: designers, error } = await query
 
     if (error) {
-      console.error('Error fetching designers:', error)
+      logger.error('Error fetching designers:', error)
       return NextResponse.json(
         { error: 'Failed to fetch designers' },
         { status: 500 }
@@ -181,7 +182,7 @@ export async function GET(request: NextRequest) {
       approved: designersWithDetails.filter(d => d.isApproved).length
     })
   } catch (error) {
-    console.error('Error in admin designers route:', error)
+    logger.error('Error in admin designers route:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

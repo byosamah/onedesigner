@@ -1,4 +1,5 @@
 import { PRODUCTS, ProductKey } from './client'
+import { logger } from '@/lib/core/logging-service'
 
 interface CheckoutOptions {
   productKey: ProductKey
@@ -76,7 +77,7 @@ export async function createCheckout({
     const data = await response.json()
     return data.data.attributes.url
   } catch (error) {
-    console.error('Error creating checkout:', error)
+    logger.error('Error creating checkout:', error)
     throw new Error('Failed to create checkout session')
   }
 }
@@ -99,7 +100,7 @@ export async function getCheckout(checkoutId: string) {
     const data = await response.json()
     return data.data
   } catch (error) {
-    console.error('Error retrieving checkout:', error)
+    logger.error('Error retrieving checkout:', error)
     throw error
   }
 }

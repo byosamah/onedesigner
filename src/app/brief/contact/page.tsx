@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { OTPInput, LoadingButton, FormInput } from '@/components/forms'
 import { useTheme } from '@/lib/hooks/useTheme'
+import { logger } from '@/lib/core/logging-service'
 
 export default function BriefContactPage() {
   const router = useRouter()
@@ -39,7 +40,7 @@ export default function BriefContactPage() {
       
       setFormData(prev => ({ ...prev, emailSent: true }))
     } catch (error) {
-      console.error('Error sending OTP:', error)
+      logger.error('Error sending OTP:', error)
       alert('Failed to send verification code. Please try again.')
     }
   }
@@ -94,7 +95,7 @@ export default function BriefContactPage() {
       // Redirect to match page with brief ID
       router.push(`/match/${briefResult.briefId}`)
     } catch (error) {
-      console.error('Error verifying OTP:', error)
+      logger.error('Error verifying OTP:', error)
       alert(error instanceof Error ? error.message : 'Invalid code. Please try again.')
       setFormData(prev => ({ ...prev, isVerifying: false }))
     }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { EnhancedClientBrief } from '@/components/forms/EnhancedClientBrief'
+import { logger } from '@/lib/core/logging-service'
 
 export default function BriefPage() {
   const router = useRouter()
@@ -22,21 +23,21 @@ export default function BriefPage() {
         const response = await fetch('/api/auth/session')
         const data = await response.json()
         
-        console.log('🔍 Auth check response:', data)
+        logger.info('🔍 Auth check response:', data)
         
         if (data.authenticated && data.user?.email) {
           setIsAuthenticated(true)
           setClientEmail(data.user.email)
           setIsLoading(false)
         } else {
-          console.log('❌ Not authenticated, redirecting to signup')
+          logger.info('❌ Not authenticated, redirecting to signup')
           // Small delay to avoid race conditions
           setTimeout(() => {
             router.push('/client/signup')
           }, 100)
         }
       } catch (error) {
-        console.error('Auth check error:', error)
+        logger.error('Auth check error:', error)
         setTimeout(() => {
           router.push('/client/signup')
         }, 100)
@@ -53,7 +54,7 @@ export default function BriefPage() {
     
     try {
       // Log the data being sent to help debug
-      console.log('Submitting brief data:', briefData)
+      logger.info('Submitting brief data:', briefData)
       
       // Submit brief with authenticated client email
       const response = await fetch('/api/briefs/public', {
@@ -68,7 +69,7 @@ export default function BriefPage() {
       const result = await response.json()
       
       // Log the response for debugging
-      console.log('API Response:', { status: response.status, ok: response.ok, result })
+      logger.info('API Response:', { status: response.status, ok: response.ok, result })
       
       if (response.ok && result.briefId) {
         // Redirect to match finding page
@@ -76,11 +77,11 @@ export default function BriefPage() {
       } else {
         // More detailed error message
         const errorMsg = result.error || result.message || 'Failed to create brief'
-        console.error('Brief submission failed:', { status: response.status, error: errorMsg, result })
+        logger.error('Brief submission failed:', { status: response.status, error: errorMsg, result })
         throw new Error(errorMsg)
       }
     } catch (error) {
-      console.error('Brief submission error:', error)
+      logger.error('Brief submission error:', error)
       alert(error instanceof Error ? error.message : 'Failed to submit brief. Please try again.')
       setIsSubmitting(false)
     }

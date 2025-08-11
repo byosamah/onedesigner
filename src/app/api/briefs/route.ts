@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const briefData = await request.json()
-    console.log('Enhanced brief submission:', briefData)
+    logger.info('Enhanced brief submission:', briefData)
 
     // Validate required fields
     const requiredFields = ['design_category', 'project_description', 'timeline_type', 'budget_range']
@@ -104,11 +105,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error('Error creating brief:', error)
+      logger.error('Error creating brief:', error)
       return apiResponse.serverError('Failed to create brief', error)
     }
 
-    console.log('✅ Enhanced brief created:', brief.id)
+    logger.info('✅ Enhanced brief created:', brief.id)
 
     return apiResponse.success({
       brief: {
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching briefs:', error)
+      logger.error('Error fetching briefs:', error)
       return apiResponse.serverError('Failed to fetch briefs', error)
     }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { logger } from '@/lib/core/logging-service'
 
 /**
  * Centralized API response utilities for consistent response formatting
@@ -136,7 +137,7 @@ export const apiResponse = {
  * @param context - Context for logging (e.g., 'auth/login')
  */
 export function handleApiError(error: any, context?: string): NextResponse {
-  console.error(`API Error${context ? ` in ${context}` : ''}:`, error)
+  logger.error(`API Error${context ? ` in ${context}` : ''}:`, error)
 
   // Handle known error types
   if (error?.code === 'PGRST116') {

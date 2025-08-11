@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { getTheme } from '@/lib/design-system'
 import { performanceMonitor } from '@/lib/monitoring/performance'
+import { logger } from '@/lib/core/logging-service'
 
 interface PerformanceStats {
   [event: string]: {
@@ -47,7 +48,7 @@ export default function PerformanceDashboard() {
         router.push('/admin')
       }
     } catch (error) {
-      console.error('Auth check error:', error)
+      logger.error('Auth check error:', error)
       router.push('/admin')
     }
   }
@@ -59,7 +60,7 @@ export default function PerformanceDashboard() {
         credentials: 'include'
       })
     } catch (error) {
-      console.error('Signout error:', error)
+      logger.error('Signout error:', error)
     }
     
     sessionStorage.removeItem('adminEmail')

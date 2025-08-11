@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // If table doesn't exist, return empty array
     if (testError && testError.message.includes('does not exist')) {
-      console.log('Conversations table does not exist yet')
+      logger.info('Conversations table does not exist yet')
       return apiResponse.success([])
     }
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       .order('last_message_at', { ascending: false, nullsFirst: false })
 
     if (convError) {
-      console.error('Error fetching conversations:', convError)
+      logger.error('Error fetching conversations:', convError)
       // If error is because table doesn't exist, return empty array
       if (convError.message.includes('does not exist')) {
         return apiResponse.success([])

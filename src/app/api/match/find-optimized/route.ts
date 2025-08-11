@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { OptimizedMatcher } from '@/lib/matching/optimized-matcher'
 import { cookies } from 'next/headers'
+import { logger } from '@/lib/core/logging-service'
 
 // GET endpoint for Server-Sent Events streaming
 export async function GET(request: NextRequest) {
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
               await createMatchRecord(supabase, brief, result.match)
             }
           } catch (error) {
-            console.error('[SSE] Streaming error:', error)
+            logger.error('[SSE] Streaming error:', error)
           }
         })
 
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
         controller.close()
         
       } catch (error) {
-        console.error('[SSE] Error:', error)
+        logger.error('[SSE] Error:', error)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
           error: 'Failed to find match',
           message: error instanceof Error ? error.message : 'Unknown error'
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
             controller.close()
           }
         } catch (error) {
-          console.error('Streaming error:', error)
+          logger.error('Streaming error:', error)
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: 'Processing error' })}\n\n`))
           controller.close()
         }
@@ -190,7 +191,7 @@ export async function POST(request: NextRequest) {
 
       // Start matching process
       matcher.findMatch({ ...brief, excludedDesignerIds }).catch((error) => {
-        console.error('Matching error:', error)
+        logger.error('Matching error:', error)
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message })}\n\n`))
         controller.close()
       })
@@ -235,7 +236,7 @@ export async function POST(request: NextRequest) {
       })
     }
   } catch (error) {
-    console.error('Error in optimized match API:', error)
+    logger.error('Error in optimized match API:', error)
     return NextResponse.json(
       { error: 'Failed to find match' },
       { status: 500 }
@@ -297,7 +298,7 @@ async function createMatchRecord(supabase: any, brief: any, matchData: any) {
     .single()
 
   if (matchError) {
-    console.error('Error creating match:', matchError)
+    logger.error('Error creating match:', matchError)
     
     // Check if it's a duplicate match
     if (matchError.code === '23505') {

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (matchError) {
-      console.error('Error fetching matches:', matchError)
+      logger.error('Error fetching matches:', matchError)
       return apiResponse.error('Failed to fetch match requests')
     }
 

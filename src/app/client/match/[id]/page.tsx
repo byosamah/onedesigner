@@ -7,6 +7,7 @@ import { LoadingButton } from '@/components/forms'
 import { LoadingSpinner } from '@/components/shared'
 import { toast } from '@/lib/toast'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedDesigner {
   id: string
@@ -101,7 +102,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
       setMatch(data.match)
       setCredits(data.credits || 0)
     } catch (error) {
-      console.error('Error fetching match:', error)
+      logger.error('Error fetching match:', error)
       toast.error('Failed to load match details')
     } finally {
       setLoading(false)
@@ -127,7 +128,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
       setCredits(data.credits)
       toast.success('Designer contact unlocked!')
     } catch (error) {
-      console.error('Unlock error:', error)
+      logger.error('Unlock error:', error)
       toast.error(error instanceof Error ? error.message : 'Failed to unlock designer')
     } finally {
       setUnlocking(false)

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -33,7 +34,7 @@ export async function POST(
       .single()
 
     if (matchError || !match) {
-      console.error('Match not found:', matchError)
+      logger.error('Match not found:', matchError)
       return apiResponse.notFound('Match request')
     }
 
@@ -49,7 +50,7 @@ export async function POST(
       .eq('id', matchId)
 
     if (updateError) {
-      console.error('Error updating match:', updateError)
+      logger.error('Error updating match:', updateError)
       return apiResponse.error('Failed to update match status')
     }
 
@@ -67,7 +68,7 @@ export async function POST(
         })
 
       if (requestError) {
-        console.log('Could not create designer request (table may not exist):', requestError.message)
+        logger.info('Could not create designer request (table may not exist):', requestError.message)
       }
     }
 
@@ -81,11 +82,11 @@ export async function POST(
 
       if (client?.email) {
         // TODO: Send email notification
-        console.log(`TODO: Send ${response} notification to client:`, client.email)
+        logger.info(`TODO: Send ${response} notification to client:`, client.email)
       }
     }
 
-    console.log(`✅ Match ${matchId} ${response}ed successfully`)
+    logger.info(`✅ Match ${matchId} ${response}ed successfully`)
 
     return apiResponse.success({
       message: `Match request ${response}ed successfully`,

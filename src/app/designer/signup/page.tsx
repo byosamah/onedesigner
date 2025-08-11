@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerSignupPage() {
   const router = useRouter()
@@ -46,7 +47,7 @@ export default function DesignerSignupPage() {
       // Redirect to verification page
       router.push('/designer/signup/verify')
     } catch (error) {
-      console.error('Signup error:', error)
+      logger.error('Signup error:', error)
       setError(error instanceof Error ? error.message : 'Something went wrong')
     } finally {
       setIsSubmitting(false)

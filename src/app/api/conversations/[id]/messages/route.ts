@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -37,7 +38,7 @@ export async function POST(
       .single()
 
     if (convError || !conversation) {
-      console.error('Conversation not found:', convError)
+      logger.error('Conversation not found:', convError)
       return apiResponse.notFound('Conversation')
     }
 
@@ -54,7 +55,7 @@ export async function POST(
       .single()
 
     if (messageError || !newMessage) {
-      console.error('Error creating message:', messageError)
+      logger.error('Error creating message:', messageError)
       return apiResponse.error('Failed to send message')
     }
 
@@ -66,7 +67,7 @@ export async function POST(
         .eq('id', conversationId)
     }
 
-    console.log('✅ Message sent successfully')
+    logger.info('✅ Message sent successfully')
 
     return apiResponse.success(newMessage)
 
