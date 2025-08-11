@@ -209,7 +209,10 @@ export function isConfigInitialized(): boolean {
  */
 export function getOneDesignerConfig<T = any>(key: string, defaultValue?: T): T {
   if (!configInitialized) {
-    logger.warn('⚠️ Configuration not initialized, using environment fallback for:', key)
+    // Only warn in development, not during build
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      logger.warn('⚠️ Configuration not initialized, using environment fallback for:', key)
+    }
     
     // Fallback to environment variable
     const envKey = key.toUpperCase().replace(/[.-]/g, '_')

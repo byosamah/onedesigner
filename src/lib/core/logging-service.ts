@@ -264,9 +264,17 @@ export class LoggingService {
 
     const match = callerLine.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/)
     if (match) {
+      // Use conditional check to avoid process.cwd() in Edge Runtime
+      const cwd = typeof process !== 'undefined' && process.cwd ? process.cwd() : ''
+      let file = match[2]
+      if (cwd) {
+        file = file.replace(cwd, '')
+      }
+      file = file.replace('/Users/osamakhalil/OneDesigner', '')
+      
       return {
         function: match[1],
-        file: match[2].replace(process.cwd(), '').replace('/Users/osamakhalil/OneDesigner', ''),
+        file,
         line: parseInt(match[3])
       }
     }
