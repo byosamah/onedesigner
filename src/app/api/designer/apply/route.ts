@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Update the designer record with all the application data
-    // Ensure arrays are properly formatted for PostgreSQL
+    // Note: Some fields like project_types, specializations, software_skills are stored in normalized tables
     // Note: profilePicture is handled separately as it's base64 data
     const updateData: any = {
       first_name: validatedData.firstName,
@@ -217,17 +217,14 @@ export async function POST(request: NextRequest) {
       country: validatedData.country,
       timezone: validatedData.timezone,
       availability: validatedData.availability,
-      // PostgreSQL array fields - wrap in {} format if needed
+      // PostgreSQL array fields that DO exist in the designers table
       styles: Array.isArray(validatedData.styles) ? validatedData.styles : [],
-      project_types: Array.isArray(validatedData.projectTypes) ? validatedData.projectTypes : [],
       industries: Array.isArray(validatedData.industries) ? validatedData.industries : [],
       bio: validatedData.bio,
       portfolio_url: validatedData.portfolioUrl || null,
       dribbble_url: validatedData.dribbbleUrl || null,
       behance_url: validatedData.behanceUrl || null,
       linkedin_url: validatedData.linkedinUrl || null,
-      specializations: Array.isArray(validatedData.specializations) ? validatedData.specializations : [],
-      software_skills: Array.isArray(validatedData.softwareSkills) ? validatedData.softwareSkills : [],
       previous_clients: validatedData.previousClients || null,
       project_preferences: validatedData.projectPreferences,
       working_style: validatedData.workingStyle,
@@ -237,6 +234,8 @@ export async function POST(request: NextRequest) {
       is_approved: false, // Reset approval status since they updated their profile
       updated_at: new Date().toISOString()
     }
+    
+    // Note: We'll handle project_types, specializations, and software_skills in normalized tables after updating the main record
     
     // Handle profile picture if provided (for now, we'll skip it as we need proper image handling)
     // TODO: Implement proper image upload to storage service
@@ -295,6 +294,118 @@ export async function POST(request: NextRequest) {
         { error: 'Update succeeded but could not verify the changes' },
         { status: 500 }
       )
+    }
+    
+    // Now handle the normalized tables for project_types, specializations, and software_skills
+    // First, delete existing records to replace them with new ones
+    logger.info('Updating normalized tables for designer skills and preferences')
+    
+    // Delete existing project types
+    await supabase
+      .from('designer_project_types')
+      .delete()
+      .eq('designer_id', designerId)
+    
+    // Insert new project types
+    if (validatedData.projectTypes && validatedData.projectTypes.length > 0) {
+      const projectTypeRecords = validatedData.projectTypes.map(type => ({
+        designer_id: designerId,
+        project_type: type
+      }))
+      
+      const { error: projectTypesError } = await supabase
+        .from('designer_project_types')
+        .insert(projectTypeRecords)
+      
+      if (projectTypesError) {
+        logger.warn('Failed to insert project types:', projectTypesError)
+      }
+    }
+    
+    // Delete existing specializations
+    await supabase
+      .from('designer_specializations')
+      .delete()
+      .eq('designer_id', designerId)
+    
+    // Insert new specializations
+    if (validatedData.specializations && validatedData.specializations.length > 0) {
+      const specializationRecords = validatedData.specializations.map(spec => ({
+        designer_id: designerId,
+        specialization: spec
+      }))
+      
+      const { error: specializationsError } = await supabase
+        .from('designer_specializations')
+        .insert(specializationRecords)
+      
+      if (specializationsError) {
+        logger.warn('Failed to insert specializations:', specializationsError)
+      }
+    }
+    
+    // Delete existing software skills
+    await supabase
+      .from('designer_software_skills')
+      .delete()
+      .eq('designer_id', designerId)
+    
+    // Insert new software skills
+    if (validatedData.softwareSkills && validatedData.softwareSkills.length > 0) {
+      const softwareRecords = validatedData.softwareSkills.map(software => ({
+        designer_id: designerId,
+        software: software
+      }))
+      
+      const { error: softwareError } = await supabase
+        .from('designer_software_skills')
+        .insert(softwareRecords)
+      
+      if (softwareError) {
+        logger.warn('Failed to insert software skills:', softwareError)
+      }
+    }
+    
+    // Also update designer_styles table (even though styles array exists)
+    await supabase
+      .from('designer_styles')
+      .delete()
+      .eq('designer_id', designerId)
+    
+    if (validatedData.styles && validatedData.styles.length > 0) {
+      const styleRecords = validatedData.styles.map(style => ({
+        designer_id: designerId,
+        style: style
+      }))
+      
+      const { error: stylesError } = await supabase
+        .from('designer_styles')
+        .insert(styleRecords)
+      
+      if (stylesError) {
+        logger.warn('Failed to insert styles in normalized table:', stylesError)
+      }
+    }
+    
+    // Update designer_industries table
+    await supabase
+      .from('designer_industries')
+      .delete()
+      .eq('designer_id', designerId)
+    
+    if (validatedData.industries && validatedData.industries.length > 0) {
+      const industryRecords = validatedData.industries.map(industry => ({
+        designer_id: designerId,
+        industry: industry
+      }))
+      
+      const { error: industriesError } = await supabase
+        .from('designer_industries')
+        .insert(industryRecords)
+      
+      if (industriesError) {
+        logger.warn('Failed to insert industries in normalized table:', industriesError)
+      }
     }
     
     logger.info('✅ Designer profile updated successfully for:', validatedData.email)
