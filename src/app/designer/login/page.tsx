@@ -20,10 +20,17 @@ export default function DesignerLoginPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await authService.sendOTP({ email })
-
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to send OTP')
+      // Send OTP with isLogin flag to check if designer exists
+      const response = await fetch('/api/designer/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, isLogin: true })
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to send OTP')
       }
 
       // Store email for verification

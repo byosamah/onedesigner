@@ -12,22 +12,22 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Email is required')
     }
 
-    console.log('📧 Processing OTP request for:', email, 'isLogin:', isLogin)
+    console.log('🎨 Processing designer OTP request for:', email, 'isLogin:', isLogin)
     
-    // If this is a login request, check if the user exists
+    // If this is a login request, check if the designer exists
     if (isLogin) {
       const supabase = createServiceClient()
       
-      // Check if client exists
-      const { data: client } = await supabase
-        .from('clients')
+      // Check if designer exists
+      const { data: designer } = await supabase
+        .from('designers')
         .select('id')
         .eq('email', email)
         .single()
       
-      if (!client) {
-        console.log('❌ Login attempt for non-existent client:', email)
-        return apiResponse.error('No account found with this email. Please sign up first.')
+      if (!designer) {
+        console.log('❌ Login attempt for non-existent designer:', email)
+        return apiResponse.error('No designer account found with this email. Please sign up first.')
       }
     }
 
@@ -54,10 +54,10 @@ export async function POST(request: NextRequest) {
 
     return apiResponse.success({ success: true })
   } catch (error) {
-    console.error('Error in send-otp endpoint:', error)
+    console.error('Error in designer send-otp endpoint:', error)
     if (error instanceof Error) {
       return apiResponse.serverError(error.message)
     }
-    return handleApiError(error, 'auth/send-otp')
+    return handleApiError(error, 'designer/auth/send-otp')
   }
 }
