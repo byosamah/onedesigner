@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
+import { MatchRequestCard } from '@/components/designer/MatchRequestCard'
 
 interface EnhancedDesignerRequest {
   id: string
@@ -60,6 +61,7 @@ export default function DesignerDashboardPage() {
   const [isDarkMode, setIsDarkMode] = useState(true)
   const [designer, setDesigner] = useState<DesignerProfile | null>(null)
   const [requests, setRequests] = useState<EnhancedDesignerRequest[]>([])
+  const [matchRequests, setMatchRequests] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
@@ -76,13 +78,17 @@ export default function DesignerDashboardPage() {
       setIsLoading(true)
       setError(null)
 
-      // Fetch designer session and requests
-      const [sessionResponse, requestsResponse] = await Promise.all([
+      // Fetch designer session, requests, and match requests
+      const [sessionResponse, requestsResponse, matchRequestsResponse] = await Promise.all([
         fetch('/api/designer/auth/session', {
           method: 'GET',
           credentials: 'include',
         }),
         fetch('/api/designer/requests', {
+          method: 'GET',
+          credentials: 'include',
+        }),
+        fetch('/api/designer/match-requests', {
           method: 'GET',
           credentials: 'include',
         })
@@ -102,9 +108,11 @@ export default function DesignerDashboardPage() {
 
       const sessionData = await sessionResponse.json()
       const requestsData = await requestsResponse.json()
+      const matchRequestsData = matchRequestsResponse.ok ? await matchRequestsResponse.json() : { data: [] }
 
       console.log('Session data:', sessionData)
       console.log('Requests data:', requestsData)
+      console.log('Match requests data:', matchRequestsData)
 
       if (!sessionData.designer) {
         throw new Error('Designer data not found in session response')
@@ -112,6 +120,7 @@ export default function DesignerDashboardPage() {
 
       setDesigner(sessionData.designer)
       setRequests(requestsData.requests || [])
+      setMatchRequests(matchRequestsData.data || [])
 
     } catch (error) {
       console.error('Dashboard error:', error)
@@ -144,6 +153,60 @@ export default function DesignerDashboardPage() {
     } catch (error) {
       console.error('Response error:', error)
       alert(error instanceof Error ? error.message : 'Failed to respond to request')
+    }
+  }
+
+  const handleMatchRequestAccept = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/designer/match-requests/${requestId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ response: 'accept' }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to accept request')
+      }
+
+      // Refresh requests after response
+      await fetchDashboardData()
+      
+      // Redirect to conversation (if we have messaging system)
+      // For now, just show success
+      alert('Match request accepted! The client will be notified.')
+
+    } catch (error) {
+      console.error('Accept error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to accept request')
+    }
+  }
+
+  const handleMatchRequestDecline = async (requestId: string) => {
+    try {
+      const res = await fetch(`/api/designer/match-requests/${requestId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ response: 'decline' }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to decline request')
+      }
+
+      // Refresh requests after response
+      await fetchDashboardData()
+
+    } catch (error) {
+      console.error('Decline error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to decline request')
     }
   }
 
@@ -354,7 +417,7 @@ export default function DesignerDashboardPage() {
           >
             <div className="text-2xl mb-3">📥</div>
             <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>
-              {requests.filter(r => r.status === 'pending').length}
+              {matchRequests.filter(r => r.status === 'pending' || r.status === 'unlocked').length + requests.filter(r => r.status === 'pending').length}
             </div>
             <div className="text-sm" style={{ color: theme.text.secondary }}>New Requests</div>
           </div>
@@ -392,10 +455,39 @@ export default function DesignerDashboardPage() {
           </div>
         </div>
 
-        {/* Requests Section */}
+        {/* New Match Requests with Messages Section */}
+        {matchRequests.length > 0 && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+                New Project Requests
+              </h2>
+              <p className="text-sm mt-1" style={{ color: theme.text.secondary }}>
+                Clients who want to work with you
+              </p>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              {matchRequests
+                .filter(req => req.status === 'pending' || req.status === 'unlocked')
+                .map((request) => (
+                  <MatchRequestCard
+                    key={request.id}
+                    request={request}
+                    isDarkMode={isDarkMode}
+                    onAccept={handleMatchRequestAccept}
+                    onDecline={handleMatchRequestDecline}
+                  />
+                ))
+              }
+            </div>
+          </>
+        )}
+
+        {/* Legacy Requests Section */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-            Project Requests
+            {matchRequests.length > 0 ? 'Other Requests' : 'Project Requests'}
           </h2>
         </div>
 

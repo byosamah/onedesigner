@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { PRICING_PACKAGES } from '@/lib/constants'
+import { MessageModal } from '@/components/messaging/MessageModal'
 
 interface MatchData {
   id: string
@@ -70,6 +71,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
   const [showImageModal, setShowImageModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null)
+  const [showMessageModal, setShowMessageModal] = useState(false)
 
   const handleUnlock = async () => {
     if (!onUnlock) return
@@ -653,6 +655,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         ) : (
           <>
             <button
+              onClick={() => setShowMessageModal(true)}
               className="flex-1 font-bold py-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{
                 backgroundColor: theme.success,
@@ -835,6 +838,40 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
           </div>
         </div>
       )}
+
+      {/* Message Modal */}
+      <MessageModal
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        onSend={async (message) => {
+          try {
+            const response = await fetch('/api/messages/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                matchId: match.id,
+                designerId: match.designer.id,
+                message: message
+              })
+            })
+
+            const data = await response.json()
+            
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to send message')
+            }
+
+            // Success - redirect to conversation or show success message
+            window.location.href = `/client/conversations/${data.conversationId}`
+          } catch (error) {
+            console.error('Error sending message:', error)
+            throw error
+          }
+        }}
+        designerName={match.designer.firstName}
+        projectType={match.designer.primaryCategories?.[0]}
+        isDarkMode={isDarkMode}
+      />
     </div>
   )
 }
