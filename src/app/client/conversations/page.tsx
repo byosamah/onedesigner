@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
-import { Navigation } from '@/components/shared/Navigation'
 
 interface Conversation {
   id: string
@@ -79,11 +78,43 @@ export default function ConversationsListPage() {
   if (loading) {
     return (
       <div className="min-h-screen" style={{ backgroundColor: theme.bg }}>
-        <Navigation 
-          isDarkMode={isDarkMode} 
-          setIsDarkMode={setIsDarkMode}
-          userType="client"
-        />
+        {/* Simple Navigation */}
+        <nav className="px-8 py-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Link href="/" className="flex items-center gap-2 text-xl font-bold" style={{ color: theme.text.primary }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="1"/>
+                  <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
+                  <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
+                </svg>
+                OneDesigner
+              </Link>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Link href="/client/dashboard" className="font-medium py-2 px-4 rounded-xl" style={{ color: theme.text.secondary }}>
+                Dashboard
+              </Link>
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+                style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+              >
+                <div
+                  className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
+                  style={{
+                    left: isDarkMode ? '2px' : '32px',
+                    backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                    transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
+                  }}
+                >
+                  {isDarkMode ? '🌙' : '☀️'}
+                </div>
+              </button>
+            </div>
+          </div>
+        </nav>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="animate-spin text-4xl mb-4">⚡</div>
@@ -96,11 +127,46 @@ export default function ConversationsListPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: theme.bg }}>
-      <Navigation 
-        isDarkMode={isDarkMode} 
-        setIsDarkMode={setIsDarkMode}
-        userType="client"
-      />
+      {/* Simple Navigation */}
+      <nav className="px-8 py-4" style={{ borderBottom: `1px solid ${theme.border}` }}>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 text-xl font-bold" style={{ color: theme.text.primary }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={theme.accent} stroke={theme.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="1"/>
+                <path d="M20.2 20.2c2.04-2.03.02-7.36-4.5-11.9-4.54-4.52-9.87-6.54-11.9-4.5-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
+                <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
+              </svg>
+              OneDesigner
+            </Link>
+            <span className="text-sm font-medium px-3 py-1 rounded-full" style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}>
+              Conversations
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Link href="/client/dashboard" className="font-medium py-2 px-4 rounded-xl" style={{ color: theme.text.secondary }}>
+              Dashboard
+            </Link>
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="relative w-14 h-7 rounded-full transition-colors duration-300 focus:outline-none hover:shadow-md"
+              style={{ backgroundColor: isDarkMode ? '#374151' : '#E5E7EB' }}
+            >
+              <div
+                className="absolute top-1 w-5 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs"
+                style={{
+                  left: isDarkMode ? '2px' : '32px',
+                  backgroundColor: isDarkMode ? '#1F2937' : '#FFFFFF',
+                  transform: isDarkMode ? 'rotate(0deg)' : 'rotate(360deg)'
+                }}
+              >
+                {isDarkMode ? '🌙' : '☀️'}
+              </div>
+            </button>
+          </div>
+        </div>
+      </nav>
       
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
