@@ -56,7 +56,7 @@ interface Stats {
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'all'>('pending')
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending')
   const [designers, setDesigners] = useState<Designer[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -183,8 +183,9 @@ export default function AdminDashboardPage() {
   }
 
   const filteredDesigners = designers.filter(designer => {
-    if (activeTab === 'pending') return designer.isVerified && !designer.isApproved
+    if (activeTab === 'pending') return designer.isVerified && !designer.isApproved && !designer.rejectionReason
     if (activeTab === 'approved') return designer.isApproved
+    if (activeTab === 'rejected') return !designer.isApproved && designer.rejectionReason
     return true
   })
 
@@ -302,7 +303,7 @@ export default function AdminDashboardPage() {
               border: `2px solid ${activeTab === 'pending' ? theme.accent : theme.border}`
             }}
           >
-            Pending ({stats?.pendingApproval || 0})
+            Pending ({designers.filter(d => d.isVerified && !d.isApproved && !d.rejectionReason).length})
           </button>
           <button
             onClick={() => setActiveTab('approved')}
@@ -314,6 +315,17 @@ export default function AdminDashboardPage() {
             }}
           >
             Approved ({stats?.approvedDesigners || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab('rejected')}
+            className="font-semibold py-2 px-6 rounded-xl transition-all duration-300"
+            style={{
+              backgroundColor: activeTab === 'rejected' ? theme.accent : 'transparent',
+              color: activeTab === 'rejected' ? '#000' : theme.text.secondary,
+              border: `2px solid ${activeTab === 'rejected' ? theme.accent : theme.border}`
+            }}
+          >
+            Rejected ({designers.filter(d => !d.isApproved && d.rejectionReason).length})
           </button>
           <button
             onClick={() => setActiveTab('all')}
@@ -368,9 +380,14 @@ export default function AdminDashboardPage() {
                             ✓ Approved
                           </span>
                         )}
-                        {!designer.isApproved && designer.isVerified && (
+                        {!designer.isApproved && designer.isVerified && !designer.rejectionReason && (
                           <span className="ml-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
                             ⏳ Pending
+                          </span>
+                        )}
+                        {!designer.isApproved && designer.rejectionReason && (
+                          <span className="ml-2 text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.error + '20', color: theme.error }}>
+                            ✗ Rejected
                           </span>
                         )}
                       </h3>
@@ -399,6 +416,12 @@ export default function AdminDashboardPage() {
                           {designer.bio}
                         </p>
                       )}
+                      {designer.rejectionReason && (
+                        <div className="mt-2 p-2 rounded-lg" style={{ backgroundColor: theme.error + '10', border: `1px solid ${theme.error}20` }}>
+                          <p className="text-xs font-medium mb-1" style={{ color: theme.error }}>Rejection Reason:</p>
+                          <p className="text-sm" style={{ color: theme.text.secondary }}>{designer.rejectionReason}</p>
+                        </div>
+                      )}
                       {designer.projectTypes && designer.projectTypes.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {designer.projectTypes.map((cat) => (
@@ -416,7 +439,7 @@ export default function AdminDashboardPage() {
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {!designer.isApproved && designer.isVerified && (
+                    {!designer.isApproved && designer.isVerified && !designer.rejectionReason && (
                       <>
                         <button
                           onClick={() => handleApprove(designer.id)}
@@ -437,6 +460,15 @@ export default function AdminDashboardPage() {
                           Reject
                         </button>
                       </>
+                    )}
+                    {!designer.isApproved && designer.rejectionReason && (
+                      <button
+                        onClick={() => handleApprove(designer.id)}
+                        className="font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        style={{ backgroundColor: theme.success, color: '#FFF' }}
+                      >
+                        Approve After Review
+                      </button>
                     )}
                     <button
                       onClick={() => setSelectedDesigner(designer)}

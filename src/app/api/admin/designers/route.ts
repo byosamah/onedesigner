@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
             isVerified: designer.is_verified,
             isApproved: designer.is_approved,
             isAvailable: designer.is_available,
+            rejectionReason: designer.rejection_reason || null,
             
             // Metadata
             rating: designer.rating,
@@ -167,6 +168,7 @@ export async function GET(request: NextRequest) {
             isVerified: designer.is_verified,
             isApproved: designer.is_approved,
             isAvailable: designer.is_available,
+            rejectionReason: designer.rejection_reason || null,
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
             updatedAt: designer.updated_at

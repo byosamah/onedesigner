@@ -26,15 +26,20 @@ export async function GET(_request: NextRequest) {
       { count: totalDesigners },
       { count: pendingApproval },
       { count: approvedDesigners },
+      { count: rejectedDesigners },
       { count: totalClients },
       { count: totalMatches }
     ] = await Promise.all([
       supabase.from('designers').select('*', { count: 'exact', head: true }),
       supabase.from('designers').select('*', { count: 'exact', head: true })
         .eq('is_verified', true)
-        .eq('is_approved', false),
+        .eq('is_approved', false)
+        .is('rejection_reason', null), // Only count as pending if not rejected
       supabase.from('designers').select('*', { count: 'exact', head: true })
         .eq('is_approved', true),
+      supabase.from('designers').select('*', { count: 'exact', head: true })
+        .eq('is_approved', false)
+        .not('rejection_reason', 'is', null), // Count rejected designers
       supabase.from('clients').select('*', { count: 'exact', head: true }),
       supabase.from('matches').select('*', { count: 'exact', head: true })
     ])
@@ -43,6 +48,7 @@ export async function GET(_request: NextRequest) {
       totalDesigners: totalDesigners || 0,
       pendingApproval: pendingApproval || 0,
       approvedDesigners: approvedDesigners || 0,
+      rejectedDesigners: rejectedDesigners || 0,
       totalClients: totalClients || 0,
       totalMatches: totalMatches || 0
     })
