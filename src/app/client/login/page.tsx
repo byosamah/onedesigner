@@ -13,11 +13,13 @@ export default function ClientLoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
   const { theme, isDarkMode, toggleTheme } = useTheme()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError('')
 
     try {
       // Send OTP with isLogin flag to check if user exists
@@ -39,6 +41,8 @@ export default function ClientLoginPage() {
       // Redirect to OTP verification
       router.push('/client/login/verify')
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+      setError(errorMessage)
       handleError(error)
       setIsSubmitting(false)
     }
@@ -75,18 +79,40 @@ export default function ClientLoginPage() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                setError('')
+              }}
               placeholder="you@company.com"
               className="w-full px-6 py-4 text-center text-lg rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
               style={{
                 backgroundColor: theme.nestedBg,
-                border: `2px solid ${theme.border}`,
+                border: `2px solid ${error ? theme.error : theme.border}`,
                 color: theme.text.primary,
                 focusRingColor: theme.accent
               }}
               required
               autoFocus
             />
+            {error && (
+              <div className="mt-3 p-4 rounded-lg animate-slideUp" style={{ 
+                backgroundColor: `${theme.error}15`,
+                border: `1px solid ${theme.error}40`
+              }}>
+                <p className="text-sm font-medium" style={{ color: theme.error }}>
+                  {error}
+                </p>
+                {error.includes('No account found') && (
+                  <Link 
+                    href="/client/signup" 
+                    className="inline-block mt-2 text-sm font-semibold underline hover:opacity-80 transition-opacity"
+                    style={{ color: theme.accent }}
+                  >
+                    Sign up for a new account →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-center animate-slideUp" style={{ animationDelay: '0.1s' }}>
