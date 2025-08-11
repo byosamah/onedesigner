@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
     // Validate client session
     const sessionResult = await validateSession('CLIENT')
     if (!sessionResult.valid || !sessionResult.user) {
-      logger.warn('Unauthorized message send attempt - no valid session')
-      return apiResponse.unauthorized()
+      logger.warn('Unauthorized message send attempt - no valid client session')
+      return apiResponse.error('Please log in as a client to send messages', 401)
     }
 
     const { matchId, designerId, message } = await request.json()

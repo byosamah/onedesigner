@@ -656,7 +656,31 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         ) : (
           <>
             <button
-              onClick={() => setShowMessageModal(true)}
+              onClick={async () => {
+                // First check if user is logged in as a client
+                try {
+                  const sessionResponse = await fetch('/api/auth/session')
+                  if (!sessionResponse.ok) {
+                    // Not logged in at all - redirect to client login
+                    window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
+                    return
+                  }
+                  
+                  const sessionData = await sessionResponse.json()
+                  if (!sessionData.client) {
+                    // Logged in but not as a client - show error or redirect
+                    alert('Please log in as a client to send messages to designers')
+                    window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
+                    return
+                  }
+                  
+                  // User is logged in as a client - show message modal
+                  setShowMessageModal(true)
+                } catch (error) {
+                  logger.error('Error checking session:', error)
+                  window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
+                }
+              }}
               className="flex-1 font-bold py-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
               style={{
                 backgroundColor: theme.success,
@@ -860,6 +884,12 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             const data = await response.json()
             
             if (!response.ok) {
+              // Check if it's an authentication error
+              if (response.status === 401) {
+                alert(data.error || 'Please log in as a client to send messages')
+                window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
+                return
+              }
               throw new Error(data.error || 'Failed to send message')
             }
 
@@ -867,6 +897,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             window.location.href = `/client/conversations/${data.conversationId}`
           } catch (error) {
             logger.error('Error sending message:', error)
+            // Re-throw to let MessageModal handle the error display
             throw error
           }
         }}
