@@ -21,18 +21,44 @@ export async function POST(request: NextRequest) {
       return apiResponse.unauthorized('Invalid or expired code')
     }
 
-    // Check if client exists - DO NOT create new accounts on login
+    // Check if client already exists
     const supabase = createServiceClient()
     
-    const { data: client, error } = await supabase
+    const { data: existingClient } = await supabase
       .from('clients')
-      .select('*')
+      .select('id')
       .eq('email', email)
       .single()
     
-    if (error || !client) {
-      console.log('Client not found for email:', email)
-      return apiResponse.unauthorized('No account found with this email. Please sign up first.')
+    if (existingClient) {
+      // Client already exists - they should login instead
+      return apiResponse.error('An account with this email already exists. Please log in instead.')
+    }
+    
+    // Create new client account
+    const { data: client, error } = await supabase
+      .from('clients')
+      .insert({ 
+        email,
+        match_credits: 1, // Give new users 1 free credit to try
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating client:', error)
+      return apiResponse.error('Failed to create account. Please try again.')
+    }
+    
+    // Send welcome email
+    if (client) {
+      const { subject, html, text } = welcomeClientEmail({
+        clientName: client.name || 'there',
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
+      })
+      
+      await sendEmail({ to: email, subject, html, text })
     }
 
     // Set session using centralized handler
@@ -52,10 +78,10 @@ export async function POST(request: NextRequest) {
       client
     })
   } catch (error) {
-    console.error('Error verifying OTP:', error)
+    console.error('Error verifying signup OTP:', error)
     if (error instanceof Error) {
       return apiResponse.serverError(error.message)
     }
-    return handleApiError(error, 'auth/verify-otp')
+    return handleApiError(error, 'auth/signup/verify-otp')
   }
 }

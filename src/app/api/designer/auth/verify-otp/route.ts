@@ -8,7 +8,7 @@ import { AUTH_COOKIES } from '@/lib/constants'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, token } = await request.json()
+    const { email, token, isSignup = false } = await request.json()
 
     if (!email || !token) {
       return apiResponse.error('Email and token are required')
@@ -21,18 +21,26 @@ export async function POST(request: NextRequest) {
       return apiResponse.unauthorized('Invalid or expired code')
     }
 
-    // Check if designer exists or create a new one
+    // Check if designer exists
     const supabase = createServiceClient()
     const { data: existingDesigner } = await supabase
       .from('designers')
-      .select('id, email, first_name, last_name, is_approved')
+      .select('id, email, first_name, last_name, is_approved, is_verified')
       .eq('email', email)
       .single()
 
     let designerId = existingDesigner?.id
 
+    // Handle login vs signup logic
     if (!existingDesigner) {
-      // Create a new designer record with all required fields
+      // No designer exists
+      if (!isSignup) {
+        // This is a login attempt but no account exists
+        console.log('Login attempt for non-existent designer:', email)
+        return apiResponse.unauthorized('No designer account found with this email. Please sign up first.')
+      }
+      
+      // This is a signup - create new designer
       const { data: newDesigner, error: createError } = await supabase
         .from('designers')
         .insert({
@@ -57,6 +65,17 @@ export async function POST(request: NextRequest) {
       }
 
       designerId = newDesigner.id
+    } else {
+      // Designer exists
+      if (isSignup) {
+        // This is a signup attempt but account already exists
+        return apiResponse.error('An account with this email already exists. Please log in instead.')
+      }
+      
+      // This is a login - check if verified and approved
+      if (!existingDesigner.is_verified) {
+        return apiResponse.forbidden('Your account is pending verification')
+      }
     }
 
     // Create designer session
