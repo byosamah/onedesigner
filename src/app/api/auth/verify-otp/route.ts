@@ -21,18 +21,40 @@ export async function POST(request: NextRequest) {
       return apiResponse.unauthorized('Invalid or expired code')
     }
 
-    // Check if client exists - DO NOT create new accounts on login
+    // Create or update client record
     const supabase = createServiceClient()
     
-    const { data: client, error } = await supabase
+    // Check if this is a new user
+    const { data: existingClient } = await supabase
       .from('clients')
-      .select('*')
+      .select('id')
       .eq('email', email)
       .single()
     
-    if (error || !client) {
-      console.log('Client not found for email:', email)
-      return apiResponse.unauthorized('No account found with this email. Please sign up first.')
+    const isNewUser = !existingClient
+    
+    const { data: client, error } = await supabase
+      .from('clients')
+      .upsert({ 
+        email,
+      }, { 
+        onConflict: 'email',
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating client:', error)
+    }
+    
+    // Send welcome email for new users
+    if (isNewUser && client) {
+      const { subject, html, text } = welcomeClientEmail({
+        clientName: client.name || 'there',
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
+      })
+      
+      await sendEmail({ to: email, subject, html, text })
     }
 
     // Set session using centralized handler

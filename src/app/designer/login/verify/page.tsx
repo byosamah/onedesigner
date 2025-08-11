@@ -35,11 +35,11 @@ export default function DesignerLoginVerifyPage() {
         throw new Error('Email not found')
       }
 
-      // First verify the OTP (isSignup: false for login)
+      // First verify the OTP
       const response = await fetch('/api/designer/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token: otp, isSignup: false }),
+        body: JSON.stringify({ email, token: otp }),
       })
 
       const data = await response.json()
