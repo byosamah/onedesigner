@@ -212,6 +212,16 @@ export default function ClientDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Conversations Link */}
+            <Link
+              href="/client/conversations"
+              className="font-medium py-2 px-4 rounded-xl transition-all duration-300 hover:opacity-80 flex items-center gap-2"
+              style={{ color: theme.text.secondary }}
+            >
+              <span>💬</span>
+              <span>Conversations</span>
+            </Link>
+            
             {/* User indicator */}
             {client?.email && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: theme.nestedBg }}>

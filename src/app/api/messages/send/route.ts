@@ -27,6 +27,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient()
     const clientId = sessionResult.clientId
+    
+    // Get client email for notification
+    const { data: client } = await supabase
+      .from('clients')
+      .select('email')
+      .eq('id', clientId)
+      .single()
 
     // Verify the match exists and belongs to this client
     const { data: match, error: matchError } = await supabase
@@ -149,8 +156,31 @@ export async function POST(request: NextRequest) {
     // Send email notification to designer (if we have their email)
     if (designer?.email) {
       try {
-        // We'll implement email sending later using Resend
-        console.log('TODO: Send email notification to:', designer.email)
+        const { createDesignerMessageNotificationEmail } = await import('@/lib/email/templates/designer-message-notification')
+        const Resend = (await import('resend')).Resend
+        const resend = new Resend(process.env.RESEND_API_KEY)
+        
+        const emailHtml = createDesignerMessageNotificationEmail({
+          designerName: designer.first_name || 'Designer',
+          clientEmail: client?.email || 'Client',
+          projectType: match.brief?.project_type || match.brief?.design_category || 'Project',
+          message: message,
+          matchScore: match.score || 85,
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+        })
+        
+        const { error: emailError } = await resend.emails.send({
+          from: 'OneDesigner <hello@onedesigner.app>',
+          to: designer.email,
+          subject: emailHtml.subject,
+          html: emailHtml.html
+        })
+        
+        if (emailError) {
+          console.error('Error sending email notification:', emailError)
+        } else {
+          console.log('✅ Email notification sent to designer:', designer.email)
+        }
       } catch (emailError) {
         console.error('Error sending email notification:', emailError)
         // Non-critical, continue
