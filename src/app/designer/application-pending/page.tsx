@@ -44,8 +44,9 @@ export default function ApplicationPendingPage() {
           return
         }
         
-        // If profile is incomplete, redirect to application
-        if (!data.designer.first_name || !data.designer.portfolio_url) {
+        // Only redirect to application if they haven't filled out the required application fields
+        // Check for bio since it's required, portfolio_url is optional
+        if (!data.designer.first_name || !data.designer.title || !data.designer.bio) {
           router.push('/designer/apply')
           return
         }

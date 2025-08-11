@@ -10,10 +10,10 @@ export default function ApplicationSuccessPage() {
   const theme = getTheme(true) // You can add dark mode state management if needed
 
   useEffect(() => {
-    // Redirect to pending page after 5 seconds
+    // Redirect to pending page after 3 seconds
     const timer = setTimeout(() => {
       router.push('/designer/application-pending')
-    }, 5000)
+    }, 3000)
 
     return () => clearTimeout(timer)
   }, [router])
@@ -63,7 +63,7 @@ export default function ApplicationSuccessPage() {
 
           {/* Redirect Notice */}
           <p className="text-sm animate-pulse" style={{ color: theme.text.muted }}>
-            Redirecting to your application status page in 5 seconds...
+            Redirecting to your application status page in 3 seconds...
           </p>
 
           {/* Manual Link */}

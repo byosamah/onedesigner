@@ -28,7 +28,7 @@ export async function GET() {
     // Get designer details from database
     const { data: designer, error } = await supabase
       .from('designers')
-      .select('id, email, first_name, last_name, is_verified, is_approved')
+      .select('id, email, first_name, last_name, title, bio, portfolio_url, is_verified, is_approved')
       .eq('email', session.email)
       .single()
 
@@ -44,10 +44,13 @@ export async function GET() {
       designer: {
         id: designer.id,
         email: designer.email,
-        firstName: designer.first_name,
-        lastName: designer.last_name,
-        isVerified: designer.is_verified,
-        isApproved: designer.is_approved
+        first_name: designer.first_name,
+        last_name: designer.last_name,
+        title: designer.title,
+        bio: designer.bio,
+        portfolio_url: designer.portfolio_url,
+        is_verified: designer.is_verified,
+        is_approved: designer.is_approved
       }
     })
   } catch (error) {

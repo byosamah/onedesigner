@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       // Determine designer status based on their profile
       if (existingDesigner.is_approved) {
         designerStatus = 'approved'
-      } else if (existingDesigner.first_name && existingDesigner.last_name && existingDesigner.title && existingDesigner.portfolio_url) {
-        // Has filled out application but not approved
+      } else if (existingDesigner.first_name && existingDesigner.last_name && existingDesigner.title && existingDesigner.bio) {
+        // Has filled out application but not approved (bio is required, portfolio_url is optional)
         designerStatus = 'pending'
       } else {
         // Has account but incomplete profile
