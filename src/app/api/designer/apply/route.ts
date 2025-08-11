@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/email/send-email'
 import { otpEmailTemplate } from '@/lib/email/templates/otp'
 import { createCustomOTP } from '@/lib/auth/custom-otp'
 import { logger } from '@/lib/core/logging-service'
+import { validateSession } from '@/lib/auth/session-handlers'
 
 const designerApplicationSchema = z.object({
   // Step 1: Basic Info
@@ -84,27 +85,64 @@ const designerApplicationSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // First, validate the designer session
+    const sessionResult = await validateSession('DESIGNER')
+    if (!sessionResult.valid || !sessionResult.user) {
+      logger.warn('Unauthorized designer apply attempt - no valid session')
+      return NextResponse.json(
+        { error: 'Please log in as a designer to submit an application' },
+        { status: 401 }
+      )
+    }
+    
     const body = await request.json()
-    logger.info('Received designer application:', body)
+    logger.info('Received designer application from authenticated user:', sessionResult.user.email)
     
     // Validate input
     const validatedData = designerApplicationSchema.parse(body)
     
     const supabase = createClient()
     
-    // Check if designer exists (they should, since they're authenticated)
+    // Get the designer using the authenticated user's email (from session)
+    const designerEmail = sessionResult.user.email || sessionResult.session?.email
+    
     const { data: existingDesigner } = await supabase
       .from('designers')
-      .select('id')
-      .eq('email', validatedData.email)
+      .select('id, email')
+      .eq('email', designerEmail)
       .single()
       
+    let designerId: string
+    
     if (!existingDesigner) {
-      logger.error('Designer not found for authenticated user:', validatedData.email)
-      return NextResponse.json(
-        { error: 'Designer account not found. Please sign up first.' },
-        { status: 400 }
-      )
+      logger.error('Designer not found for authenticated email:', designerEmail)
+      
+      // This shouldn't happen since they're authenticated, but let's create the designer record if needed
+      const { data: newDesigner, error: createError } = await supabase
+        .from('designers')
+        .insert({
+          email: designerEmail,
+          first_name: validatedData.firstName,
+          last_name: validatedData.lastName,
+          last_initial: validatedData.lastName.charAt(0).toUpperCase(),
+          is_approved: false,
+          is_verified: true // They're already authenticated
+        })
+        .select('id')
+        .single()
+      
+      if (createError) {
+        logger.error('Failed to create designer record:', createError)
+        return NextResponse.json(
+          { error: 'Failed to create designer account' },
+          { status: 500 }
+        )
+      }
+      
+      logger.info('Created new designer record for authenticated user with ID:', newDesigner.id)
+      designerId = newDesigner.id
+    } else {
+      designerId = existingDesigner.id
     }
     
     // Update the designer record with all the application data
@@ -147,7 +185,7 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('designers')
       .update(updateData)
-      .eq('id', existingDesigner.id)
+      .eq('id', designerId)
     
     if (updateError) {
       logger.error('Failed to update designer profile:', updateError)
