@@ -13,6 +13,7 @@ const designerApplicationSchema = z.object({
   lastName: z.string().min(1),
   email: z.string().email(),
   phone: z.string().optional(),
+  profilePicture: z.string().optional(), // Base64 image data
   
   // Step 2: Professional Info
   title: z.string().min(1),
@@ -81,6 +82,9 @@ const designerApplicationSchema = z.object({
   communicationStyle: z.string().min(1),
   remoteExperience: z.string().min(1),
   teamCollaboration: z.string().optional(),
+  
+  // Additional fields that might be sent but not stored directly
+  portfolioImages: z.array(z.string()).optional(), // Base64 images array
 })
 
 export async function POST(request: NextRequest) {
@@ -161,7 +165,8 @@ export async function POST(request: NextRequest) {
     
     // Update the designer record with all the application data
     // Ensure arrays are properly formatted for PostgreSQL
-    const updateData = {
+    // Note: profilePicture is handled separately as it's base64 data
+    const updateData: any = {
       first_name: validatedData.firstName,
       last_name: validatedData.lastName,
       last_initial: validatedData.lastName.charAt(0).toUpperCase(),
@@ -194,6 +199,14 @@ export async function POST(request: NextRequest) {
       team_collaboration: validatedData.teamCollaboration || null,
       is_approved: false, // Reset approval status since they updated their profile
       updated_at: new Date().toISOString()
+    }
+    
+    // Handle profile picture if provided (for now, we'll skip it as we need proper image handling)
+    // TODO: Implement proper image upload to storage service
+    if (validatedData.profilePicture) {
+      logger.info('Profile picture provided but skipped - needs proper storage implementation')
+      // In the future, upload to Supabase Storage or similar service
+      // updateData.profile_picture_url = uploadedImageUrl
     }
     
     logger.info('📝 Updating designer with ID:', designerId)
