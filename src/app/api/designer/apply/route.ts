@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { otpEmailTemplate } from '@/lib/email/templates/otp'
 import { createCustomOTP } from '@/lib/auth/custom-otp'
@@ -110,7 +110,8 @@ export async function POST(request: NextRequest) {
     const validatedData = designerApplicationSchema.parse(body)
     logger.info('Validated application data successfully')
     
-    const supabase = createClient()
+    // Use service client for database operations to avoid permission issues
+    const supabase = createServiceClient()
     
     // Get the designer using the authenticated user's email (from session)
     const designerEmail = sessionResult.user.email || sessionResult.session?.email
