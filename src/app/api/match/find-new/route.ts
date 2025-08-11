@@ -50,14 +50,24 @@ export async function POST(request: NextRequest) {
       project_description: brief.project_description || brief.requirements || ''
     }
 
-    // Get existing matches for this brief to exclude them
+    // Get all previously unlocked designers for this client from client_designers table
+    const { data: unlockedDesigners } = await supabase
+      .from('client_designers')
+      .select('designer_id')
+      .eq('client_id', brief.client_id)
+    
+    // Also get existing matches for this brief (as backup/compatibility)
     const { data: existingMatches } = await supabase
       .from('matches')
       .select('designer_id')
       .eq('brief_id', briefId)
 
-    const excludedDesignerIds = existingMatches?.map(m => m.designer_id) || []
-    console.log(`Excluding ${excludedDesignerIds.length} already matched designers`)
+    // Combine both lists and remove duplicates
+    const unlockedIds = unlockedDesigners?.map(d => d.designer_id) || []
+    const matchedIds = existingMatches?.map(m => m.designer_id) || []
+    const excludedDesignerIds = [...new Set([...unlockedIds, ...matchedIds])]
+    
+    console.log(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
 
     // Get approved designers (excluding already matched ones)
     const { data: designers, error: designersError } = await supabase
@@ -241,6 +251,23 @@ Provide a JSON response with:
       if (unlockError) {
         console.error('Error recording unlock:', unlockError)
         // Non-critical, continue
+      }
+
+      // Track this designer as unlocked by this client to prevent future matches
+      const { error: clientDesignerError } = await supabase
+        .from('client_designers')
+        .insert({
+          client_id: brief.client_id,
+          designer_id: bestMatch.designer.id,
+          unlocked_at: new Date().toISOString()
+        })
+        .onConflict('client_id,designer_id') // Ignore if already exists
+        .select()
+
+      if (clientDesignerError) {
+        console.error('Error tracking unlocked designer:', clientDesignerError)
+      } else {
+        console.log('✅ Tracked designer as unlocked for client')
       }
     }
 

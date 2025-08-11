@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
+import { PRICING_PACKAGES } from '@/lib/constants'
 
 interface MatchData {
   id: string
@@ -68,6 +69,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
   const [showFullProfile, setShowFullProfile] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null)
 
   const handleUnlock = async () => {
     if (!onUnlock) return
@@ -92,6 +94,32 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
       console.error('Failed to find new match:', error)
     } finally {
       setIsFindingNewMatch(false)
+    }
+  }
+
+  const handlePurchase = async (packageId: string) => {
+    setPurchasingPackage(packageId)
+    try {
+      const response = await fetch('/api/checkout/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          productKey: packageId,
+          matchId: match.id 
+        }),
+      })
+      
+      const data = await response.json()
+      
+      if (!response.ok || !data.checkoutUrl) {
+        throw new Error(data.error || 'No checkout URL received')
+      }
+      
+      // Redirect to checkout
+      window.location.href = data.checkoutUrl
+    } catch (error) {
+      console.error('Purchase error:', error)
+      setPurchasingPackage(null)
     }
   }
 
@@ -636,6 +664,69 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
           </>
         )}
       </div>
+
+      {/* Purchase Options - Show when unlocked and no credits */}
+      {isUnlocked && matchCredits === 0 && (
+        <div className="mt-6 space-y-4">
+          <div className="text-center mb-4">
+            <p className="text-sm font-medium" style={{ color: theme.text.secondary }}>
+              You're out of matches! Get more to find additional designers.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {PRICING_PACKAGES.map((pkg) => (
+              <div 
+                key={pkg.id}
+                className="rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] cursor-pointer relative"
+                style={{ 
+                  backgroundColor: pkg.popular ? (isDarkMode ? '#2A2A2A' : '#FFF9F0') : theme.nestedBg,
+                  border: pkg.popular ? `2px solid ${theme.accent}` : `1px solid ${theme.border}`,
+                  boxShadow: pkg.popular ? (isDarkMode ? 'none' : '0 4px 12px rgba(240, 173, 78, 0.15)') : 'none'
+                }}
+                onClick={() => handlePurchase(pkg.id)}
+              >
+                {pkg.popular && (
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-full text-xs font-bold" 
+                    style={{ backgroundColor: theme.accent, color: '#000' }}>
+                    POPULAR
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <h4 className="font-bold text-sm mb-1" style={{ color: theme.text.primary }}>
+                    {pkg.name}
+                  </h4>
+                  <div className="text-2xl font-bold mb-1" style={{ color: theme.accent }}>
+                    ${pkg.price}
+                  </div>
+                  <div className="text-xs" style={{ color: theme.text.muted }}>
+                    {pkg.credits} matches
+                  </div>
+                  
+                  <button 
+                    disabled={purchasingPackage === pkg.id}
+                    className="w-full mt-3 font-semibold py-2 rounded-lg text-sm transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: pkg.popular ? theme.accent : 'transparent',
+                      border: pkg.popular ? 'none' : `1px solid ${theme.accent}`,
+                      color: pkg.popular ? '#000' : theme.accent
+                    }}
+                  >
+                    {purchasingPackage === pkg.id ? (
+                      <span className="flex items-center justify-center gap-1">
+                        <span className="animate-spin text-xs">⚡</span>
+                        <span>Processing...</span>
+                      </span>
+                    ) : (
+                      'Get Matches'
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Find New Match Section - Only show when unlocked and has credits */}
       {isUnlocked && matchCredits > 0 && onFindNewMatch && (

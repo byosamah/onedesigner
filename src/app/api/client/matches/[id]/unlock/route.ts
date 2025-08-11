@@ -45,19 +45,53 @@ export async function POST(
       return apiResponse.error('Insufficient credits. Please purchase more credits.')
     }
 
-    // Verify the match belongs to this client and is pending
-    const { data: match, error: matchError } = await supabase
+    // First, check if the match exists at all
+    const { data: matchExists, error: matchExistsError } = await supabase
       .from('matches')
-      .select('id, status, designer_id')
+      .select('id, status, designer_id, client_id, brief_id')
       .eq('id', params.id)
-      .eq('client_id', clientId)
       .single()
 
-    if (matchError || !match) {
-      console.error('❌ Match not found:', matchError)
+    if (matchExistsError || !matchExists) {
+      console.error('❌ Match does not exist at all:', matchExistsError)
       console.error('❌ Match ID:', params.id)
-      console.error('❌ Client ID:', clientId)
       return apiResponse.notFound('Match')
+    }
+
+    console.log('📋 Match found:', {
+      matchId: matchExists.id,
+      matchClientId: matchExists.client_id,
+      currentClientId: clientId,
+      briefId: matchExists.brief_id,
+      status: matchExists.status
+    })
+
+    // Check if the match belongs to this client OR if it's associated with a brief created by this client
+    let match = matchExists
+    let isAuthorized = false
+
+    // Direct client_id match
+    if (matchExists.client_id === clientId) {
+      isAuthorized = true
+    } else if (matchExists.brief_id) {
+      // Check if the brief belongs to this client
+      const { data: brief } = await supabase
+        .from('briefs')
+        .select('client_id')
+        .eq('id', matchExists.brief_id)
+        .single()
+
+      if (brief && brief.client_id === clientId) {
+        isAuthorized = true
+        console.log('✅ Match authorized via brief ownership')
+      }
+    }
+
+    if (!isAuthorized) {
+      console.error('❌ Match does not belong to this client')
+      console.error('❌ Match client_id:', matchExists.client_id)
+      console.error('❌ Current client_id:', clientId)
+      return apiResponse.error('You are not authorized to unlock this match')
     }
 
     console.log('🔍 Match status:', match.status)
@@ -86,10 +120,18 @@ export async function POST(
       throw creditError
     }
 
-    // Update match status
+    // Update match status and ensure client_id is set
+    const updateData: any = { status: 'unlocked' }
+    
+    // If the match doesn't have a client_id, set it now
+    if (!match.client_id) {
+      updateData.client_id = clientId
+      console.log('📝 Setting client_id on match record')
+    }
+    
     const { error: matchUpdateError } = await supabase
       .from('matches')
-      .update({ status: 'unlocked' })
+      .update(updateData)
       .eq('id', params.id)
 
     if (matchUpdateError) {
@@ -113,6 +155,23 @@ export async function POST(
 
     if (unlockError) {
       console.error('Error recording unlock:', unlockError)
+    }
+
+    // Track this designer as unlocked by this client to prevent future matches
+    const { error: clientDesignerError } = await supabase
+      .from('client_designers')
+      .insert({
+        client_id: clientId,
+        designer_id: match.designer_id,
+        unlocked_at: new Date().toISOString()
+      })
+      .onConflict('client_id,designer_id') // Ignore if already exists
+      .select()
+
+    if (clientDesignerError) {
+      console.error('Error tracking unlocked designer:', clientDesignerError)
+    } else {
+      console.log('✅ Tracked designer as unlocked for client')
     }
 
     return apiResponse.success({

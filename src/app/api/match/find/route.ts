@@ -52,15 +52,24 @@ export async function POST(request: NextRequest) {
       return apiResponse.notFound('Brief')
     }
 
-    // Get all previously matched designers for this client (including pending ones)
+    // Get all previously unlocked designers for this client from client_designers table
+    const { data: unlockedDesigners } = await supabase
+      .from('client_designers')
+      .select('designer_id')
+      .eq('client_id', brief.client_id)
+    
+    // Also get all previously matched designers (as backup/compatibility)
     const { data: previousMatches } = await supabase
       .from('matches')
       .select('designer_id')
       .eq('client_id', brief.client_id)
     
-    const excludedDesignerIds = previousMatches?.map(m => m.designer_id) || []
+    // Combine both lists and remove duplicates
+    const unlockedIds = unlockedDesigners?.map(d => d.designer_id) || []
+    const matchedIds = previousMatches?.map(m => m.designer_id) || []
+    const excludedDesignerIds = [...new Set([...unlockedIds, ...matchedIds])]
     
-    console.log(`Excluding ${excludedDesignerIds.length} previously matched designers`)
+    console.log(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
 
     // Get all available designers excluding previously matched ones
     // Only include designers that are both verified AND approved

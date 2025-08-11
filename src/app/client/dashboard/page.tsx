@@ -212,6 +212,14 @@ export default function ClientDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* User indicator */}
+            {client?.email && (
+              <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: theme.nestedBg }}>
+                <span className="text-xs" style={{ color: theme.text.muted }}>Signed in as</span>
+                <span className="text-sm font-medium" style={{ color: theme.text.primary }}>{client.email}</span>
+              </div>
+            )}
+            
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -245,11 +253,8 @@ export default function ClientDashboard() {
       <div className="max-w-7xl mx-auto px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-            Client Dashboard
-          </h1>
           <p className="text-lg transition-colors duration-300" style={{ color: theme.text.secondary }}>
-            Welcome back{client?.email ? `, ${client.email}` : ''}
+            Welcome back
           </p>
         </div>
 

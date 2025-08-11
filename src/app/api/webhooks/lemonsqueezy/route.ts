@@ -146,6 +146,23 @@ export async function POST(request: NextRequest) {
               .eq('id', customData.match_id)
             
             console.log(`✅ Match ${customData.match_id} unlocked`)
+            
+            // Track this designer as unlocked by this client to prevent future matches
+            const { error: clientDesignerError } = await supabase
+              .from('client_designers')
+              .insert({
+                client_id: customData.client_id,
+                designer_id: match.designer_id,
+                unlocked_at: new Date().toISOString()
+              })
+              .onConflict('client_id,designer_id') // Ignore if already exists
+              .select()
+
+            if (clientDesignerError) {
+              console.error('Error tracking unlocked designer:', clientDesignerError)
+            } else {
+              console.log('✅ Tracked designer as unlocked for client')
+            }
           } else {
             console.log(`⚠️ Match ID ${customData.match_id} not found, credits added but no specific match unlocked`)
           }

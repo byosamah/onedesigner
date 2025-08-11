@@ -63,9 +63,13 @@ const NavigationComponent = ({
               </a>
               
               {showCredits && (
-                <div className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-colors duration-300 whitespace-nowrap" style={{ backgroundColor: theme.accent, color: '#000' }}>
+                <a 
+                  href="/client/purchase" 
+                  className="text-xs sm:text-sm px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all duration-300 whitespace-nowrap hover:scale-105 cursor-pointer block"
+                  style={{ backgroundColor: theme.accent, color: '#000' }}
+                >
                   <span className="hidden sm:inline font-normal">You have</span> <span className="font-bold">{credits} matches</span>
-                </div>
+                </a>
               )}
             </div>
           )}
