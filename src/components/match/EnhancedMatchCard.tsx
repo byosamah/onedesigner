@@ -848,6 +848,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             const response = await fetch('/api/messages/send', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
               body: JSON.stringify({
                 matchId: match.id,
                 designerId: match.designer.id,
