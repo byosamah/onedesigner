@@ -900,8 +900,17 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
               throw new Error(data.error || 'Failed to send message')
             }
 
-            // Success - redirect to conversation or show success message
-            window.location.href = `/client/conversations/${data.conversationId}`
+            // Success - show success message and reload page
+            if (data.requestId) {
+              alert('Message sent successfully! The designer will be notified.')
+              window.location.reload()
+            } else if (data.conversationId) {
+              // Legacy support if conversations table works
+              window.location.href = `/client/conversations/${data.conversationId}`
+            } else {
+              alert(data.message || 'Message sent successfully!')
+              window.location.reload()
+            }
           } catch (error) {
             logger.error('Error sending message:', error)
             // Re-throw to let MessageModal handle the error display
