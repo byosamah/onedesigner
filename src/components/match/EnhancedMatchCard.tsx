@@ -802,7 +802,10 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
           className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-lg backdrop-brightness-50"
           onClick={() => setShowImageModal(false)}
         >
-          <div className="relative max-w-5xl max-h-[90vh] w-full">
+          <div 
+            className="relative max-w-5xl max-h-[90vh] w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Close button */}
             <button
               onClick={() => setShowImageModal(false)}
