@@ -52,7 +52,15 @@ export async function PUT(request: NextRequest) {
     if (profileData.remoteExperience !== undefined) updateData.remote_experience = profileData.remoteExperience
     if (profileData.teamCollaboration !== undefined) updateData.team_collaboration = profileData.teamCollaboration || null
 
-    // Update designer profile
+    // Also update array columns in designers table for styles and industries
+    if (profileData.styles !== undefined) {
+      updateData.styles = profileData.styles || []
+    }
+    if (profileData.industries !== undefined) {
+      updateData.industries = profileData.industries || []
+    }
+
+    // Update designer profile with all data including array columns
     const { data: designer, error } = await supabase
       .from('designers')
       .update(updateData)
@@ -259,6 +267,26 @@ export async function GET(request: NextRequest) {
       supabase.from('designer_specializations').select('specialization').eq('designer_id', session.designerId)
     ])
 
+    // Use normalized tables data, but fallback to array columns if normalized tables are empty
+    const styles = stylesResult.data?.map(s => s.style) || designer.styles || []
+    const projectTypes = projectTypesResult.data?.map(pt => pt.project_type) || []
+    const industries = industriesResult.data?.map(i => i.industry) || designer.industries || []
+    const softwareSkills = softwareResult.data?.map(s => s.software) || []
+    const specializations = specializationsResult.data?.map(s => s.specialization) || []
+
+    logger.info('Profile data being sent:', {
+      hasStyles: styles.length > 0,
+      hasProjectTypes: projectTypes.length > 0,
+      hasIndustries: industries.length > 0,
+      hasSoftwareSkills: softwareSkills.length > 0,
+      hasSpecializations: specializations.length > 0,
+      styles,
+      projectTypes,
+      industries,
+      softwareSkills,
+      specializations
+    })
+
     return apiResponse.success({
       designer: {
         id: designer.id,
@@ -288,11 +316,11 @@ export async function GET(request: NextRequest) {
         teamCollaboration: designer.team_collaboration,
         isApproved: designer.is_approved,
         isVerified: designer.is_verified,
-        styles: stylesResult.data?.map(s => s.style) || [],
-        projectTypes: projectTypesResult.data?.map(pt => pt.project_type) || [],
-        industries: industriesResult.data?.map(i => i.industry) || [],
-        softwareSkills: softwareResult.data?.map(s => s.software) || [],
-        specializations: specializationsResult.data?.map(s => s.specialization) || []
+        styles,
+        projectTypes,
+        industries,
+        softwareSkills,
+        specializations
       }
     })
 
