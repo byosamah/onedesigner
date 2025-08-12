@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Navigation } from '@/components/shared'
 import { LoadingButton } from '@/components/forms'
 import { LoadingSpinner } from '@/components/shared'
@@ -36,6 +37,13 @@ interface EnhancedDesigner {
   onTimeDeliveryRate: number
   collaborationStyle?: string
   turnaroundTimes?: Record<string, number>
+  // Portfolio images
+  portfolioImages?: {
+    image_url: string
+    project_title: string
+    project_description: string
+    display_order: number
+  }[]
 }
 
 interface EnhancedMatch {
@@ -92,7 +100,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
       const response = await fetch(`/api/client/matches/${params.id}`)
       
       if (response.status === 401) {
-        router.push(`/auth/signin?redirect=/client/match/${params.id}`)
+        router.push(`/client/login?redirect=/client/match/${params.id}`)
         return
       }
 
@@ -101,8 +109,11 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
       }
 
       const data = await response.json()
-      console.log('Match data received:', data.match)
-      console.log('Designer data:', data.match?.designer)
+      console.log('🔍 Full API response:', data);
+      console.log('🔍 Designer data:', data.match?.designer);
+      console.log('🔍 Avatar URL:', data.match?.designer?.avatar_url);
+      console.log('🔍 firstName:', data.match?.designer?.firstName);
+      console.log('🔍 Portfolio images:', data.match?.designer?.portfolioImages);
       setMatch(data.match)
       setCredits(data.credits || 0)
     } catch (error) {
@@ -196,31 +207,43 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const DesignerAvatar = ({ designer, size = 80, className = "" }: { designer: EnhancedDesigner, size?: number, className?: string }) => {
     const [imageError, setImageError] = useState(false)
     
+    console.log('🎭 DesignerAvatar component render:', {
+      firstName: designer.firstName,
+      lastName: designer.lastName,
+      avatar_url: designer.avatar_url,
+      imageError: imageError
+    });
+    
     const getInitials = () => {
       const firstName = designer.firstName || (designer as any).first_name || ''
       const lastName = designer.lastName || (designer as any).last_name || designer.lastInitial || ''
       return `${firstName[0] || ''}${lastName[0] || ''}`
     }
     
+    // DEBUG: Show the actual values visually
+    const debugInfo = `URL: ${designer.avatar_url || 'NULL'} | Error: ${imageError} | firstName: ${designer.firstName || 'NULL'}`;
+    
     // Force showing image first, only show initials if error
     if (imageError || !designer.avatar_url) {
-      console.log('Showing initials because:', { imageError, avatar_url: designer.avatar_url })
       return (
-        <div 
-          className={`flex items-center justify-center rounded-full font-bold text-white ${className}`}
-          style={{ 
-            width: size, 
-            height: size,
-            backgroundColor: theme.accent,
-            fontSize: size / 3
-          }}
-        >
-          {getInitials()}
+        <div className="relative">
+          <div 
+            className={`flex items-center justify-center rounded-full font-bold text-white ${className}`}
+            style={{ 
+              width: size, 
+              height: size,
+              backgroundColor: theme.accent,
+              fontSize: size / 3
+            }}
+          >
+            {getInitials()}
+          </div>
+          <div className="absolute -bottom-10 left-0 text-xs bg-red-500 text-white p-1 rounded z-50" style={{ fontSize: '10px', whiteSpace: 'nowrap' }}>
+            {debugInfo}
+          </div>
         </div>
       )
     }
-    
-    console.log('Attempting to load avatar:', designer.avatar_url)
     
     return (
       <img
@@ -228,7 +251,13 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         alt={`${designer.firstName || (designer as any).first_name} ${designer.lastName || (designer as any).last_name}`}
         className={`rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}
-        onError={() => setImageError(true)}
+        onError={(e) => {
+          console.error('Avatar image failed to load:', designer.avatar_url);
+          setImageError(true);
+        }}
+        onLoad={() => {
+          console.log('Avatar image loaded successfully:', designer.avatar_url);
+        }}
       />
     )
   }
@@ -237,10 +266,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const PortfolioImage = ({ src, alt, index }: { src: string, alt: string, index: number }) => {
     const [imageError, setImageError] = useState(false)
     
-    console.log('Portfolio image:', { src, alt, imageError })
-    
     if (imageError) {
-      console.log('Portfolio image failed to load:', src)
       return (
         <div 
           className="aspect-square bg-gray-200 rounded-xl flex items-center justify-center"
@@ -257,8 +283,11 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         alt={alt}
         className="aspect-square object-cover rounded-xl"
         onError={() => {
-          console.log('Portfolio image error:', src)
-          setImageError(true)
+          console.error('Portfolio image failed to load:', src);
+          setImageError(true);
+        }}
+        onLoad={() => {
+          console.log('Portfolio image loaded successfully:', src);
         }}
       />
     )
@@ -415,7 +444,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
             </div>
           )}
 
-          {/* Portfolio Images - Generated dynamically */}
+          {/* Portfolio Images - Actual uploaded images */}
           <div className="rounded-2xl p-6 mb-6" 
             style={{ 
               backgroundColor: theme.nestedBg,
@@ -425,30 +454,33 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
               Portfolio:
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((index) => {
-                // Generate portfolio image based on designer's category
-                const category = match.designer.title?.includes('Graphic') ? 'abstract' :
-                                match.designer.title?.includes('Web') ? 'tech' :
-                                match.designer.title?.includes('UI/UX') ? 'app' :
-                                match.designer.title?.includes('Product') ? 'product' :
-                                match.designer.title?.includes('Motion') ? 'motion' : 'design'
-                
-                const portfolioImageUrl = `https://picsum.photos/seed/${category}${index}-${match.designer.id}/800/600`
-                
-                return (
+              {(match.designer.portfolioImages && match.designer.portfolioImages.length > 0) ? (
+                match.designer.portfolioImages.map((portfolioImage, index) => (
                   <div key={index} className="relative group">
                     {isUnlocked ? (
-                      <PortfolioImage 
-                        src={portfolioImageUrl} 
-                        alt={`Portfolio ${index}`} 
-                        index={index - 1}
-                      />
+                      <div className="space-y-2">
+                        <PortfolioImage 
+                          src={portfolioImage.image_url} 
+                          alt={portfolioImage.project_title || `Portfolio ${index + 1}`} 
+                          index={index}
+                        />
+                        {portfolioImage.project_title && (
+                          <div className="text-sm" style={{ color: theme.text.primary }}>
+                            <p className="font-medium">{portfolioImage.project_title}</p>
+                            {portfolioImage.project_description && (
+                              <p style={{ color: theme.text.secondary }} className="text-xs mt-1">
+                                {portfolioImage.project_description}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     ) : (
                       <div className="relative">
                         <PortfolioImage 
-                          src={portfolioImageUrl} 
-                          alt={`Portfolio ${index}`} 
-                          index={index - 1}
+                          src={portfolioImage.image_url} 
+                          alt={portfolioImage.project_title || `Portfolio ${index + 1}`} 
+                          index={index}
                         />
                         <div className="absolute inset-0 bg-black/30 backdrop-blur-sm rounded-xl flex items-center justify-center">
                           <div className="bg-black/50 text-white text-xs px-3 py-2 rounded-lg">
@@ -458,8 +490,44 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                       </div>
                     )}
                   </div>
-                )
-              })}
+                ))
+              ) : (
+                // Fallback to generated images if no uploaded portfolio
+                [1, 2, 3].map((index) => {
+                  const category = match.designer.title?.includes('Graphic') ? 'abstract' :
+                                  match.designer.title?.includes('Web') ? 'tech' :
+                                  match.designer.title?.includes('UI/UX') ? 'app' :
+                                  match.designer.title?.includes('Product') ? 'product' :
+                                  match.designer.title?.includes('Motion') ? 'motion' : 'design'
+                  
+                  const portfolioImageUrl = `https://picsum.photos/seed/${category}${index}-${match.designer.id}/800/600`
+                  
+                  return (
+                    <div key={index} className="relative group">
+                      {isUnlocked ? (
+                        <PortfolioImage 
+                          src={portfolioImageUrl} 
+                          alt={`Sample Portfolio ${index}`} 
+                          index={index - 1}
+                        />
+                      ) : (
+                        <div className="relative">
+                          <PortfolioImage 
+                            src={portfolioImageUrl} 
+                            alt={`Sample Portfolio ${index}`} 
+                            index={index - 1}
+                          />
+                          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                            <div className="bg-black/50 text-white text-xs px-3 py-2 rounded-lg">
+                              🔒 Unlock to view
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })
+              )}
             </div>
           </div>
 
