@@ -187,23 +187,14 @@ export default function ApplicationPendingPage() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/designer/profile"
-                className="px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02]"
-                style={{ 
-                  backgroundColor: theme.nestedBg,
-                  color: theme.text.primary,
-                  border: `1px solid ${theme.border}`
-                }}
-              >
-                Edit Application
-              </Link>
-              
+            <div className="flex justify-center">
               <Link
                 href="/"
-                className="px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:opacity-80"
-                style={{ color: theme.text.secondary }}
+                className="px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02]"
+                style={{ 
+                  backgroundColor: theme.accent,
+                  color: '#000'
+                }}
               >
                 Return to Homepage
               </Link>
