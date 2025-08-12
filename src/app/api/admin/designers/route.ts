@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
             lastName: designer.last_name,
             email: designer.email,
             phone: designer.phone,
+            avatar: designer.avatar_url,
             
             // Professional info
             title: designer.title,
@@ -139,7 +140,8 @@ export async function GET(request: NextRequest) {
             createdAt: designer.created_at,
             updatedAt: designer.updated_at,
             editedAfterApproval: designer.edited_after_approval || false,
-            portfolio_images: designer.portfolio_images || []
+            // TODO: Fetch portfolio images from separate table or storage
+            portfolio_images: []
           }
         } catch (e) {
           // If tables don't exist, return designer with arrays from main table
@@ -147,6 +149,7 @@ export async function GET(request: NextRequest) {
             ...designer,
             firstName: designer.first_name,
             lastName: designer.last_name,
+            avatar: designer.avatar_url,
             yearsExperience: designer.years_experience,
             websiteUrl: designer.website_url,
             portfolioUrl: designer.portfolio_url,
@@ -173,7 +176,7 @@ export async function GET(request: NextRequest) {
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
             updatedAt: designer.updated_at,
-            portfolio_images: designer.portfolio_images || []
+            portfolio_images: []
           }
         }
       })

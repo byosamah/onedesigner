@@ -46,6 +46,7 @@ interface Designer {
   updatedAt?: string
   rejectionReason?: string
   portfolio_images?: string[]
+  avatar?: string
 }
 
 interface Stats {
@@ -512,6 +513,27 @@ export default function AdminDashboardPage() {
             <h2 className="text-2xl font-bold mb-6 transition-colors duration-300" style={{ color: theme.text.primary }}>
               Designer Details
             </h2>
+            
+            {/* Avatar Section */}
+            <div className="flex justify-center mb-6">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 flex items-center justify-center" 
+                style={{ 
+                  borderColor: theme.accent,
+                  backgroundColor: selectedDesigner.avatar ? 'transparent' : theme.nestedBg 
+                }}>
+                {selectedDesigner.avatar ? (
+                  <img 
+                    src={selectedDesigner.avatar} 
+                    alt={`${selectedDesigner.firstName} ${selectedDesigner.lastName}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-4xl" style={{ color: theme.text.muted }}>
+                    {selectedDesigner.firstName?.[0]?.toUpperCase()}{selectedDesigner.lastName?.[0]?.toUpperCase()}
+                  </div>
+                )}
+              </div>
+            </div>
             
             <div className="space-y-6">
               {/* Basic Information */}
