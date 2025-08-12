@@ -101,6 +101,8 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
       }
 
       const data = await response.json()
+      console.log('Match data received:', data.match)
+      console.log('Designer data:', data.match?.designer)
       setMatch(data.match)
       setCredits(data.credits || 0)
     } catch (error) {
@@ -194,18 +196,15 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const DesignerAvatar = ({ designer, size = 80, className = "" }: { designer: EnhancedDesigner, size?: number, className?: string }) => {
     const [imageError, setImageError] = useState(false)
     
-    // Debug logging
-    console.log('Designer data:', designer)
-    console.log('Avatar URL:', designer.avatar_url)
-    console.log('Image error:', imageError)
-    
     const getInitials = () => {
       const firstName = designer.firstName || (designer as any).first_name || ''
       const lastName = designer.lastName || (designer as any).last_name || designer.lastInitial || ''
       return `${firstName[0] || ''}${lastName[0] || ''}`
     }
     
+    // Force showing image first, only show initials if error
     if (imageError || !designer.avatar_url) {
+      console.log('Showing initials because:', { imageError, avatar_url: designer.avatar_url })
       return (
         <div 
           className={`flex items-center justify-center rounded-full font-bold text-white ${className}`}
@@ -220,6 +219,8 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         </div>
       )
     }
+    
+    console.log('Attempting to load avatar:', designer.avatar_url)
     
     return (
       <img
@@ -236,7 +237,10 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const PortfolioImage = ({ src, alt, index }: { src: string, alt: string, index: number }) => {
     const [imageError, setImageError] = useState(false)
     
+    console.log('Portfolio image:', { src, alt, imageError })
+    
     if (imageError) {
+      console.log('Portfolio image failed to load:', src)
       return (
         <div 
           className="aspect-square bg-gray-200 rounded-xl flex items-center justify-center"
@@ -252,7 +256,10 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         src={src}
         alt={alt}
         className="aspect-square object-cover rounded-xl"
-        onError={() => setImageError(true)}
+        onError={() => {
+          console.log('Portfolio image error:', src)
+          setImageError(true)
+        }}
       />
     )
   }
