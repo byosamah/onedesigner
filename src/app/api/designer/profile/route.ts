@@ -255,6 +255,12 @@ export async function GET(request: NextRequest) {
       projectPreferences: designer.project_preferences,
       workingStyle: designer.working_style,
       remoteExperience: designer.remote_experience,
+      yearsExperience: designer.years_experience,
+      title: designer.title,
+      firstName: designer.first_name,
+      lastName: designer.last_name,
+      styles: designer.styles,
+      industries: designer.industries,
       allFields: Object.keys(designer).filter(key => designer[key] !== null && designer[key] !== '')
     })
 

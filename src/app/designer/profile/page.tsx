@@ -164,18 +164,39 @@ export default function DesignerProfilePage() {
       }
 
       const data = await response.json()
+      console.log('Full API response:', data)
+      console.log('Designer data:', data.designer)
       logger.info('Profile data received:', data.designer)
       
       // Log specific fields to debug
+      console.log('Important fields:', {
+        firstName: data.designer?.firstName,
+        lastName: data.designer?.lastName,
+        title: data.designer?.title,
+        bio: data.designer?.bio,
+        projectPreferences: data.designer?.projectPreferences,
+        workingStyle: data.designer?.workingStyle,
+        communicationStyle: data.designer?.communicationStyle,
+        remoteExperience: data.designer?.remoteExperience,
+        availability: data.designer?.availability,
+        country: data.designer?.country,
+        city: data.designer?.city,
+        yearsExperience: data.designer?.yearsExperience,
+        styles: data.designer?.styles,
+        projectTypes: data.designer?.projectTypes,
+        industries: data.designer?.industries,
+        specializations: data.designer?.specializations,
+        softwareSkills: data.designer?.softwareSkills
+      })
       logger.info('Field values:', {
-        bio: data.designer.bio,
-        projectPreferences: data.designer.projectPreferences,
-        workingStyle: data.designer.workingStyle,
-        communicationStyle: data.designer.communicationStyle,
-        remoteExperience: data.designer.remoteExperience,
-        availability: data.designer.availability,
-        country: data.designer.country,
-        city: data.designer.city
+        bio: data.designer?.bio,
+        projectPreferences: data.designer?.projectPreferences,
+        workingStyle: data.designer?.workingStyle,
+        communicationStyle: data.designer?.communicationStyle,
+        remoteExperience: data.designer?.remoteExperience,
+        availability: data.designer?.availability,
+        country: data.designer?.country,
+        city: data.designer?.city
       })
       
       // Ensure all fields have proper defaults
@@ -597,6 +618,18 @@ export default function DesignerProfilePage() {
 
             {/* Profile Form */}
             <div className="space-y-6">
+              {/* Current User Info */}
+              {profile?.email && (
+                <div className="rounded-2xl p-4 mb-4 bg-opacity-50" style={{
+                  backgroundColor: theme.accent + '10',
+                  border: `1px solid ${theme.accent}40`
+                }}>
+                  <p className="text-sm" style={{ color: theme.text.primary }}>
+                    Currently logged in as: <strong>{profile.email}</strong>
+                  </p>
+                </div>
+              )}
+
               {/* Profile Picture */}
               <div className="rounded-2xl p-6 transition-all duration-300" style={{
                 backgroundColor: theme.cardBg,
