@@ -67,9 +67,37 @@ export async function GET(
       .eq('client_id', clientId)
       .single()
 
+    // Fetch designer's actual portfolio images
+    let portfolioImages = []
+    if (match && match.designer) {
+      const { data: portfolioData, error: portfolioError } = await supabase
+        .from('designer_portfolio_images')
+        .select('image_url, project_title, project_description, display_order')
+        .eq('designer_id', match.designer.id)
+        .order('display_order', { ascending: true })
+        .limit(3)
+
+      if (!portfolioError && portfolioData) {
+        portfolioImages = portfolioData
+      }
+    }
+
     if (error || !match) {
       logger.error('Error fetching match:', error)
       return apiResponse.notFound('Match')
+    }
+
+    // Map database field names to frontend expectations
+    if (match.designer) {
+      const designer = match.designer
+      match.designer = {
+        ...designer,
+        firstName: designer.first_name,
+        lastName: designer.last_name || designer.last_initial,
+        yearsExperience: designer.years_experience,
+        totalProjects: designer.total_projects,
+        portfolioImages: portfolioImages
+      }
     }
 
     // Hide contact info for locked matches

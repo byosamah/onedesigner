@@ -590,7 +590,7 @@ export default function EnhancedMatchPage() {
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
-                  onClick={() => window.location.href = '/client/brief'}
+                  onClick={() => window.location.href = '/brief'}
                   className="px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ 
                     backgroundColor: theme.accent, 
