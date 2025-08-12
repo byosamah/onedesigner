@@ -15,7 +15,7 @@ const nextConfig = {
     cpus: 1
   },
   images: {
-    domains: ['localhost', 'onedesigner.app', 'onedesigner.io'],
+    domains: ['localhost', 'onedesigner.app', 'onedesigner.io', 'ui-avatars.com', 'picsum.photos'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -28,6 +28,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '**.onedesigner.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
       },
     ],
   },
