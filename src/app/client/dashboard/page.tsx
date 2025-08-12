@@ -120,6 +120,35 @@ export default function ClientDashboard() {
     }
   }
 
+  const handleContactDesigner = async (matchId: string, designerId: string) => {
+    try {
+      const message = prompt('Enter a message for the designer (optional):')
+      
+      const response = await fetch(`/api/client/matches/${matchId}/contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          designerId,
+          message: message || 'I would like to work with you on my project.'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to contact designer')
+      }
+
+      alert('✅ Message sent! The designer will receive an email notification and can approve your project request.')
+      
+    } catch (error) {
+      logger.error('Contact designer error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to contact designer')
+    }
+  }
+
   if (isLoading) {
     return (
       <div 
@@ -213,16 +242,6 @@ export default function ClientDashboard() {
           </div>
           
           <div className="flex items-center gap-4">
-            {/* Conversations Link */}
-            <Link
-              href="/client/conversations"
-              className="font-medium py-2 px-4 rounded-xl transition-all duration-300 hover:opacity-80 flex items-center gap-2"
-              style={{ color: theme.text.secondary }}
-            >
-              <span>💬</span>
-              <span>Conversations</span>
-            </Link>
-            
             {/* User indicator */}
             {client?.email && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full" style={{ backgroundColor: theme.nestedBg }}>
@@ -469,7 +488,7 @@ export default function ClientDashboard() {
                   </p>
                 </div>
 
-                {/* Contact Info (if unlocked) */}
+                {/* Contact Designer (if unlocked) */}
                 {match.status === 'unlocked' && (
                   <div 
                     className="mt-4 p-4 rounded-xl"
@@ -478,12 +497,23 @@ export default function ClientDashboard() {
                       border: `1px solid ${theme.success}40`
                     }}
                   >
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.success }}>
-                      ✅ Contact Information
+                    <p className="text-sm font-medium mb-3" style={{ color: theme.success }}>
+                      ✅ Designer Unlocked
                     </p>
-                    <div className="text-sm space-y-1" style={{ color: theme.text.primary }}>
-                      <p><strong>Email:</strong> {match.designer.firstName.toLowerCase()}@example.com</p>
-                      <p><strong>Portfolio:</strong> {match.designer.firstName.toLowerCase()}designs.com</p>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm" style={{ color: theme.text.secondary }}>
+                        Ready to start your project with {match.designer.firstName}?
+                      </div>
+                      <button
+                        onClick={() => handleContactDesigner(match.id, match.designer.id)}
+                        className="font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        style={{
+                          backgroundColor: theme.accent,
+                          color: '#000'
+                        }}
+                      >
+                        📧 Contact Designer
+                      </button>
                     </div>
                   </div>
                 )}

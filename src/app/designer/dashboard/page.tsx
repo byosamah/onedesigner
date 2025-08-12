@@ -63,6 +63,7 @@ export default function DesignerDashboardPage() {
   const [designer, setDesigner] = useState<DesignerProfile | null>(null)
   const [requests, setRequests] = useState<EnhancedDesignerRequest[]>([])
   const [matchRequests, setMatchRequests] = useState<any[]>([])
+  const [projectRequests, setProjectRequests] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
@@ -79,8 +80,8 @@ export default function DesignerDashboardPage() {
       setIsLoading(true)
       setError(null)
 
-      // Fetch designer session, requests, and match requests
-      const [sessionResponse, requestsResponse, matchRequestsResponse] = await Promise.all([
+      // Fetch designer session, requests, match requests, and project requests
+      const [sessionResponse, requestsResponse, matchRequestsResponse, projectRequestsResponse] = await Promise.all([
         fetch('/api/designer/auth/session', {
           method: 'GET',
           credentials: 'include',
@@ -90,6 +91,10 @@ export default function DesignerDashboardPage() {
           credentials: 'include',
         }),
         fetch('/api/designer/match-requests', {
+          method: 'GET',
+          credentials: 'include',
+        }),
+        fetch('/api/designer/project-requests', {
           method: 'GET',
           credentials: 'include',
         })
@@ -110,10 +115,12 @@ export default function DesignerDashboardPage() {
       const sessionData = await sessionResponse.json()
       const requestsData = await requestsResponse.json()
       const matchRequestsData = matchRequestsResponse.ok ? await matchRequestsResponse.json() : { data: [] }
+      const projectRequestsData = projectRequestsResponse.ok ? await projectRequestsResponse.json() : { projectRequests: [] }
 
       logger.info('Session data:', sessionData)
       logger.info('Requests data:', requestsData)
       logger.info('Match requests data:', matchRequestsData)
+      logger.info('Project requests data:', projectRequestsData)
 
       if (!sessionData.designer) {
         throw new Error('Designer data not found in session response')
@@ -122,6 +129,7 @@ export default function DesignerDashboardPage() {
       setDesigner(sessionData.designer)
       setRequests(requestsData.requests || [])
       setMatchRequests(matchRequestsData.data || [])
+      setProjectRequests(projectRequestsData.projectRequests || [])
 
     } catch (error) {
       logger.error('Dashboard error:', error)
@@ -208,6 +216,43 @@ export default function DesignerDashboardPage() {
     } catch (error) {
       logger.error('Decline error:', error)
       alert(error instanceof Error ? error.message : 'Failed to decline request')
+    }
+  }
+
+  const handleProjectRequestResponse = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      const rejectionReason = action === 'reject' 
+        ? prompt('Please provide a reason for declining (optional):') 
+        : null
+
+      const res = await fetch(`/api/designer/project-requests/${requestId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ action, rejectionReason }),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.message || 'Failed to respond to project request')
+      }
+
+      const data = await res.json()
+      
+      if (action === 'approve' && data.clientEmail) {
+        alert(`✅ Project approved! Client email: ${data.clientEmail}`)
+      } else {
+        alert(`Project request ${action}d successfully`)
+      }
+
+      // Refresh requests after response
+      await fetchDashboardData()
+
+    } catch (error) {
+      logger.error('Project request response error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to respond to project request')
     }
   }
 
@@ -455,6 +500,151 @@ export default function DesignerDashboardPage() {
             <div className="text-sm" style={{ color: theme.text.secondary }}>Total Requests</div>
           </div>
         </div>
+
+        {/* Client Project Requests Section */}
+        {projectRequests.length > 0 && (
+          <>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+                📧 Client Contact Requests
+              </h2>
+              <p className="text-sm mt-1" style={{ color: theme.text.secondary }}>
+                Clients who contacted you directly after unlocking
+              </p>
+            </div>
+            
+            <div className="space-y-4 mb-8">
+              {projectRequests
+                .filter(req => req.status === 'pending')
+                .map((request) => (
+                  <div 
+                    key={request.id}
+                    className="rounded-2xl p-6 transition-all duration-300 hover:scale-[1.002] animate-slideUp"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      border: `1px solid ${theme.border}`,
+                      boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="text-2xl">💌</span>
+                          <div>
+                            <h3 className="text-lg font-bold" style={{ color: theme.text.primary }}>
+                              New Project Request
+                            </h3>
+                            <p className="text-xs" style={{ color: theme.text.muted }}>
+                              {new Date(request.createdAt).toLocaleDateString('en-US', { 
+                                month: 'long', 
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: theme.nestedBg }}>
+                          <p className="text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                            Client Message:
+                          </p>
+                          <p className="text-sm" style={{ color: theme.text.primary }}>
+                            "{request.message}"
+                          </p>
+                        </div>
+                        
+                        {request.brief && (
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div>
+                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Project Type</p>
+                              <p className="text-sm" style={{ color: theme.text.primary }}>
+                                {request.brief.projectType || 'Not specified'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Timeline</p>
+                              <p className="text-sm" style={{ color: theme.text.primary }}>
+                                {request.brief.timeline || 'Not specified'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Budget</p>
+                              <p className="text-sm" style={{ color: theme.text.primary }}>
+                                {request.brief.budget || 'Not specified'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="p-3 rounded-lg" style={{ backgroundColor: theme.accent + '10', border: `1px solid ${theme.accent}40` }}>
+                          <p className="text-xs font-medium mb-1" style={{ color: theme.accent }}>
+                            ⚠️ Important:
+                          </p>
+                          <p className="text-xs" style={{ color: theme.text.secondary }}>
+                            Client email will be revealed after you approve the project request.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => handleProjectRequestResponse(request.id, 'reject')}
+                        className="flex-1 font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: `2px solid ${theme.error}`,
+                          color: theme.error
+                        }}
+                      >
+                        Decline
+                      </button>
+                      <button
+                        onClick={() => handleProjectRequestResponse(request.id, 'approve')}
+                        className="flex-1 font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        style={{
+                          backgroundColor: theme.success,
+                          color: '#FFF'
+                        }}
+                      >
+                        ✅ Approve & Get Contact
+                      </button>
+                    </div>
+                  </div>
+                ))
+              }
+              
+              {projectRequests
+                .filter(req => req.status === 'approved')
+                .map((request) => (
+                  <div 
+                    key={request.id}
+                    className="rounded-2xl p-6 transition-all duration-300 animate-slideUp"
+                    style={{
+                      backgroundColor: theme.success + '10',
+                      border: `1px solid ${theme.success}40`
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium mb-1" style={{ color: theme.success }}>
+                          ✅ Approved Project
+                        </p>
+                        <p className="text-sm" style={{ color: theme.text.primary }}>
+                          Client Email: <strong>{request.client.email}</strong>
+                        </p>
+                      </div>
+                      <p className="text-xs" style={{ color: theme.text.muted }}>
+                        Approved {new Date(request.approvedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          </>
+        )}
 
         {/* New Match Requests with Messages Section */}
         {matchRequests.length > 0 && (
