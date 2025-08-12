@@ -124,14 +124,27 @@ export async function POST(request: NextRequest) {
 
         // If there's a specific match to unlock
         if (customData.match_id && customData.match_id !== 'temp-id' && customData.match_id !== 'none') {
-          // Verify the match exists
-          const { data: matchExists } = await supabase
+          // Verify the match exists and get designer info
+          const { data: matchData } = await supabase
             .from('matches')
-            .select('id')
+            .select('id, designer_id')
             .eq('id', customData.match_id)
             .single()
           
-          if (matchExists) {
+          if (matchData) {
+            // Deduct 1 credit for auto-unlock since match is included in purchase
+            const autoUnlockCredits = Math.max(0, newCredits - 1)
+            const { error: creditDeductError } = await supabase
+              .from('clients')
+              .update({ match_credits: autoUnlockCredits })
+              .eq('id', customData.client_id)
+            
+            if (creditDeductError) {
+              logger.error('Failed to deduct credit for auto-unlock:', creditDeductError)
+            } else {
+              logger.info(`✅ Deducted 1 credit for auto-unlock: Client now has ${autoUnlockCredits} credits`)
+            }
+
             await supabase
               .from('match_unlocks')
               .insert({
@@ -154,7 +167,7 @@ export async function POST(request: NextRequest) {
               .from('client_designers')
               .select('id')
               .eq('client_id', customData.client_id)
-              .eq('designer_id', match.designer_id)
+              .eq('designer_id', matchData.designer_id)
               .single()
             
             if (!existingRecord) {
@@ -163,7 +176,7 @@ export async function POST(request: NextRequest) {
                 .from('client_designers')
                 .insert({
                   client_id: customData.client_id,
-                  designer_id: match.designer_id,
+                  designer_id: matchData.designer_id,
                   unlocked_at: new Date().toISOString()
                 })
               
