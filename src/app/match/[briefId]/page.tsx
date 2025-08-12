@@ -553,19 +553,67 @@ export default function EnhancedMatchPage() {
         {/* Empty state */}
         {!isLoading && matches.length === 0 && (
           <div className="text-center py-12 animate-fadeIn">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 
-              className="text-2xl font-bold mb-4"
-              style={{ color: theme.text.primary }}
+            <div 
+              className="max-w-2xl mx-auto p-8 rounded-3xl"
+              style={{
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`
+              }}
             >
-              No Match Found
-            </h3>
-            <p 
-              className="text-lg"
-              style={{ color: theme.text.secondary }}
-            >
-              We couldn't find a designer matching your criteria.
-            </p>
+              <div className="text-6xl mb-6">🔍</div>
+              <h3 
+                className="text-3xl font-bold mb-4"
+                style={{ color: theme.text.primary }}
+              >
+                No Match Found
+              </h3>
+              <div className="space-y-4 mb-8">
+                <p 
+                  className="text-lg"
+                  style={{ color: theme.text.secondary }}
+                >
+                  We couldn't find designers matching your current criteria.
+                </p>
+                <div 
+                  className="text-sm space-y-2"
+                  style={{ color: theme.text.muted }}
+                >
+                  <p>💡 <strong>Try these suggestions:</strong></p>
+                  <ul className="list-none space-y-1">
+                    <li>• Add more details about your project requirements</li>
+                    <li>• Expand your timeline or budget range</li>
+                    <li>• Include additional design styles or preferences</li>
+                    <li>• Provide more context about your target audience</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => window.location.href = '/client/brief'}
+                  className="px-8 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{ 
+                    backgroundColor: theme.accent, 
+                    color: '#000',
+                    focusRingColor: theme.accent + '50'
+                  }}
+                >
+                  Create New Brief
+                </button>
+                <button
+                  onClick={() => window.location.href = '/client/dashboard'}
+                  className="px-8 py-3 rounded-xl font-medium transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{ 
+                    backgroundColor: 'transparent',
+                    color: theme.text.primary,
+                    border: `2px solid ${theme.border}`,
+                    focusRingColor: theme.border + '50'
+                  }}
+                >
+                  Back to Dashboard
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
