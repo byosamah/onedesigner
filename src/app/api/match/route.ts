@@ -102,11 +102,31 @@ export async function POST(request: NextRequest) {
           primaryCategories: match.designer.categories,
           styleKeywords: match.designer.styles,
           portfolioProjects: match.designer.portfolio_projects || [],
-          portfolioImages: [
-            match.designer.portfolio_image_1,
-            match.designer.portfolio_image_2,
-            match.designer.portfolio_image_3
-          ].filter(Boolean),
+          portfolioImages: (() => {
+            // Try to get actual portfolio images first
+            const actualImages = [
+              match.designer.portfolio_image_1,
+              match.designer.portfolio_image_2,
+              match.designer.portfolio_image_3
+            ].filter(Boolean);
+            
+            // If no actual images, generate Picsum placeholders
+            if (actualImages.length === 0) {
+              const category = match.designer.title?.includes('Graphic') ? 'abstract' :
+                              match.designer.title?.includes('Web') ? 'tech' :
+                              match.designer.title?.includes('UI/UX') ? 'app' :
+                              match.designer.title?.includes('Product') ? 'product' :
+                              match.designer.title?.includes('Motion') ? 'motion' : 'design';
+              
+              return [
+                `https://picsum.photos/seed/${category}1-${match.designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}2-${match.designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}3-${match.designer.id}/800/600`
+              ];
+            }
+            
+            return actualImages;
+          })(),
           avgClientSatisfaction: 95,
           onTimeDeliveryRate: 98
         },
@@ -252,11 +272,31 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
-            portfolioImages: [
-              designer.portfolio_image_1,
-              designer.portfolio_image_2,
-              designer.portfolio_image_3
-            ].filter(Boolean), // Remove null/undefined values
+            portfolioImages: (() => {
+              // Try to get actual portfolio images first
+              const actualImages = [
+                designer.portfolio_image_1,
+                designer.portfolio_image_2,
+                designer.portfolio_image_3
+              ].filter(Boolean);
+              
+              // If no actual images, generate Picsum placeholders
+              if (actualImages.length === 0) {
+                const category = designer.title?.includes('Graphic') ? 'abstract' :
+                                designer.title?.includes('Web') ? 'tech' :
+                                designer.title?.includes('UI/UX') ? 'app' :
+                                designer.title?.includes('Product') ? 'product' :
+                                designer.title?.includes('Motion') ? 'motion' : 'design';
+                
+                return [
+                  `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
+                  `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
+                  `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
+                ];
+              }
+              
+              return actualImages;
+            })(),
             avgClientSatisfaction: 95,
             onTimeDeliveryRate: 98
           },
@@ -293,11 +333,31 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
-            portfolioImages: [
-              designer.portfolio_image_1,
-              designer.portfolio_image_2,
-              designer.portfolio_image_3
-            ].filter(Boolean), // Remove null/undefined values
+            portfolioImages: (() => {
+              // Try to get actual portfolio images first
+              const actualImages = [
+                designer.portfolio_image_1,
+                designer.portfolio_image_2,
+                designer.portfolio_image_3
+              ].filter(Boolean);
+              
+              // If no actual images, generate Picsum placeholders
+              if (actualImages.length === 0) {
+                const category = designer.title?.includes('Graphic') ? 'abstract' :
+                                designer.title?.includes('Web') ? 'tech' :
+                                designer.title?.includes('UI/UX') ? 'app' :
+                                designer.title?.includes('Product') ? 'product' :
+                                designer.title?.includes('Motion') ? 'motion' : 'design';
+                
+                return [
+                  `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
+                  `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
+                  `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
+                ];
+              }
+              
+              return actualImages;
+            })(),
             avgClientSatisfaction: 95,
             onTimeDeliveryRate: 98
           },
