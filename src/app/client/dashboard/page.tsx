@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getTheme } from '@/lib/design-system'
 import { LoadingSpinner } from '@/components/shared'
+import { ContactDesignerModal, SuccessModal } from '@/lib/components/modals'
+import { SUCCESS_MESSAGES } from '@/lib/constants/messages'
 import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedMatch {
@@ -60,7 +62,6 @@ export default function ClientDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [showContactModal, setShowContactModal] = useState(false)
   const [selectedMatchForContact, setSelectedMatchForContact] = useState<{ matchId: string, designerId: string, designerName: string } | null>(null)
-  const [contactMessage, setContactMessage] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const theme = getTheme(isDarkMode)
 
@@ -126,11 +127,10 @@ export default function ClientDashboard() {
 
   const handleContactDesigner = async (matchId: string, designerId: string, designerName: string) => {
     setSelectedMatchForContact({ matchId, designerId, designerName })
-    setContactMessage('')
     setShowContactModal(true)
   }
 
-  const sendContactMessage = async () => {
+  const sendContactMessage = async (message: string) => {
     if (!selectedMatchForContact) return
     
     try {
@@ -142,7 +142,7 @@ export default function ClientDashboard() {
         credentials: 'include',
         body: JSON.stringify({
           designerId: selectedMatchForContact.designerId,
-          message: contactMessage || 'I would like to work with you on my project.'
+          message: message
         })
       })
 
@@ -152,26 +152,13 @@ export default function ClientDashboard() {
       }
 
       setShowContactModal(false)
-      setContactMessage('')
       setShowSuccessModal(true)
-      
-      // Auto-hide success modal after 3 seconds
-      setTimeout(() => {
-        setShowSuccessModal(false)
-      }, 3000)
       
     } catch (error) {
       logger.error('Contact designer error:', error)
       alert(error instanceof Error ? error.message : 'Failed to contact designer')
     }
   }
-
-  const suggestedMessages = [
-    "I'd love to work with you on my project. Your portfolio perfectly matches what I'm looking for.",
-    "Your design style aligns perfectly with my vision. Let's discuss the project details.",
-    "I'm impressed by your work and would like to collaborate on my upcoming project.",
-    "Your expertise in this area is exactly what my project needs. Looking forward to working together."
-  ]
 
   if (isLoading) {
     return (
@@ -548,119 +535,23 @@ export default function ClientDashboard() {
       </div>
 
       {/* Success Modal */}
-      {showSuccessModal && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
-        >
-          <div 
-            className="max-w-sm w-full rounded-3xl p-8 animate-slideUp pointer-events-auto"
-            style={{ backgroundColor: theme.cardBg }}
-          >
-            <div className="text-center">
-              <div className="text-5xl mb-4">✅</div>
-              <h3 className="text-xl font-bold mb-3" style={{ color: theme.text.primary }}>
-                Message Sent!
-              </h3>
-              <p className="text-sm" style={{ color: theme.text.secondary }}>
-                The designer will receive an email notification and can approve your project request.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={SUCCESS_MESSAGES.CONTACT_SENT.title}
+        message={SUCCESS_MESSAGES.CONTACT_SENT.message}
+        isDarkMode={isDarkMode}
+      />
 
       {/* Contact Designer Modal */}
-      {showContactModal && selectedMatchForContact && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-          onClick={() => setShowContactModal(false)}
-        >
-          <div 
-            className="max-w-lg w-full rounded-3xl p-8 animate-slideUp"
-            style={{ backgroundColor: theme.cardBg }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-3">💌</div>
-              <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-                Contact {selectedMatchForContact.designerName}
-              </h2>
-              <p className="text-sm mt-2" style={{ color: theme.text.secondary }}>
-                Send a message to start your project collaboration
-              </p>
-            </div>
-            
-            {/* Message Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                Your Message
-              </label>
-              <textarea
-                value={contactMessage}
-                onChange={(e) => setContactMessage(e.target.value)}
-                placeholder="Write your message here..."
-                rows={4}
-                className="w-full px-4 py-3 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2"
-                style={{
-                  backgroundColor: theme.nestedBg,
-                  border: `2px solid ${theme.border}`,
-                  color: theme.text.primary,
-                  focusRingColor: theme.accent
-                }}
-              />
-            </div>
-            
-            {/* Suggested Messages */}
-            <div className="mb-6">
-              <p className="text-xs font-medium mb-3" style={{ color: theme.text.muted }}>
-                SUGGESTED MESSAGES
-              </p>
-              <div className="space-y-2">
-                {suggestedMessages.map((message, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setContactMessage(message)}
-                    className="w-full text-left p-3 rounded-xl transition-all duration-200 hover:scale-[1.01]"
-                    style={{
-                      backgroundColor: theme.nestedBg,
-                      border: `1px solid ${theme.border}`,
-                      color: theme.text.secondary,
-                      fontSize: '14px'
-                    }}
-                  >
-                    "{message}"
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowContactModal(false)}
-                className="flex-1 font-semibold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                style={{
-                  backgroundColor: theme.nestedBg,
-                  color: theme.text.secondary
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={sendContactMessage}
-                className="flex-1 font-semibold py-3 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                style={{
-                  backgroundColor: theme.accent,
-                  color: '#000'
-                }}
-              >
-                Send Message
-              </button>
-            </div>
-          </div>
-        </div>
+      {selectedMatchForContact && (
+        <ContactDesignerModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          designerName={selectedMatchForContact.designerName}
+          onSend={sendContactMessage}
+          isDarkMode={isDarkMode}
+        />
       )}
     </main>
   )

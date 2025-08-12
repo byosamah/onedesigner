@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { NextRequest } from 'next/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
-import { logger } from '@/lib/core/logging-service'
+import { projectRequestService } from '@/lib/database/project-request-service'
+import { createProjectApprovedEmail, createProjectRejectedEmail } from '@/lib/email/templates/project-request'
 import { emailService } from '@/lib/core/email-service'
+import { logger } from '@/lib/core/logging-service'
 
 export async function POST(
   request: NextRequest,
@@ -22,29 +23,10 @@ export async function POST(
       return apiResponse.badRequest('Invalid action')
     }
 
-    const supabase = createServiceClient()
-
-    // Get the project request
-    const { data: projectRequest, error: fetchError } = await supabase
-      .from('project_requests')
-      .select(`
-        *,
-        clients (
-          id,
-          email
-        ),
-        designers (
-          id,
-          first_name,
-          last_name,
-          email
-        )
-      `)
-      .eq('id', params.id)
-      .eq('designer_id', session.designerId)
-      .single()
-
-    if (fetchError || !projectRequest) {
+    // Get the project request with relations using centralized service
+    const projectRequest = await projectRequestService.getById(params.id, session.designerId)
+    
+    if (!projectRequest) {
       return apiResponse.notFound('Project request not found')
     }
 
@@ -52,98 +34,36 @@ export async function POST(
       return apiResponse.badRequest('This request has already been responded to')
     }
 
-    // Update the project request status
-    const updateData: any = {
-      status: action === 'approve' ? 'approved' : 'rejected',
-      updated_at: new Date().toISOString()
-    }
-
+    // Update the project request status using centralized service
+    let success = false
     if (action === 'approve') {
-      updateData.approved_at = new Date().toISOString()
+      success = await projectRequestService.approve(params.id, session.designerId)
     } else {
-      updateData.rejected_at = new Date().toISOString()
-      updateData.rejection_reason = rejectionReason || 'Not available for this project'
+      success = await projectRequestService.reject(params.id, session.designerId, rejectionReason)
     }
 
-    const { error: updateError } = await supabase
-      .from('project_requests')
-      .update(updateData)
-      .eq('id', params.id)
-
-    if (updateError) {
-      logger.error('Error updating project request:', updateError)
+    if (!success) {
       return apiResponse.serverError('Failed to update project request')
     }
 
-    // Send email notification to client
-    if (projectRequest.clients?.email) {
-      const emailHtml = action === 'approve' ? `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #10b981; font-size: 24px; margin: 0;">✅ Project Request Approved!</h1>
-          </div>
-          
-          <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
-            <p style="color: #666; line-height: 1.6;">
-              Great news! ${projectRequest.designers?.first_name} ${projectRequest.designers?.last_name} has approved your project request.
-            </p>
-            
-            <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
-              <p style="color: #333; margin: 0 0 10px 0;"><strong>Designer Contact:</strong></p>
-              <p style="color: #666; margin: 5px 0;">
-                Email: <a href="mailto:${projectRequest.designers?.email}" style="color: #f0ad4e;">${projectRequest.designers?.email}</a>
-              </p>
-            </div>
-            
-            <p style="color: #666; line-height: 1.6;">
-              You can now communicate directly with the designer to discuss your project details and next steps.
-            </p>
-          </div>
-          
-          <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
-            <p>© OneDesigner - Connecting Clients with Perfect Designers</p>
-          </div>
-        </div>
-      ` : `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 30px;">
-            <h1 style="color: #ef4444; font-size: 24px; margin: 0;">Project Request Update</h1>
-          </div>
-          
-          <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
-            <p style="color: #666; line-height: 1.6;">
-              Unfortunately, ${projectRequest.designers?.first_name} ${projectRequest.designers?.last_name} is not available for your project at this time.
-            </p>
-            
-            ${rejectionReason ? `
-            <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
-              <p style="color: #333; margin: 0 0 10px 0;"><strong>Reason:</strong></p>
-              <p style="color: #666; margin: 0;">${rejectionReason}</p>
-            </div>
-            ` : ''}
-            
-            <p style="color: #666; line-height: 1.6; margin-top: 20px;">
-              Don't worry! You can find another designer match or browse our other talented designers.
-            </p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL}/client/dashboard" style="display: inline-block; background: #f0ad4e; color: white; text-decoration: none; padding: 12px 30px; border-radius: 25px; font-weight: bold;">
-                Find Another Designer →
-              </a>
-            </div>
-          </div>
-          
-          <div style="text-align: center; color: #999; font-size: 12px; margin-top: 30px;">
-            <p>© OneDesigner - Connecting Clients with Perfect Designers</p>
-          </div>
-        </div>
-      `
+    // Send email notification to client using centralized templates
+    if (projectRequest.clients?.email && projectRequest.designers) {
+      const emailHtml = action === 'approve' 
+        ? createProjectApprovedEmail({
+            designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
+            designerEmail: projectRequest.designers.email
+          })
+        : createProjectRejectedEmail({
+            designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
+            rejectionReason: rejectionReason,
+            dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/dashboard`
+          })
 
       await emailService.sendEmail({
         to: projectRequest.clients.email,
         subject: action === 'approve' 
           ? `✅ Your project request has been approved!`
-          : `Project Request Update from ${projectRequest.designers?.first_name}`,
+          : `Project Request Update from ${projectRequest.designers.first_name}`,
         html: emailHtml
       })
     }

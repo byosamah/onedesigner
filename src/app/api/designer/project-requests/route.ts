@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { NextRequest } from 'next/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
-import { logger } from '@/lib/core/logging-service'
+import { projectRequestService } from '@/lib/database/project-request-service'
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,41 +11,11 @@ export async function GET(request: NextRequest) {
       return apiResponse.unauthorized('Please log in as a designer')
     }
 
-    const supabase = createServiceClient()
-
-    // Fetch project requests for this designer
-    const { data: projectRequests, error } = await supabase
-      .from('project_requests')
-      .select(`
-        *,
-        matches (
-          id,
-          score,
-          reasons,
-          briefs (
-            project_type,
-            timeline,
-            budget,
-            description,
-            industry,
-            design_styles
-          )
-        ),
-        clients (
-          id,
-          email
-        )
-      `)
-      .eq('designer_id', session.designerId)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      logger.error('Error fetching project requests:', error)
-      return apiResponse.serverError('Failed to fetch project requests')
-    }
+    // Fetch project requests using centralized service
+    const projectRequests = await projectRequestService.getByDesigner(session.designerId)
 
     // Format the requests for the frontend
-    const formattedRequests = (projectRequests || []).map(request => ({
+    const formattedRequests = projectRequests.map(request => ({
       id: request.id,
       matchId: request.match_id,
       message: request.message,
