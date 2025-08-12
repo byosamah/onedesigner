@@ -194,8 +194,15 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const DesignerAvatar = ({ designer, size = 80, className = "" }: { designer: EnhancedDesigner, size?: number, className?: string }) => {
     const [imageError, setImageError] = useState(false)
     
+    // Debug logging
+    console.log('Designer data:', designer)
+    console.log('Avatar URL:', designer.avatar_url)
+    console.log('Image error:', imageError)
+    
     const getInitials = () => {
-      return `${designer.firstName?.[0] || ''}${designer.lastName?.[0] || designer.lastInitial || ''}`
+      const firstName = designer.firstName || (designer as any).first_name || ''
+      const lastName = designer.lastName || (designer as any).last_name || designer.lastInitial || ''
+      return `${firstName[0] || ''}${lastName[0] || ''}`
     }
     
     if (imageError || !designer.avatar_url) {
@@ -217,7 +224,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
     return (
       <img
         src={designer.avatar_url}
-        alt={`${designer.firstName} ${designer.lastName}`}
+        alt={`${designer.firstName || (designer as any).first_name} ${designer.lastName || (designer as any).last_name}`}
         className={`rounded-full object-cover ${className}`}
         style={{ width: size, height: size }}
         onError={() => setImageError(true)}
@@ -319,20 +326,20 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
               {/* Designer Info */}
               <div className="flex-1">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  {isUnlocked ? `${match.designer.firstName} ${match.designer.lastName}` : `Designer ${match.designer.firstName}***`}
+                  {isUnlocked ? `${match.designer.firstName || (match.designer as any).first_name} ${match.designer.lastName || (match.designer as any).last_name}` : `Designer ${match.designer.firstName || (match.designer as any).first_name}***`}
                 </h2>
                 <p className="text-xl mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
                   {match.designer.title} • {match.designer.city}, {match.designer.country}
                 </p>
                 <div className="flex items-center gap-6 text-sm flex-wrap">
                   <span style={{ color: theme.text.muted }}>
-                    {match.designer.yearsExperience} years experience
+                    {match.designer.yearsExperience || (match.designer as any).years_experience} years experience
                   </span>
                   <span style={{ color: theme.text.muted }}>
                     ⭐ {match.designer.rating}/5 rating
                   </span>
                   <span style={{ color: theme.text.muted }}>
-                    {match.designer.totalProjects} projects completed
+                    {match.designer.totalProjects || (match.designer as any).total_projects} projects completed
                   </span>
                   {match.designer.avgClientSatisfaction && (
                     <span style={{ color: theme.text.muted }}>
