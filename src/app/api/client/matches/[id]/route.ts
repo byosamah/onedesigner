@@ -52,7 +52,8 @@ export async function GET(
           rating,
           total_projects,
           styles,
-          industries
+          industries,
+          avatar_url
         ),
         brief:briefs!matches_brief_id_fkey(
           project_type,
@@ -82,9 +83,19 @@ export async function GET(
       }
     }
 
+    // Get client credits
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
+      .select('match_credits')
+      .eq('id', clientId)
+      .single()
+
+    const credits = client?.match_credits || 0
+
     return apiResponse.success({
       success: true,
-      match
+      match,
+      credits
     })
   } catch (error) {
     return handleApiError(error, 'client/matches/[id]')

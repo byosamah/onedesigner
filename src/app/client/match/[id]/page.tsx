@@ -26,6 +26,8 @@ interface EnhancedDesigner {
   totalProjects: number
   styles: string[]
   industries: string[]
+  // Image fields
+  avatar_url?: string
   // Enhanced fields
   designPhilosophy: string
   primaryCategories: string[]
@@ -188,6 +190,66 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
 
   const isUnlocked = match.status === 'unlocked' || match.status === 'completed'
 
+  // Avatar component with fallback
+  const DesignerAvatar = ({ designer, size = 80, className = "" }: { designer: EnhancedDesigner, size?: number, className?: string }) => {
+    const [imageError, setImageError] = useState(false)
+    
+    const getInitials = () => {
+      return `${designer.firstName?.[0] || ''}${designer.lastName?.[0] || designer.lastInitial || ''}`
+    }
+    
+    if (imageError || !designer.avatar_url) {
+      return (
+        <div 
+          className={`flex items-center justify-center rounded-full font-bold text-white ${className}`}
+          style={{ 
+            width: size, 
+            height: size,
+            backgroundColor: theme.accent,
+            fontSize: size / 3
+          }}
+        >
+          {getInitials()}
+        </div>
+      )
+    }
+    
+    return (
+      <img
+        src={designer.avatar_url}
+        alt={`${designer.firstName} ${designer.lastName}`}
+        className={`rounded-full object-cover ${className}`}
+        style={{ width: size, height: size }}
+        onError={() => setImageError(true)}
+      />
+    )
+  }
+
+  // Portfolio Image component with error handling
+  const PortfolioImage = ({ src, alt, index }: { src: string, alt: string, index: number }) => {
+    const [imageError, setImageError] = useState(false)
+    
+    if (imageError) {
+      return (
+        <div 
+          className="aspect-square bg-gray-200 rounded-xl flex items-center justify-center"
+          style={{ backgroundColor: theme.border }}
+        >
+          <span style={{ color: theme.text.muted }}>Image {index + 1}</span>
+        </div>
+      )
+    }
+    
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className="aspect-square object-cover rounded-xl"
+        onError={() => setImageError(true)}
+      />
+    )
+  }
+
   return (
     <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
       <Navigation 
@@ -237,28 +299,47 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
             border: `1px solid ${theme.border}`
           }}>
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="flex-1">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                {isUnlocked ? `${match.designer.firstName} ${match.designer.lastName}` : `Designer ${match.designer.firstName}***`}
-              </h2>
-              <p className="text-xl mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                {match.designer.title} • {match.designer.city}, {match.designer.country}
-              </p>
-              <div className="flex items-center gap-6 text-sm flex-wrap">
-                <span style={{ color: theme.text.muted }}>
-                  {match.designer.yearsExperience} years experience
-                </span>
-                <span style={{ color: theme.text.muted }}>
-                  ⭐ {match.designer.rating}/5 rating
-                </span>
-                <span style={{ color: theme.text.muted }}>
-                  {match.designer.totalProjects} projects completed
-                </span>
-                {match.designer.avgClientSatisfaction && (
-                  <span style={{ color: theme.text.muted }}>
-                    {match.designer.avgClientSatisfaction}% client satisfaction
-                  </span>
+            <div className="flex items-start gap-4 flex-1">
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                {isUnlocked ? (
+                  <DesignerAvatar designer={match.designer} size={80} />
+                ) : (
+                  <div className="relative">
+                    <DesignerAvatar designer={match.designer} size={80} className="blur-sm" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-black/50 text-white text-xs px-2 py-1 rounded">
+                        🔒
+                      </div>
+                    </div>
+                  </div>
                 )}
+              </div>
+              
+              {/* Designer Info */}
+              <div className="flex-1">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                  {isUnlocked ? `${match.designer.firstName} ${match.designer.lastName}` : `Designer ${match.designer.firstName}***`}
+                </h2>
+                <p className="text-xl mb-4 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                  {match.designer.title} • {match.designer.city}, {match.designer.country}
+                </p>
+                <div className="flex items-center gap-6 text-sm flex-wrap">
+                  <span style={{ color: theme.text.muted }}>
+                    {match.designer.yearsExperience} years experience
+                  </span>
+                  <span style={{ color: theme.text.muted }}>
+                    ⭐ {match.designer.rating}/5 rating
+                  </span>
+                  <span style={{ color: theme.text.muted }}>
+                    {match.designer.totalProjects} projects completed
+                  </span>
+                  {match.designer.avgClientSatisfaction && (
+                    <span style={{ color: theme.text.muted }}>
+                      {match.designer.avgClientSatisfaction}% client satisfaction
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -319,6 +400,54 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
               </p>
             </div>
           )}
+
+          {/* Portfolio Images - Generated dynamically */}
+          <div className="rounded-2xl p-6 mb-6" 
+            style={{ 
+              backgroundColor: theme.nestedBg,
+              border: `1px solid ${theme.border}`
+            }}>
+            <h3 className="font-bold text-lg mb-4 transition-colors duration-300" style={{ color: theme.text.primary }}>
+              Portfolio:
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((index) => {
+                // Generate portfolio image based on designer's category
+                const category = match.designer.title?.includes('Graphic') ? 'abstract' :
+                                match.designer.title?.includes('Web') ? 'tech' :
+                                match.designer.title?.includes('UI/UX') ? 'app' :
+                                match.designer.title?.includes('Product') ? 'product' :
+                                match.designer.title?.includes('Motion') ? 'motion' : 'design'
+                
+                const portfolioImageUrl = `https://picsum.photos/seed/${category}${index}-${match.designer.id}/800/600`
+                
+                return (
+                  <div key={index} className="relative group">
+                    {isUnlocked ? (
+                      <PortfolioImage 
+                        src={portfolioImageUrl} 
+                        alt={`Portfolio ${index}`} 
+                        index={index - 1}
+                      />
+                    ) : (
+                      <div className="relative">
+                        <PortfolioImage 
+                          src={portfolioImageUrl} 
+                          alt={`Portfolio ${index}`} 
+                          index={index - 1}
+                        />
+                        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                          <div className="bg-black/50 text-white text-xs px-3 py-2 rounded-lg">
+                            🔒 Unlock to view
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
 
           {/* Categories & Style */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
