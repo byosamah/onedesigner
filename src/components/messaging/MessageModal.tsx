@@ -29,9 +29,9 @@ export function MessageModal({
 
   // Suggested message templates
   const templates = [
-    `Hi ${designerName}, I'm excited to work with you on my ${projectType || 'project'}. `,
-    `Hello ${designerName}, I reviewed your portfolio and think you'd be perfect for this project. `,
-    `Hi ${designerName}, your experience aligns perfectly with what I'm looking for. `
+    `Hi ${designerName}, I'm excited to work with you on my ${projectType || 'project'}. I'd love to discuss the details and get started as soon as possible.`,
+    `Hello ${designerName}, I reviewed your portfolio and think you'd be perfect for this project. Can we discuss how you'd approach this work?`,
+    `Hi ${designerName}, your experience aligns perfectly with what I'm looking for. I'm ready to move forward with you on this project.`
   ]
 
   const handleSend = async () => {
@@ -52,8 +52,9 @@ export function MessageModal({
       await onSend(message)
       setMessage('')
       onClose()
-    } catch (err) {
-      setError('Failed to send message. Please try again.')
+    } catch (err: any) {
+      console.error('Message send error:', err)
+      setError(err.message || 'Failed to send message. Please try again.')
     } finally {
       setSending(false)
     }
@@ -119,7 +120,7 @@ export function MessageModal({
                       border: `1px solid ${theme.border}`
                     }}
                   >
-                    "{template}..."
+                    "{template}"
                   </button>
                 ))}
               </div>
