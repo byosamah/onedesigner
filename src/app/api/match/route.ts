@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
           primaryCategories: match.designer.categories,
           styleKeywords: match.designer.styles,
           portfolioProjects: match.designer.portfolio_projects || [],
+          profilePicture: match.designer.avatar_url,
           portfolioImages: (() => {
             // Try to get actual portfolio images first
             const actualImages = [
@@ -272,6 +273,7 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
+            profilePicture: designer.avatar_url,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
               const actualImages = [
@@ -333,6 +335,7 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
+            profilePicture: designer.avatar_url,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
               const actualImages = [
@@ -467,6 +470,7 @@ Provide JSON response:
                   primaryCategories: designer.categories,
                   styleKeywords: designer.styles,
                   portfolioProjects: designer.portfolio_projects || [],
+                  profilePicture: designer.avatar_url,
                   portfolioImages: [
                     designer.portfolio_image_1,
                     designer.portfolio_image_2,
@@ -523,6 +527,7 @@ Provide JSON response:
               primaryCategories: selectedDesigner.categories,
               styleKeywords: selectedDesigner.styles,
               portfolioProjects: selectedDesigner.portfolio_projects || [],
+              profilePicture: selectedDesigner.avatar_url,
               portfolioImages: [
                 selectedDesigner.portfolio_image_1,
                 selectedDesigner.portfolio_image_2,
