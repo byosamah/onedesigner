@@ -44,6 +44,8 @@ interface Designer {
   rating?: number
   totalProjects?: number
   updatedAt?: string
+  rejectionReason?: string
+  portfolio_images?: string[]
 }
 
 interface Stats {
@@ -562,14 +564,14 @@ export default function AdminDashboardPage() {
                   <div>
                     <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Price Range</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      ${selectedDesigner.projectPriceFrom} - ${selectedDesigner.projectPriceTo}
+                      ${selectedDesigner.projectPriceFrom || 0} - ${selectedDesigner.projectPriceTo || 'TBD'}
                     </p>
                   </div>
                   
                   <div>
                     <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Availability</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.availability}
+                      {selectedDesigner.availability || 'Not specified'}
                     </p>
                   </div>
                 </div>
@@ -582,33 +584,57 @@ export default function AdminDashboardPage() {
                   <div>
                     <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>City</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.city}
+                      {selectedDesigner.city || 'Not specified'}
                     </p>
                   </div>
                   
                   <div>
                     <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Country</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.country}
+                      {selectedDesigner.country || 'Not specified'}
                     </p>
                   </div>
                   
-                  <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Timezone</p>
-                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.timezone}
-                    </p>
-                  </div>
+                  {selectedDesigner.timezone && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Timezone</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.timezone}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
               
               {/* Bio */}
-              <div>
-                <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Bio</p>
-                <p className="transition-colors duration-300 whitespace-pre-wrap" style={{ color: theme.text.primary }}>
-                  {selectedDesigner.bio || 'No bio provided'}
-                </p>
-              </div>
+              {selectedDesigner.bio && (
+                <div>
+                  <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Bio</p>
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: theme.nestedBg }}>
+                    <p className="transition-colors duration-300 whitespace-pre-wrap" style={{ color: theme.text.primary }}>
+                      {selectedDesigner.bio}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Portfolio Images - if they exist */}
+              {selectedDesigner.portfolio_images && selectedDesigner.portfolio_images.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Portfolio Images</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    {selectedDesigner.portfolio_images.map((image, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden">
+                        <img 
+                          src={image} 
+                          alt={`Portfolio ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               {/* Portfolio URLs */}
               <div className="space-y-4">
@@ -781,55 +807,122 @@ export default function AdminDashboardPage() {
                 )}
               </div>
               
-              {/* Experience & Preferences */}
+              {/* Working Style & Preferences */}
               <div className="space-y-4">
-                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Experience & Preferences</h3>
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Working Style & Preferences</h3>
                 
-                {selectedDesigner.previousClients ? (
+                <div className="grid grid-cols-1 gap-4">
+                  {selectedDesigner.projectPreferences && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Project Preferences</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.projectPreferences || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedDesigner.workingStyle && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Working Style</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.workingStyle || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedDesigner.communicationStyle && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Communication Style</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.communicationStyle || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedDesigner.remoteExperience && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Remote Experience</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.remoteExperience || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedDesigner.teamCollaboration && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Team Collaboration</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.teamCollaboration || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedDesigner.previousClients && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Previous Clients</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.previousClients || 'Not specified'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Timestamps */}
+              <div className="space-y-4">
+                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Application Info</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Previous Clients</p>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Applied On</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.previousClients}
+                      {new Date(selectedDesigner.createdAt).toLocaleDateString('en-US', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}
                     </p>
                   </div>
-                ) : null}
-                
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Project Preferences</p>
-                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.projectPreferences}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Working Style</p>
-                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.workingStyle}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Communication Style</p>
-                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.communicationStyle}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Remote Experience</p>
-                  <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                    {selectedDesigner.remoteExperience}
-                  </p>
-                </div>
-                
-                {selectedDesigner.teamCollaboration ? (
+                  
+                  {selectedDesigner.updatedAt && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Last Updated</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {new Date(selectedDesigner.updatedAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  )}
+                  
                   <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Team Collaboration</p>
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Status</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.teamCollaboration}
+                      {selectedDesigner.isApproved ? '✅ Approved' : 
+                       selectedDesigner.rejectionReason ? '❌ Rejected' : 
+                       '⏳ Pending Review'}
                     </p>
                   </div>
-                ) : null}
+                  
+                  {selectedDesigner.rating && (
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Rating</p>
+                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
+                        {selectedDesigner.rating}/5
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {selectedDesigner.rejectionReason && (
+                  <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: theme.error + '10', border: `1px solid ${theme.error}20` }}>
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.error }}>Rejection Reason:</p>
+                    <p className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                      {selectedDesigner.rejectionReason}
+                    </p>
+                  </div>
+                )}
               </div>
               
               {!selectedDesigner.isApproved && selectedDesigner.isVerified && (

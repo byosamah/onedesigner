@@ -138,7 +138,8 @@ export async function GET(request: NextRequest) {
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
             updatedAt: designer.updated_at,
-            editedAfterApproval: designer.edited_after_approval || false
+            editedAfterApproval: designer.edited_after_approval || false,
+            portfolio_images: designer.portfolio_images || []
           }
         } catch (e) {
           // If tables don't exist, return designer with arrays from main table
@@ -171,7 +172,8 @@ export async function GET(request: NextRequest) {
             rejectionReason: designer.rejection_reason || null,
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
-            updatedAt: designer.updated_at
+            updatedAt: designer.updated_at,
+            portfolio_images: designer.portfolio_images || []
           }
         }
       })
