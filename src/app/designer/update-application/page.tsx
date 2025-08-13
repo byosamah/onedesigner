@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LoadingButton } from '@/components/forms'
@@ -223,7 +223,7 @@ const COUNTRIES_AND_CITIES = {
 // For countries not in the above list, provide a default set of options
 const DEFAULT_CITIES = ['Capital City', 'Major City', 'Other']
 
-export default function DesignerUpdateApplicationPage() {
+function UpdateApplicationForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
@@ -1766,5 +1766,13 @@ export default function DesignerUpdateApplicationPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function DesignerUpdateApplicationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div><p className="mt-4 text-gray-600">Loading update form...</p></div></div>}>
+      <UpdateApplicationForm />
+    </Suspense>
   )
 }

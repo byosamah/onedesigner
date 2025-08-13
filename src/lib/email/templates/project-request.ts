@@ -1,4 +1,4 @@
-import { baseEmailTemplate } from '../template-base'
+import { createEmailTemplate } from '../template-base'
 
 interface ProjectRequestEmailData {
   designerName: string
@@ -9,18 +9,12 @@ interface ProjectRequestEmailData {
   dashboardUrl: string
 }
 
-export function createProjectRequestEmail(data: ProjectRequestEmailData): string {
-  const content = `
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #f0ad4e; font-size: 24px; margin: 0;">🎯 New Project Request!</h1>
-    </div>
-    
-    <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-      <h2 style="color: #333; font-size: 18px; margin-top: 0;">Hi ${data.designerName},</h2>
-      
-      <p style="color: #666; line-height: 1.6;">
-        Great news! A client is interested in working with you on their project.
-      </p>
+export function createProjectRequestEmail(data: ProjectRequestEmailData): { subject: string; html: string; text: string } {
+  const template = createEmailTemplate({
+    title: '🎯 New Project Request!',
+    content: {
+      greeting: `Hi ${data.designerName}!`,
+      mainText: `Great news! A client is interested in working with you on their project.
       
       <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
         <p style="color: #333; margin: 0;"><strong>Client Message:</strong></p>
@@ -38,23 +32,20 @@ export function createProjectRequestEmail(data: ProjectRequestEmailData): string
         </ul>
       </div>
       
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${data.dashboardUrl}" style="display: inline-block; background: #f0ad4e; color: white; text-decoration: none; padding: 12px 30px; border-radius: 25px; font-weight: bold;">
-          View in Dashboard →
-        </a>
-      </div>
-      
       <p style="color: #999; font-size: 14px; text-align: center;">
         Once you approve this project request, you'll receive the client's contact information.
-      </p>
-    </div>
-  `
-
-  return baseEmailTemplate({
-    title: '🎯 New Project Request!',
-    content,
-    footerText: '© OneDesigner - Connecting Clients with Perfect Designers'
+      </p>`,
+      ctaButton: {
+        text: 'View in Dashboard →',
+        href: data.dashboardUrl
+      }
+    }
   })
+
+  return {
+    subject: '🎯 New Project Request!',
+    ...template
+  }
 }
 
 interface ProjectApprovedEmailData {
@@ -62,16 +53,12 @@ interface ProjectApprovedEmailData {
   designerEmail: string
 }
 
-export function createProjectApprovedEmail(data: ProjectApprovedEmailData): string {
-  const content = `
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #10b981; font-size: 24px; margin: 0;">✅ Project Request Approved!</h1>
-    </div>
-    
-    <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
-      <p style="color: #666; line-height: 1.6;">
-        Great news! ${data.designerName} has approved your project request.
-      </p>
+export function createProjectApprovedEmail(data: ProjectApprovedEmailData): { subject: string; html: string; text: string } {
+  const template = createEmailTemplate({
+    title: '✅ Project Request Approved!',
+    content: {
+      greeting: 'Great news!',
+      mainText: `${data.designerName} has approved your project request.
       
       <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
         <p style="color: #333; margin: 0 0 10px 0;"><strong>Designer Contact:</strong></p>
@@ -80,17 +67,14 @@ export function createProjectApprovedEmail(data: ProjectApprovedEmailData): stri
         </p>
       </div>
       
-      <p style="color: #666; line-height: 1.6;">
-        You can now communicate directly with the designer to discuss your project details and next steps.
-      </p>
-    </div>
-  `
-
-  return baseEmailTemplate({
-    title: '✅ Project Request Approved!',
-    content,
-    footerText: '© OneDesigner - Connecting Clients with Perfect Designers'
+      <p>You can now communicate directly with the designer to discuss your project details and next steps.</p>`
+    }
   })
+
+  return {
+    subject: '✅ Project Request Approved!',
+    ...template
+  }
 }
 
 interface ProjectRejectedEmailData {
@@ -99,16 +83,11 @@ interface ProjectRejectedEmailData {
   dashboardUrl: string
 }
 
-export function createProjectRejectedEmail(data: ProjectRejectedEmailData): string {
-  const content = `
-    <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #ef4444; font-size: 24px; margin: 0;">Project Request Update</h1>
-    </div>
-    
-    <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
-      <p style="color: #666; line-height: 1.6;">
-        Unfortunately, ${data.designerName} is not available for your project at this time.
-      </p>
+export function createProjectRejectedEmail(data: ProjectRejectedEmailData): { subject: string; html: string; text: string } {
+  const template = createEmailTemplate({
+    title: 'Project Request Update',
+    content: {
+      mainText: `Unfortunately, ${data.designerName} is not available for your project at this time.
       
       ${data.rejectionReason ? `
       <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
@@ -117,21 +96,16 @@ export function createProjectRejectedEmail(data: ProjectRejectedEmailData): stri
       </div>
       ` : ''}
       
-      <p style="color: #666; line-height: 1.6; margin-top: 20px;">
-        Don't worry! You can find another designer match or browse our other talented designers.
-      </p>
-      
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${data.dashboardUrl}" style="display: inline-block; background: #f0ad4e; color: white; text-decoration: none; padding: 12px 30px; border-radius: 25px; font-weight: bold;">
-          Find Another Designer →
-        </a>
-      </div>
-    </div>
-  `
-
-  return baseEmailTemplate({
-    title: 'Project Request Update',
-    content,
-    footerText: '© OneDesigner - Connecting Clients with Perfect Designers'
+      <p>Don't worry! You can find another designer match or browse our other talented designers.</p>`,
+      ctaButton: {
+        text: 'Find Another Designer →',
+        href: data.dashboardUrl
+      }
+    }
   })
+
+  return {
+    subject: 'Project Request Update',
+    ...template
+  }
 }
