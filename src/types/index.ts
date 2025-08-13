@@ -89,10 +89,16 @@ export interface BlogPost {
   title: string
   slug: string
   preview: string
+  preview_text?: string
   content: string
-  category: string
+  category?: string
   cover_image?: string
   views_count?: number
   created_at: string
   updated_at: string
+  author_name?: string
+  status?: string
+  meta_title?: string
+  meta_description?: string
+  published_at?: string
 }
