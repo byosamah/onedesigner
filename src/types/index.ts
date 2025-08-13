@@ -83,3 +83,16 @@ export interface DesignerRequest {
   response?: string
   message?: string
 }
+
+export interface BlogPost {
+  id: string
+  title: string
+  slug: string
+  preview: string
+  content: string
+  category: string
+  cover_image?: string
+  views_count?: number
+  created_at: string
+  updated_at: string
+}

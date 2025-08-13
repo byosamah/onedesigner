@@ -19,12 +19,7 @@ export async function GET(request: NextRequest) {
     // Find designer by update token and check expiry
     const { data: designer, error } = await supabase
       .from('designers')
-      .select(`
-        *,
-        designer_project_types(project_type),
-        designer_specializations(specialization),
-        designer_software_skills(software)
-      `)
+      .select('*')
       .eq('update_token', token)
       .single()
     
@@ -71,7 +66,7 @@ export async function GET(request: NextRequest) {
       
       // Step 4: Style & Expertise
       styles: designer.styles || [],
-      projectTypes: designer.designer_project_types?.map((pt: any) => pt.project_type) || [],
+      projectTypes: designer.project_types || [],
       industries: designer.industries || [],
       bio: designer.bio || '',
       
@@ -80,8 +75,8 @@ export async function GET(request: NextRequest) {
       dribbbleUrl: designer.dribbble_url || '',
       behanceUrl: designer.behance_url || '',
       linkedinUrl: designer.linkedin_url || '',
-      specializations: designer.designer_specializations?.map((s: any) => s.specialization) || [],
-      softwareSkills: designer.designer_software_skills?.map((s: any) => s.software) || [],
+      specializations: designer.specializations || [],
+      softwareSkills: designer.software_skills || [],
       portfolioImages: [
         designer.portfolio_image_1,
         designer.portfolio_image_2,

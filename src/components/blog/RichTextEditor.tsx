@@ -7,13 +7,15 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   onImageUpload?: (file: File) => Promise<string>;
   placeholder?: string;
+  theme?: any;
 }
 
 export default function RichTextEditor({ 
   value, 
   onChange, 
   onImageUpload,
-  placeholder = "Start writing..." 
+  placeholder = "Start writing...",
+  theme 
 }: RichTextEditorProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,15 +91,37 @@ export default function RichTextEditor({
   ];
 
   return (
-    <div className="border rounded-xl overflow-hidden bg-white dark:bg-gray-800">
+    <div 
+      className="border rounded-xl overflow-hidden"
+      style={{ 
+        backgroundColor: theme?.background?.secondary || 'white',
+        borderColor: theme?.border?.primary || '#e5e7eb'
+      }}
+    >
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 flex-wrap">
+      <div 
+        className="flex items-center gap-1 p-3 border-b flex-wrap"
+        style={{ 
+          backgroundColor: theme?.background?.primary || '#f9fafb',
+          borderColor: theme?.border?.primary || '#e5e7eb'
+        }}
+      >
         {toolbarButtons.map((button, index) => (
           <button
             key={index}
             type="button"
             onClick={button.action}
-            className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105"
+            className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105"
+            style={{ 
+              color: theme?.text?.primary || '#1f2937',
+              backgroundColor: 'transparent'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = theme?.background?.secondary || '#e5e7eb';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
             title={button.title}
           >
             {button.icon}
@@ -133,8 +157,12 @@ export default function RichTextEditor({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full h-64 p-4 resize-none border-none outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-          style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace' }}
+          className="w-full h-64 p-4 resize-none border-none outline-none"
+          style={{ 
+            fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
+            backgroundColor: theme?.background?.secondary || 'white',
+            color: theme?.text?.primary || '#1f2937'
+          }}
         />
         
         {isUploading && (
@@ -154,3 +182,5 @@ export default function RichTextEditor({
     </div>
   );
 }
+
+export { RichTextEditor };
