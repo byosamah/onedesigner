@@ -7,7 +7,6 @@ export interface Designer {
   city: string
   country: string
   yearsExperience: number
-  rating: number
   totalProjects: number
   avatarUrl?: string
   

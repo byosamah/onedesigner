@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       
       const { data: designers } = await supabase
         .from('designers')
-        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, years_experience, rating, total_projects')
+        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, years_experience, total_projects')
         .in('id', designerIds)
       
       const { data: briefs } = await supabase

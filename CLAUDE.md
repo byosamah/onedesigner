@@ -270,6 +270,7 @@ auth_tokens (email, code, type, purpose, created_at, expires_at) -- OTP storage
 ```bash
 # API Keys
 DEEPSEEK_API_KEY=sk-7404080c428443b598ee8c76382afb39
+DEEPSEEK_BLOG_API_KEY=sk-7f77c4bfc9f14f2a9cf66aaa7a4fe925
 LEMONSQUEEZY_API_KEY=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9... (full key in COMPLETE_VERCEL_ENV_VARS.md)
 RESEND_API_KEY=re_KL6peoSX_KsWzKz8JhALUK3BdttMNS8M8
 

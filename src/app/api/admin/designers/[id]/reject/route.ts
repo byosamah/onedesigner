@@ -3,6 +3,8 @@ import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { logger } from '@/lib/core/logging-service'
+import { createDesignerRejectionEmail } from '@/lib/email/templates/designer-rejection'
+import crypto from 'crypto'
 
 export async function POST(
   request: NextRequest,
@@ -31,12 +33,18 @@ export async function POST(
 
     const supabase = createServiceClient()
     
-    // Update designer with rejection
+    // Generate a unique token for the update application link
+    const updateToken = crypto.randomBytes(32).toString('hex')
+    const tokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
+    
+    // Update designer with rejection and store update token
     const { data: designer, error } = await supabase
       .from('designers')
       .update({
         is_approved: false,
-        rejection_reason: reason
+        rejection_reason: reason,
+        update_token: updateToken,
+        update_token_expires: tokenExpiry.toISOString()
       })
       .eq('id', params.id)
       .select()
@@ -50,21 +58,26 @@ export async function POST(
       )
     }
 
-    // Send rejection email to designer
+    // Generate the update application URL
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
+    const updateApplicationUrl = `${baseUrl}/designer/update-application?token=${updateToken}`
+
+    // Send rejection email to designer with new template
     try {
+      const emailTemplate = createDesignerRejectionEmail({
+        designerName: designer.first_name,
+        rejectionReason: reason,
+        updateApplicationUrl
+      })
+      
       await sendEmail({
         to: designer.email,
-        subject: 'Your OneDesigner Application Update',
-        html: `
-          <h2>Hello ${designer.first_name},</h2>
-          <p>Thank you for your interest in joining OneDesigner.</p>
-          <p>After careful review, we're unable to approve your application at this time.</p>
-          <p><strong>Reason:</strong> ${reason}</p>
-          <p>We encourage you to address the feedback and reapply in the future.</p>
-          <p>Best regards,<br>The OneDesigner Team</p>
-        `,
-        text: `Hello ${designer.first_name}, Thank you for your interest in joining OneDesigner. After careful review, we're unable to approve your application at this time. Reason: ${reason}. We encourage you to address the feedback and reapply in the future.`
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text
       })
+      
+      logger.info(`Rejection email sent to designer ${designer.id} with update link`)
     } catch (emailError) {
       logger.error('Failed to send rejection email:', emailError)
       // Don't fail the rejection if email fails

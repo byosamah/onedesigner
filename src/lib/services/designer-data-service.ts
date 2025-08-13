@@ -20,7 +20,6 @@ export interface DesignerStats {
   totalMatches: number
   acceptedMatches: number
   completedProjects: number
-  averageRating?: number
   responseRate?: number
 }
 
@@ -149,18 +148,6 @@ export class DesignerDataService extends DataService {
     // Get completed projects (could be tracked separately)
     const completedProjects = acceptedMatches // For now, assume accepted = completed
 
-    // Get ratings if available
-    const { data: ratings, error: ratingError } = await this['supabase']
-      .from('designer_ratings')
-      .select('rating')
-      .eq('designer_id', designerId)
-
-    let averageRating: number | undefined
-    if (ratings && ratings.length > 0) {
-      const sum = ratings.reduce((acc, r) => acc + r.rating, 0)
-      averageRating = sum / ratings.length
-    }
-
     // Calculate response rate (simplified)
     const { data: requests } = await this['supabase']
       .from('designer_requests')
@@ -177,7 +164,6 @@ export class DesignerDataService extends DataService {
       totalMatches: matches?.length || 0,
       acceptedMatches,
       completedProjects,
-      averageRating,
       responseRate
     }
   }

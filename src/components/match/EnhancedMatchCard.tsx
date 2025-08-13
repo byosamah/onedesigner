@@ -5,6 +5,7 @@ import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { PRICING_PACKAGES } from '@/lib/constants'
 import { MessageModal } from '@/components/messaging/MessageModal'
+import SuccessModal from '@/components/modals/SuccessModal'
 import { logger } from '@/lib/core/logging-service'
 
 interface MatchData {
@@ -34,7 +35,6 @@ interface MatchData {
     city: string
     country: string
     yearsExperience: number
-    rating: number
     totalProjects: number
     designPhilosophy?: string
     primaryCategories?: string[]
@@ -73,6 +73,8 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null)
   const [showMessageModal, setShowMessageModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
 
   const handleUnlock = async () => {
     if (!onUnlock) return
@@ -900,17 +902,15 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
               throw new Error(data.error || 'Failed to send message')
             }
 
-            // Success - show success message and reload page
-            if (data.requestId) {
-              alert('Message sent successfully! The designer will be notified.')
+            // Success - show success modal
+            setShowMessageModal(false)
+            setSuccessMessage('Message sent successfully! The designer will be notified.')
+            setShowSuccessModal(true)
+            
+            // Reload page after modal closes
+            setTimeout(() => {
               window.location.reload()
-            } else if (data.conversationId) {
-              // Legacy support if conversations table works
-              window.location.href = `/client/conversations/${data.conversationId}`
-            } else {
-              alert(data.message || 'Message sent successfully!')
-              window.location.reload()
-            }
+            }, 3500)
           } catch (error) {
             logger.error('Error sending message:', error)
             // Re-throw to let MessageModal handle the error display
@@ -920,6 +920,16 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         designerName={match.designer.firstName}
         projectType={match.designer.primaryCategories?.[0]}
         isDarkMode={isDarkMode}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="www.onedesigner.app says"
+        message={successMessage}
+        isDarkMode={isDarkMode}
+        autoCloseDelay={3000}
       />
     </div>
   )

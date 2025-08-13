@@ -53,7 +53,10 @@ export async function GET(
           total_projects,
           styles,
           industries,
-          avatar_url
+          avatar_url,
+          portfolio_image_1,
+          portfolio_image_2,
+          portfolio_image_3
         ),
         brief:briefs!matches_brief_id_fkey(
           project_type,
@@ -67,19 +70,14 @@ export async function GET(
       .eq('client_id', clientId)
       .single()
 
-    // Fetch designer's actual portfolio images
+    // Get portfolio images from the designer record
     let portfolioImages = []
     if (match && match.designer) {
-      const { data: portfolioData, error: portfolioError } = await supabase
-        .from('designer_portfolio_images')
-        .select('image_url, project_title, project_description, display_order')
-        .eq('designer_id', match.designer.id)
-        .order('display_order', { ascending: true })
-        .limit(3)
-
-      if (!portfolioError && portfolioData) {
-        portfolioImages = portfolioData
-      }
+      portfolioImages = [
+        match.designer.portfolio_image_1,
+        match.designer.portfolio_image_2,
+        match.designer.portfolio_image_3
+      ].filter(Boolean)
     }
 
     if (error || !match) {
@@ -96,6 +94,7 @@ export async function GET(
         lastName: designer.last_name || designer.last_initial,
         yearsExperience: designer.years_experience,
         totalProjects: designer.total_projects,
+        profilePicture: designer.avatar_url || null,
         portfolioImages: portfolioImages
       }
     }

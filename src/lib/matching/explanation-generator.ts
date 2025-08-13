@@ -220,8 +220,8 @@ export function generateKeyStrengths(
   }
   
   // Performance metrics
-  if (designer.avg_client_satisfaction && designer.avg_client_satisfaction >= 4.5) {
-    strengths.push(`${designer.avg_client_satisfaction}/5 average client satisfaction rating from ${designer.total_projects_completed || 20}+ projects`);
+  if (designer.total_projects_completed && designer.total_projects_completed >= 10) {
+    strengths.push(`Completed ${designer.total_projects_completed}+ successful projects`);
   }
   
   // Availability match

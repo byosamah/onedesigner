@@ -108,6 +108,9 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = designerApplicationSchema.parse(body)
+    
+    // Check if this is an update submission (has designerId)
+    const isUpdate = body.designerId && body.updateToken
     logger.info('Validated application data successfully')
     
     // Use service client for database operations to avoid permission issues
@@ -200,6 +203,12 @@ export async function POST(request: NextRequest) {
       designerId = existingDesigner.id
     }
     
+    // If this is an update submission from rejection, use the provided designer ID
+    if (isUpdate && body.designerId) {
+      designerId = body.designerId
+      logger.info('Updating application for rejected designer:', designerId)
+    }
+    
     // Update the designer record with all the application data
     // Note: Some fields like project_types, specializations, software_skills are stored in normalized tables
     // Note: profilePicture is handled separately as it's base64 data
@@ -232,17 +241,39 @@ export async function POST(request: NextRequest) {
       remote_experience: validatedData.remoteExperience,
       team_collaboration: validatedData.teamCollaboration || null,
       is_approved: false, // Reset approval status since they updated their profile
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Clear update token if this is an update submission
+      ...(isUpdate ? { 
+        update_token: null, 
+        update_token_expires: null,
+        rejection_reason: null 
+      } : {})
     }
     
     // Note: We'll handle project_types, specializations, and software_skills in normalized tables after updating the main record
     
-    // Handle profile picture if provided (for now, we'll skip it as we need proper image handling)
-    // TODO: Implement proper image upload to storage service
+    // Handle profile picture if provided - store in avatar_url for now
     if (validatedData.profilePicture) {
-      logger.info('Profile picture provided but skipped - needs proper storage implementation')
-      // In the future, upload to Supabase Storage or similar service
-      // updateData.profile_picture_url = uploadedImageUrl
+      logger.info('Profile picture provided, storing as base64 data in avatar_url')
+      updateData.avatar_url = validatedData.profilePicture // Store base64 directly in existing column
+    }
+    
+    // Store portfolio images in the portfolio_image_1, portfolio_image_2, portfolio_image_3 columns
+    if (validatedData.portfolioImages && validatedData.portfolioImages.length > 0) {
+      logger.info(`Portfolio images provided: ${validatedData.portfolioImages.length} images`)
+      
+      // Add portfolio images to the update data (up to 3 images)
+      if (validatedData.portfolioImages[0]) {
+        updateData.portfolio_image_1 = validatedData.portfolioImages[0]
+      }
+      if (validatedData.portfolioImages[1]) {
+        updateData.portfolio_image_2 = validatedData.portfolioImages[1]
+      }
+      if (validatedData.portfolioImages[2]) {
+        updateData.portfolio_image_3 = validatedData.portfolioImages[2]
+      }
+      
+      logger.info('Portfolio images will be stored in database columns')
     }
     
     logger.info('📝 Updating designer with ID:', designerId)

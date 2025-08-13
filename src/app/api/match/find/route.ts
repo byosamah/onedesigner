@@ -189,74 +189,10 @@ export async function POST(request: NextRequest) {
       logger.info(`Batch ${Math.floor(i/batchSize) + 1} complete. Total matches so far: ${matchResults.length}`)
     }
     
-    // If no matches found after AI analysis
+    // If no matches found after AI analysis, return error
     if (matchResults.length === 0) {
-      logger.info('No suitable matches found after AI analysis - implementing fallback strategy')
-      
-      // Check if the brief has incomplete data that might be causing low scores
-      const hasIncompleteData = !brief.industry || brief.industry.length <= 3 || 
-                               !brief.styles || brief.styles.length === 0 ||
-                               !brief.description || brief.description.length < 20
-      
-      if (hasIncompleteData && eligibleDesigners.length > 0) {
-        logger.info('Brief appears to have incomplete data - using fallback matching with relaxed criteria')
-        
-        // Use a much lower threshold for incomplete briefs (30+ instead of 50+)
-        // and try to find the best available match
-        const fallbackResults = []
-        
-        // Re-analyze top 5 designers with more relaxed scoring
-        const topDesigners = eligibleDesigners.slice(0, 5)
-        
-        for (let i = 0; i < topDesigners.length; i++) {
-          const designer = topDesigners[i]
-          
-          try {
-            logger.info(`Fallback analysis for designer ${i + 1}/5: ${designer.first_name} ${designer.last_name}`)
-            
-            const matchResult = await aiProvider.analyzeMatch(designer, brief)
-            
-            // Accept matches with scores of 30+ for incomplete briefs
-            if (matchResult.score >= 30) {
-              logger.info(`  -> Acceptable fallback match: ${matchResult.score} (${matchResult.confidence} confidence)`)
-              fallbackResults.push({
-                ...matchResult,
-                fallbackMatch: true,
-                matchSummary: `${designer.first_name} is a qualified designer ready to work on your ${brief.project_type} project. While your brief could use more details, this designer has the experience to deliver quality results.`
-              })
-            } else {
-              logger.info(`  -> Still poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
-            }
-          } catch (error: any) {
-            logger.error(`Fallback matching failed for designer ${designer.id}:`, error.message)
-          }
-        }
-        
-        // If we found at least one fallback match, use it
-        if (fallbackResults.length > 0) {
-          logger.info(`Found ${fallbackResults.length} fallback matches - using best one`)
-          matchResults = fallbackResults.sort((a, b) => b.score - a.score)
-        } else {
-          // Last resort: just pick the first available designer with basic scoring
-          logger.info('No fallback matches found - using simple selection')
-          const selectedDesigner = eligibleDesigners[0]
-          matchResults = [{
-            designer: selectedDesigner,
-            score: 65, // Give a reasonable score
-            confidence: 'medium',
-            reasons: ['Verified and approved designer', 'Available for new projects', `${selectedDesigner.years_experience || 3}+ years experience`],
-            personalizedReasons: ['Verified and approved designer', 'Available for new projects', `${selectedDesigner.years_experience || 3}+ years experience`],
-            uniqueValue: 'Experienced professional ready to bring your vision to life',
-            challenges: ['Project brief could benefit from more specific requirements'],
-            riskLevel: 'medium',
-            matchSummary: `${selectedDesigner.first_name} is an experienced designer who can work on your ${brief.project_type} project. Consider providing more project details for optimal results.`,
-            aiAnalyzed: false,
-            fallbackMatch: true
-          }]
-        }
-      } else {
-        return apiResponse.notFound('Suitable matches')
-      }
+      logger.info('No suitable matches found after AI analysis')
+      return apiResponse.error('No suitable designers found for your requirements. Please try adjusting your brief or contact support.')
     }
     
     // Sort by final score and get the best match
@@ -427,7 +363,7 @@ export async function POST(request: NextRequest) {
     const isUnlocked = finalMatch?.status === 'unlocked' || finalMatch?.status === 'accepted'
 
     // Create match analytics record
-    if (finalMatch?.id && !bestMatch.fallbackMatch) {
+    if (finalMatch?.id) {
       await supabase
         .from('match_analytics')
         .insert({

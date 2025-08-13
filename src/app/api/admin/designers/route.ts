@@ -135,13 +135,16 @@ export async function GET(request: NextRequest) {
             rejectionReason: designer.rejection_reason || null,
             
             // Metadata
-            rating: designer.rating,
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
             updatedAt: designer.updated_at,
             editedAfterApproval: designer.edited_after_approval || false,
-            // TODO: Fetch portfolio images from separate table or storage
-            portfolio_images: []
+            // Portfolio images from database columns
+            portfolio_images: [
+              designer.portfolio_image_1,
+              designer.portfolio_image_2,
+              designer.portfolio_image_3
+            ].filter(Boolean)
           }
         } catch (e) {
           // If tables don't exist, return designer with arrays from main table
@@ -176,7 +179,12 @@ export async function GET(request: NextRequest) {
             totalProjects: designer.total_projects,
             createdAt: designer.created_at,
             updatedAt: designer.updated_at,
-            portfolio_images: []
+            editedAfterApproval: designer.edited_after_approval || false,
+            portfolio_images: [
+              designer.portfolio_image_1,
+              designer.portfolio_image_2,
+              designer.portfolio_image_3
+            ].filter(Boolean)
           }
         }
       })
