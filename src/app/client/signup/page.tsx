@@ -96,10 +96,10 @@ export default function ClientSignupPage() {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">👋</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Welcome to OneDesigner
+                  Your designer is waiting.
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  Let's find your perfect designer match
+                  We'll match you instantly. No browsing needed.
                 </p>
               </div>
 
@@ -144,7 +144,7 @@ export default function ClientSignupPage() {
                       Sending verification code...
                     </span>
                   ) : (
-                    'Continue with Email →'
+                    'Match me now →'
                   )}
                 </button>
 

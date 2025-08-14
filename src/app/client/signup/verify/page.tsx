@@ -144,10 +144,10 @@ export default function ClientSignupVerifyPage() {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">📧</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Check your email!
+                  Code sent!
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  We sent a 6-digit code to
+                  Check your inbox. 6 digits to
                 </p>
                 <p className="text-lg font-semibold" style={{ color: theme.text.primary }}>
                   {email}
@@ -157,7 +157,7 @@ export default function ClientSignupVerifyPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                    Enter your verification code
+                    Paste your code
                   </label>
                   <input
                     type="text"
@@ -196,7 +196,7 @@ export default function ClientSignupVerifyPage() {
                       Verifying...
                     </span>
                   ) : (
-                    'Verify & Continue →'
+                    'Let\'s go →'
                   )}
                 </button>
 
@@ -208,7 +208,7 @@ export default function ClientSignupVerifyPage() {
                     className="text-sm font-medium transition-colors duration-300 hover:opacity-80 disabled:opacity-50"
                     style={{ color: theme.accent }}
                   >
-                    {isResending ? 'Sending...' : "Didn't receive the code? Resend code"}
+                    {isResending ? 'Sending...' : "No code? Send again"}
                   </button>
                   
                   <div>

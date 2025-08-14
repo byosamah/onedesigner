@@ -90,35 +90,35 @@ export default function HomePage() {
           </Link>
         </div>
         
-        {/* Steps */}
-        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-3xl mx-auto px-4">
+        {/* Steps - Marc Lou Style */}
+        <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8 max-w-4xl mx-auto px-4">
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.1s' }}>
             <div className="text-3xl mb-3">✨</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              1. Sign up
+              1. Jump in
             </h3>
             <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Quick email verification
+              30 seconds. No BS forms.
             </p>
           </div>
           
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.2s' }}>
             <div className="text-3xl mb-3">📝</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              2. Share your project
+              2. Brief us
             </h3>
             <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              Tell us what you need in 2 minutes
+              What you need. 90 seconds max.
             </p>
           </div>
           
           <div className="text-center animate-slideUp" style={{ animationDelay: '0.3s' }}>
             <div className="text-3xl mb-3">🎯</div>
             <h3 className="font-bold mb-2 transition-colors duration-300" style={{ color: theme.text.primary }}>
-              3. Meet your designer
+              3. Get matched
             </h3>
             <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-              AI matches you instantly
+              Your designer. 0.3 seconds.
             </p>
           </div>
         </div>

@@ -16,25 +16,28 @@ export async function sendOTPEmail(email: string, otp: string) {
       body: JSON.stringify({
         from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
         to: email,
-        subject: 'Your OneDesigner verification code',
+        subject: `${otp} is your OneDesigner code`,
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 1px solid #F3F4F6;">
-              <span style="color: #f0ad4e; font-size: 24px; font-weight: 700;">OneDesigner</span>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; max-width: 560px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+            <div style="text-align: center; padding: 32px; border-bottom: 1px solid #F3F4F6;">
+              <span style="font-size: 24px; font-weight: 700; color: #f0ad4e; letter-spacing: -0.02em;">OneDesigner</span>
             </div>
-            <div style="background: #f8f9fa; border-radius: 10px; padding: 30px; text-align: center;">
-              <h2 style="color: #333; margin-bottom: 20px;">Verification Code</h2>
-              <div style="background: white; border: 2px solid #f0ad4e; border-radius: 8px; padding: 20px; font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #333;">
-                ${otp}
+            <div style="padding: 32px;">
+              <h2 style="color: #111827; margin: 0 0 16px 0; font-size: 18px; font-weight: 600;">Quick verification 👇</h2>
+              <div style="background: #F9FAFB; border: 2px dashed #E5E7EB; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+                <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #111827; font-family: monospace;">${otp}</div>
+                <div style="font-size: 14px; color: #6B7280; margin-top: 12px;">Expires in 10 minutes</div>
               </div>
-              <p style="color: #666; margin-top: 20px;">This code will expire in 10 minutes.</p>
+              <p style="color: #4B5563; margin: 0;">Just copy and paste this code to continue.</p>
+              <p style="color: #9CA3AF; font-size: 14px; margin: 16px 0 0 0; font-style: italic;">(If you didn't request this, just ignore this email)</p>
             </div>
-            <p style="color: #999; text-align: center; margin-top: 30px; font-size: 14px;">
-              If you didn't request this code, please ignore this email.
-            </p>
+            <div style="padding: 24px 32px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
+              <p style="margin: 0; font-weight: 600; color: #111827;">— OneDesigner Security</p>
+              <p style="margin: 8px 0 0 0; font-size: 14px; color: #6B7280;">Connecting great clients with amazing designers</p>
+            </div>
           </div>
         `,
-        text: `Your OneDesigner verification code is: ${otp}\n\nThis code will expire in 10 minutes.`,
+        text: `${otp} is your OneDesigner code\n\nJust copy and paste this code to continue.\n\nExpires in 10 minutes.\n\n— OneDesigner Security`,
       }),
     })
 
