@@ -21,7 +21,7 @@ async function sendFinalBrandingTest() {
     </div>
   `
   
-  const emailWrapper = (content, footerText = "— Zain from OneDesigner") => `
+  const emailWrapper = (content, footerText = "— Hala from OneDesigner") => `
     <div style="max-width: 560px; margin: 40px auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
       ${goldenHeader}
       <div style="padding: 32px;">
@@ -37,7 +37,7 @@ async function sendFinalBrandingTest() {
   const emails = [
     // 1. Welcome Email (Marc Lou Style)
     {
-      from: 'Zain from OneDesigner <team@onedesigner.app>',
+      from: 'Hala from OneDesigner <team@onedesigner.app>',
       subject: '🎉 FINAL TEST: Welcome to OneDesigner!',
       html: emailWrapper(`
         <h2 style="color: #111827; margin: 0 0 16px 0;">Hey Osama 👋</h2>
@@ -70,7 +70,7 @@ async function sendFinalBrandingTest() {
     
     // 3. Designer Approval
     {
-      from: 'Zain from OneDesigner <team@onedesigner.app>',
+      from: 'Hala from OneDesigner <team@onedesigner.app>',
       subject: '✅ FINAL TEST: You\'re approved!',
       html: emailWrapper(`
         <h2 style="color: #111827; margin: 0 0 16px 0;">Osama, you're in! 🎉</h2>
@@ -89,7 +89,7 @@ async function sendFinalBrandingTest() {
     
     // 4. Project Request
     {
-      from: 'Zain from OneDesigner <team@onedesigner.app>',
+      from: 'Hala from OneDesigner <team@onedesigner.app>',
       subject: '🎯 FINAL TEST: New project request',
       html: emailWrapper(`
         <h2 style="color: #111827; margin: 0 0 16px 0;">You've got a match! 🎯</h2>

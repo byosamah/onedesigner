@@ -59,8 +59,63 @@
     }
   }
 
+  @keyframes bounceOnce {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes bounceSlow {
+    0%, 100% {
+      transform: translateY(-10%);
+      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+      transform: translateY(0);
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+  }
+
+  @keyframes slideInRight {
+    from {
+      transform: translateX(120%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(120%);
+      opacity: 0;
+    }
+  }
+
   .animate-fadeIn {
     animation: fadeIn 0.6s ease-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation-fill-mode: both;
+  }
+
+  .animate-slide-out-right {
+    animation: slideOutRight 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation-fill-mode: both;
   }
 
   .animate-slideUp {
@@ -70,6 +125,14 @@
 
   .animate-bounce {
     animation: bounce 1s infinite;
+  }
+
+  .animate-bounce-once {
+    animation: bounceOnce 0.3s ease-out;
+  }
+
+  .animate-bounce-slow {
+    animation: bounceSlow 2s infinite;
   }
 
   .container {

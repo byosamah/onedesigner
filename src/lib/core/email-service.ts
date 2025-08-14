@@ -284,8 +284,8 @@ export class EmailService {
     }
     
     // For all other emails (approval, rejection, welcome, project requests, etc.)
-    // use "Zain from OneDesigner"
-    return 'Zain from OneDesigner'
+    // use "Hala from OneDesigner"
+    return 'Hala from OneDesigner'
   }
 
   /**

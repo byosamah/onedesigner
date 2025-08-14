@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Logo, ThemeToggle } from '@/components/shared'
 import { getTheme } from '@/lib/design-system'
+import PoopUp from '@/components/poopup/PoopUp'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,9 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-between px-4 py-8 transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
+      {/* PoopUp Component */}
+      <PoopUp theme={theme} isDarkMode={isDarkMode} />
+      
       {/* Theme Toggle - Top Right */}
       <div className="absolute top-4 sm:top-8 right-4 sm:right-8 z-10">
         <ThemeToggle isDarkMode={isDarkMode} toggleTheme={toggleTheme} />

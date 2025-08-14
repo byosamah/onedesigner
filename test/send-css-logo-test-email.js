@@ -54,7 +54,7 @@ async function sendCSSLogoTestEmail() {
         <!-- Footer -->
         <div style="padding: 24px 32px; border-top: 1px solid #F3F4F6; background: #F9FAFB;">
             <p style="margin: 0 0 8px 0; font-weight: 600; color: #111827;">
-                — Zain from OneDesigner
+                — Hala from OneDesigner
             </p>
             <p style="margin: 0; font-size: 14px; color: #6B7280;">
                 Testing CSS-based logo for email compatibility
@@ -73,7 +73,7 @@ async function sendCSSLogoTestEmail() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Zain from OneDesigner <team@onedesigner.app>',
+        from: 'Hala from OneDesigner <team@onedesigner.app>',
         to: 'osamah96@gmail.com',
         subject: 'Osama, testing CSS logo beside OneDesigner!',
         html: emailHtml

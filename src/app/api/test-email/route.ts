@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>',
+        from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
         to: email,
         subject: 'Test Email from OneDesigner',
         html: '<h1>Test Email</h1><p>If you receive this, email sending is working!</p>',

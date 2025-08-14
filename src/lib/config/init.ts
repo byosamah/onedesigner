@@ -81,7 +81,7 @@ export const ONEDESIGNER_CONFIG_SCHEMA: ConfigSchema = {
   // Email Configuration
   'email.from': {
     type: 'string',
-    default: 'magic@onedesigner.app',
+    default: 'team@onedesigner.app',
     env: 'EMAIL_FROM',
     description: 'Default from email address'
   },

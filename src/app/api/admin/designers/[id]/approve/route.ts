@@ -50,7 +50,7 @@ export async function POST(
     logger.info(`   Email: ${designer.email}`)
     logger.info(`   is_approved: ${designer.is_approved}`)
 
-    // Send approval email to designer (will use "Zain from OneDesigner" automatically)
+    // Send approval email to designer (will use "Hala from OneDesigner" automatically)
     try {
       await sendEmail({
         to: designer.email,
@@ -70,7 +70,7 @@ export async function POST(
               Go to Dashboard
             </a>
           </p>
-          <p>Best regards,<br>Zain from OneDesigner</p>
+          <p>Best regards,<br>Hala from OneDesigner</p>
         `,
         text: `Congratulations ${designer.first_name}! Your application to join OneDesigner has been approved. You can now log in to your dashboard at ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
       })

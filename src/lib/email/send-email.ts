@@ -18,7 +18,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
     
     const defaultSender = isOTPEmail 
       ? 'OneDesigner <team@onedesigner.app>'
-      : 'Zain from OneDesigner <team@onedesigner.app>'
+      : 'Hala from OneDesigner <team@onedesigner.app>'
     
     // Use Resend API if available
     if (process.env.RESEND_API_KEY) {

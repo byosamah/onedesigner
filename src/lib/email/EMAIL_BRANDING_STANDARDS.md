@@ -6,7 +6,7 @@
 1. ✅ **Golden OneDesigner text**: `color: #f0ad4e` in all email headers
 2. ✅ **No logos**: Simple text-only branding (email client compatible)
 3. ✅ **team@onedesigner.app**: Default sender for all emails
-4. ✅ **Sender names**: "OneDesigner" for OTP, "Zain from OneDesigner" for others
+4. ✅ **Sender names**: "OneDesigner" for OTP, "Hala from OneDesigner" for others
 
 ---
 
@@ -41,7 +41,7 @@
 "OneDesigner <team@onedesigner.app>"
 
 // All other emails (welcome, approval, project requests, etc.)
-"Zain from OneDesigner <team@onedesigner.app>"
+"Hala from OneDesigner <team@onedesigner.app>"
 ```
 
 ---
@@ -79,7 +79,7 @@ const emailHtml = `
 Before sending any email, ensure:
 - [ ] Golden OneDesigner header (`#f0ad4e`)
 - [ ] Correct sender (`team@onedesigner.app`)
-- [ ] Appropriate sender name (OneDesigner vs Zain from OneDesigner)
+- [ ] Appropriate sender name (OneDesigner vs Hala from OneDesigner)
 - [ ] No logos or images (email client compatibility)
 - [ ] Consistent typography and spacing
 - [ ] Marc Lou casual tone (where appropriate)

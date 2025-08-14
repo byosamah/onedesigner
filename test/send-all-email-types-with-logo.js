@@ -57,7 +57,7 @@ async function sendAllEmailTypes() {
           </div>
         </div>
         <div style="padding: 24px 32px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
-          <p style="margin: 0; font-weight: 600; color: #111827;">— Zain from OneDesigner</p>
+          <p style="margin: 0; font-weight: 600; color: #111827;">— Hala from OneDesigner</p>
         </div>
       `)
     },
@@ -97,7 +97,7 @@ async function sendAllEmailTypes() {
           </div>
         </div>
         <div style="padding: 24px 32px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
-          <p style="margin: 0; font-weight: 600; color: #111827;">— Zain from OneDesigner</p>
+          <p style="margin: 0; font-weight: 600; color: #111827;">— Hala from OneDesigner</p>
         </div>
       `)
     },
@@ -124,7 +124,7 @@ async function sendAllEmailTypes() {
           </div>
         </div>
         <div style="padding: 24px 32px; background: #F9FAFB; border-top: 1px solid #F3F4F6;">
-          <p style="margin: 0; font-weight: 600; color: #111827;">— Zain from OneDesigner</p>
+          <p style="margin: 0; font-weight: 600; color: #111827;">— Hala from OneDesigner</p>
         </div>
       `)
     }
@@ -144,7 +144,7 @@ async function sendAllEmailTypes() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: i === 1 ? 'OneDesigner <team@onedesigner.app>' : 'Zain from OneDesigner <team@onedesigner.app>',
+          from: i === 1 ? 'OneDesigner <team@onedesigner.app>' : 'Hala from OneDesigner <team@onedesigner.app>',
           to: testEmail,
           subject: email.subject,
           html: email.html

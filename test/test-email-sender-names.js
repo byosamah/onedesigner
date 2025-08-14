@@ -3,7 +3,7 @@
  * 
  * Expected behavior:
  * - OTP emails: "OneDesigner <noreply@onedesigner.app>"
- * - All other emails: "Zain from OneDesigner <noreply@onedesigner.app>"
+ * - All other emails: "Hala from OneDesigner <noreply@onedesigner.app>"
  */
 
 const { createClient } = require('@supabase/supabase-js')
@@ -81,11 +81,11 @@ async function testEmailSenderNames() {
     })
     
     const lastApprovalCall = mockResendCalls[mockResendCalls.length - 1]
-    const approvalSenderMatch = lastApprovalCall?.from === 'Zain from OneDesigner <noreply@onedesigner.app>'
+    const approvalSenderMatch = lastApprovalCall?.from === 'Hala from OneDesigner <noreply@onedesigner.app>'
     
     results.push({
       test: 'Designer Approval',
-      expected: 'Zain from OneDesigner <noreply@onedesigner.app>',
+      expected: 'Hala from OneDesigner <noreply@onedesigner.app>',
       actual: lastApprovalCall?.from || 'No email sent',
       passed: approvalSenderMatch
     })
@@ -106,11 +106,11 @@ async function testEmailSenderNames() {
     })
     
     const lastRejectionCall = mockResendCalls[mockResendCalls.length - 1]
-    const rejectionSenderMatch = lastRejectionCall?.from === 'Zain from OneDesigner <noreply@onedesigner.app>'
+    const rejectionSenderMatch = lastRejectionCall?.from === 'Hala from OneDesigner <noreply@onedesigner.app>'
     
     results.push({
       test: 'Designer Rejection',
-      expected: 'Zain from OneDesigner <noreply@onedesigner.app>',
+      expected: 'Hala from OneDesigner <noreply@onedesigner.app>',
       actual: lastRejectionCall?.from || 'No email sent',
       passed: rejectionSenderMatch
     })
@@ -131,11 +131,11 @@ async function testEmailSenderNames() {
     })
     
     const lastWelcomeCall = mockResendCalls[mockResendCalls.length - 1]
-    const welcomeSenderMatch = lastWelcomeCall?.from === 'Zain from OneDesigner <noreply@onedesigner.app>'
+    const welcomeSenderMatch = lastWelcomeCall?.from === 'Hala from OneDesigner <noreply@onedesigner.app>'
     
     results.push({
       test: 'Welcome Email',
-      expected: 'Zain from OneDesigner <noreply@onedesigner.app>',
+      expected: 'Hala from OneDesigner <noreply@onedesigner.app>',
       actual: lastWelcomeCall?.from || 'No email sent',
       passed: welcomeSenderMatch
     })
@@ -159,11 +159,11 @@ async function testEmailSenderNames() {
     })
     
     const lastProjectCall = mockResendCalls[mockResendCalls.length - 1]
-    const projectSenderMatch = lastProjectCall?.from === 'Zain from OneDesigner <noreply@onedesigner.app>'
+    const projectSenderMatch = lastProjectCall?.from === 'Hala from OneDesigner <noreply@onedesigner.app>'
     
     results.push({
       test: 'Project Request',
-      expected: 'Zain from OneDesigner <noreply@onedesigner.app>',
+      expected: 'Hala from OneDesigner <noreply@onedesigner.app>',
       actual: lastProjectCall?.from || 'No email sent',
       passed: projectSenderMatch
     })

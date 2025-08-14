@@ -23,7 +23,7 @@ export interface MarcLouEmailProps {
  * Create email template with Marc Lou's casual style + OneDesigner design
  */
 export function createMarcLouStyleEmail(props: MarcLouEmailProps): { html: string; text: string } {
-  const senderName = props.isOTPEmail ? 'OneDesigner' : 'Zain from OneDesigner'
+  const senderName = props.isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'
   
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -334,7 +334,7 @@ export function createWelcomeClientEmailMarcStyle(data: {
         <br><br>
         P.S. — Average time from brief to match? 37 seconds. Beat that if you can 😉
       `,
-      signature: '— Zain from OneDesigner'
+      signature: '— Hala from OneDesigner'
     }
   })
 
@@ -382,7 +382,7 @@ export function createDesignerApprovalEmailMarcStyle(data: {
         <br><br>
         Welcome to the club. Let's get you some great projects.
       `,
-      signature: '— Zain from OneDesigner'
+      signature: '— Hala from OneDesigner'
     }
   })
 
@@ -468,7 +468,7 @@ export function createProjectRequestEmailMarcStyle(data: {
         <strong>Quick reminder:</strong> Accepting reveals your contact info to the client. 
         Rejecting keeps you anonymous but frees them to find another designer.
       `,
-      signature: '— Zain from OneDesigner'
+      signature: '— Hala from OneDesigner'
     }
   })
 

@@ -183,7 +183,7 @@ export function createEmailTemplate(props: EmailTemplateProps): { html: string; 
         <!-- Footer -->
         <div class="footer">
             ${props.footerContent || `
-                <p><strong>${props.isOTPEmail ? 'OneDesigner' : 'Zain from OneDesigner'}</strong></p>
+                <p><strong>${props.isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'}</strong></p>
                 <p>Connecting great clients with amazing designers</p>
                 <p>
                     <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}">Visit our website</a> | 
@@ -210,7 +210,7 @@ ${props.content.additionalSections ? props.content.additionalSections.map(sectio
 ).join('\n\n') : ''}
 
 ---
-${props.isOTPEmail ? 'OneDesigner' : 'Zain from OneDesigner'}
+${props.isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'}
 Connecting great clients with amazing designers
 Visit: ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}
 `.trim()
