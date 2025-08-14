@@ -352,7 +352,7 @@ export function createDesignerApprovalEmailMarcStyle(data: {
   dashboardUrl: string
 }): { subject: string; html: string; text: string } {
   const template = createMarcLouStyleEmail({
-    title: 'You're in!',
+    title: "You're in!",
     preheader: 'Welcome to OneDesigner',
     content: {
       greeting: `${data.designerName}, you're in! 🎉`,
