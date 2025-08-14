@@ -94,16 +94,16 @@ export default function RichTextEditor({
     <div 
       className="border rounded-xl overflow-hidden"
       style={{ 
-        backgroundColor: theme?.background?.secondary || 'white',
-        borderColor: theme?.border?.primary || '#e5e7eb'
+        backgroundColor: theme?.nestedBg || theme?.cardBg || 'white',
+        borderColor: theme?.border || '#e5e7eb'
       }}
     >
       {/* Toolbar */}
       <div 
         className="flex items-center gap-1 p-3 border-b flex-wrap"
         style={{ 
-          backgroundColor: theme?.background?.primary || '#f9fafb',
-          borderColor: theme?.border?.primary || '#e5e7eb'
+          backgroundColor: theme?.bg || '#f9fafb',
+          borderColor: theme?.border || '#e5e7eb'
         }}
       >
         {toolbarButtons.map((button, index) => (
@@ -117,7 +117,7 @@ export default function RichTextEditor({
               backgroundColor: 'transparent'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = theme?.background?.secondary || '#e5e7eb';
+              e.currentTarget.style.backgroundColor = theme?.nestedBg || '#e5e7eb';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
@@ -128,14 +128,25 @@ export default function RichTextEditor({
           </button>
         ))}
         
-        <div className="w-px h-6 bg-gray-300 dark:bg-gray-500 mx-2" />
+        <div className="w-px h-6 mx-2" style={{ backgroundColor: theme?.border || '#e5e7eb' }} />
         
         {/* Image Upload */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading || !onImageUpload}
-          className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ 
+            color: theme?.text?.primary || '#1f2937'
+          }}
+          onMouseEnter={(e) => {
+            if (!isUploading && onImageUpload) {
+              e.currentTarget.style.backgroundColor = theme?.nestedBg || '#e5e7eb';
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
           title="Upload Image"
         >
           {isUploading ? '⏳' : '🖼️'}
@@ -160,22 +171,26 @@ export default function RichTextEditor({
           className="w-full h-64 p-4 resize-none border-none outline-none"
           style={{ 
             fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',
-            backgroundColor: theme?.background?.secondary || 'white',
+            backgroundColor: theme?.nestedBg || theme?.cardBg || 'white',
             color: theme?.text?.primary || '#1f2937'
           }}
         />
         
         {isUploading && (
-          <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
-            <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-lg shadow-lg">
-              <span className="text-sm font-medium">⏳ Uploading image...</span>
+          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+            <div className="px-4 py-2 rounded-lg shadow-lg" style={{ backgroundColor: theme?.cardBg || 'white' }}>
+              <span className="text-sm font-medium" style={{ color: theme?.text?.primary || '#1f2937' }}>⏳ Uploading image...</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Help Text */}
-      <div className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+      <div className="px-4 py-3 text-xs border-t" style={{ 
+        backgroundColor: theme?.bg || '#f9fafb',
+        borderColor: theme?.border || '#e5e7eb',
+        color: theme?.text?.secondary || '#6b7280'
+      }}>
         💡 <strong>Tip:</strong> Use Markdown formatting. Select text and click buttons to format, or type manually.
         {onImageUpload && ' Click 🖼️ to upload images.'}
       </div>

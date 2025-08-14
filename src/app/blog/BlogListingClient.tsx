@@ -3,20 +3,15 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Navigation } from '@/components/shared/Navigation';
-import { getTheme } from '@/lib/design-system';
+import { useTheme } from '@/lib/hooks/useTheme';
 import { BlogPost } from '@/types';
 
 export default function BlogListingClient() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, theme, toggleTheme } = useTheme();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-
-  useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
-  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -35,14 +30,6 @@ export default function BlogListingClient() {
       setLoading(false);
     }
   };
-
-  const toggleTheme = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  const theme = getTheme(isDarkMode);
   const navTheme = {
     text: {
       primary: theme.text.primary,
@@ -83,24 +70,21 @@ export default function BlogListingClient() {
         theme={navTheme}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
-        title="Blog"
+        title="OneDesigner Blog"
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: theme.text.primary }}>
-            📖 OneDesigner Blog
+          <h1 className="text-4xl md:text-6xl font-bold mb-8" style={{ color: theme.text.primary }}>
+            The Design Chronicles
           </h1>
-          <p className="text-xl mb-8" style={{ color: theme.text.secondary }}>
-            🎨 Discover the latest design trends, tips, and insights from professional designers
-          </p>
           
           <div className="max-w-4xl mx-auto mb-8">
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <div className="relative flex-1 max-w-md">
                 <input
                   type="text"
-                  placeholder="🔍 Search articles..."
+                  placeholder="Search articles..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full px-4 py-3 pl-10 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-200"
@@ -218,21 +202,34 @@ export default function BlogListingClient() {
         {!loading && filteredPosts.length > 0 && (
           <div className="text-center mt-16 py-12 rounded-2xl" style={{ backgroundColor: theme.cardBg }}>
             <h3 className="text-2xl font-bold mb-4" style={{ color: theme.text.primary }}>
-              🚀 Ready to Start Your Design Journey?
+              🎨 Are You Looking for a Designer? Or Are You a Designer?
             </h3>
-            <p className="text-lg mb-6" style={{ color: theme.text.secondary }}>
-              Connect with amazing designers and bring your ideas to life! ✨
+            <p className="text-lg mb-8" style={{ color: theme.text.secondary }}>
+              Join OneDesigner today and connect with the perfect match! ✨
             </p>
-            <Link 
-              href="/brief"
-              className="inline-flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
-              style={{ 
-                backgroundColor: theme.accent,
-                color: 'white'
-              }}
-            >
-              Get Started 🎨
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link 
+                href="/brief"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
+                style={{ 
+                  backgroundColor: theme.accent,
+                  color: '#1f2937'
+                }}
+              >
+                🎯 I Need a Designer
+              </Link>
+              <Link 
+                href="/designer/apply"
+                className="inline-flex items-center justify-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
+                style={{ 
+                  backgroundColor: theme.nestedBg,
+                  color: theme.text.primary,
+                  border: `2px solid ${theme.accent}`
+                }}
+              >
+                ✏️ I'm a Designer
+              </Link>
+            </div>
           </div>
         )}
       </div>

@@ -25,27 +25,32 @@ export async function PUT(
     const body = await request.json();
     const { title, preview, content, category, cover_image } = body;
 
-    if (!title || !preview || !content || !category) {
+    if (!title || !preview || !content) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Generate slug from title
-    const slug = title
+    // Keep existing slug or generate new one
+    const { data: existingPost } = await supabase
+      .from('blog_posts')
+      .select('slug')
+      .eq('id', id)
+      .single();
+
+    const slug = existingPost?.slug || (title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim()
-      .substring(0, 100);
+      .substring(0, 80) + '-' + Date.now());
 
     const { data: post, error } = await supabase
       .from('blog_posts')
       .update({
         title,
         slug,
-        preview,
+        preview_text: preview, // Changed from preview to preview_text
         content,
-        category,
         cover_image: cover_image || null,
         updated_at: new Date().toISOString()
       })
@@ -57,7 +62,14 @@ export async function PUT(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ post });
+    // Return the post with category for frontend compatibility
+    const postWithCategory = {
+      ...post,
+      preview: post.preview_text, // Map preview_text back to preview for frontend
+      category: category || 'design-tips' // Add category for frontend
+    };
+
+    return NextResponse.json({ post: postWithCategory });
   } catch (error) {
     console.error('Blog post update error:', error);
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });

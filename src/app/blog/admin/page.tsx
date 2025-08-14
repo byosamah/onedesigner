@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Navigation } from '@/components/shared/Navigation';
-import { getTheme } from '@/lib/design-system';
+import { useTheme } from '@/lib/hooks/useTheme';
 import { RichTextEditor } from '@/components/blog/RichTextEditor';
+import { ImageCropper } from '@/components/blog/ImageCropper';
 import { BlogPost } from '@/types';
 
 interface FormData {
@@ -15,7 +17,8 @@ interface FormData {
 }
 
 export default function BlogAdminPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, theme, toggleTheme } = useTheme();
+  const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [formData, setFormData] = useState<FormData>({
     title: '',
@@ -29,20 +32,31 @@ export default function BlogAdminPage() {
   const [message, setMessage] = useState('');
   const [enhancing, setEnhancing] = useState<string | null>(null);
   const [enhancedFields, setEnhancedFields] = useState<Set<string>>(new Set());
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageForCrop, setTempImageForCrop] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
-    fetchPosts();
-  }, []);
+    // Check authentication
+    const checkAuth = () => {
+      const authenticated = sessionStorage.getItem('blog_admin_authenticated');
+      const token = sessionStorage.getItem('blog_admin_token');
+      
+      if (!authenticated || !token) {
+        router.push('/blog/admin/login');
+        return false;
+      }
+      
+      setIsAuthenticated(true);
+      return true;
+    };
 
-  const toggleTheme = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  const theme = getTheme(isDarkMode);
+    if (checkAuth()) {
+      fetchPosts();
+    }
+  }, [router]);
   const navTheme = {
     text: {
       primary: theme.text.primary,
@@ -72,6 +86,110 @@ export default function BlogAdminPage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setMessage('❌ Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+      return;
+    }
+
+    // Validate file size (max 10MB for initial upload, will be reduced after crop)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setMessage('❌ File size too large. Maximum size is 10MB.');
+      return;
+    }
+
+    // Convert file to data URL for cropping
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageSrc = event.target?.result as string;
+      setTempImageForCrop(imageSrc);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedImageUrl: string, croppedBlob: Blob) => {
+    setShowCropper(false);
+    setUploadingImage(true);
+    setMessage('');
+
+    try {
+      // Create a File object from the blob
+      const croppedFile = new File([croppedBlob], 'cropped-image.jpg', { type: 'image/jpeg' });
+      
+      const formData = new FormData();
+      formData.append('file', croppedFile);
+
+      const response = await fetch('/api/blog/upload-image', {
+        method: 'POST',
+        headers: {
+          'x-admin-key': 'onedesigner_admin_2025'
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setFormData(prev => ({ ...prev, cover_image: data.url }));
+        setImagePreview(data.url);
+        setMessage('✅ Image cropped and uploaded successfully!');
+      } else {
+        const error = await response.json();
+        setMessage(`❌ Upload failed: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setMessage('❌ Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      setTempImageForCrop(null);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setTempImageForCrop(null);
+  };
+
+  const handleContentImageUpload = async (file: File): Promise<string> => {
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.');
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new Error('File size too large. Maximum size is 5MB.');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/blog/upload-image', {
+      method: 'POST',
+      headers: {
+        'x-admin-key': 'onedesigner_admin_2025'
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload image');
+    }
+
+    const data = await response.json();
+    return data.url;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -95,6 +213,7 @@ export default function BlogAdminPage() {
         setFormData({ title: '', preview: '', content: '', category: 'design-tips', cover_image: '' });
         setEditingId(null);
         setEnhancedFields(new Set());
+        setImagePreview(null);
         fetchPosts();
       } else {
         const errorData = await response.json();
@@ -118,6 +237,7 @@ export default function BlogAdminPage() {
     });
     setEditingId(post.id);
     setEnhancedFields(new Set());
+    setImagePreview(post.cover_image || null);
   };
 
   const handleDelete = async (id: string) => {
@@ -184,6 +304,18 @@ export default function BlogAdminPage() {
     setMessage('');
   };
 
+  // Show loading while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.bg }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
+          <p style={{ color: theme.text.secondary }}>Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>
       <Navigation
@@ -194,9 +326,39 @@ export default function BlogAdminPage() {
       />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold mb-8" style={{ color: theme.text.primary }}>
-          ✏️ Blog Administration
-        </h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold" style={{ color: theme.text.primary }}>
+            ✏️ Blog Administration
+          </h1>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push('/blog')}
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105"
+              style={{ 
+                backgroundColor: theme.accent,
+                color: 'white'
+              }}
+            >
+              ← Back to Blog
+            </button>
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('blog_admin_authenticated');
+                sessionStorage.removeItem('blog_admin_token');
+                sessionStorage.removeItem('blog_admin_email');
+                router.push('/blog/admin/login');
+              }}
+              className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105"
+              style={{ 
+                backgroundColor: theme.nestedBg,
+                color: theme.text.primary,
+                border: `1px solid ${theme.border}`
+              }}
+            >
+              🚪 Logout
+            </button>
+          </div>
+        </div>
 
         {message && (
           <div className={`p-4 rounded-lg mb-6 ${message.includes('❌') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
@@ -313,20 +475,78 @@ export default function BlogAdminPage() {
                 {/* Cover Image */}
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.primary }}>
-                    🖼️ Cover Image URL
+                    🖼️ Cover Image
                   </label>
-                  <input
-                    type="url"
-                    value={formData.cover_image}
-                    onChange={(e) => setFormData({...formData, cover_image: e.target.value})}
-                    className="w-full p-3 rounded-lg border focus:ring-2 focus:ring-amber-500"
-                    style={{ 
-                      backgroundColor: theme.nestedBg,
-                      borderColor: theme.border,
-                      color: theme.text.primary
-                    }}
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  
+                  {/* Image Preview */}
+                  {(imagePreview || formData.cover_image) && (
+                    <div className="mb-4">
+                      <img 
+                        src={imagePreview || formData.cover_image} 
+                        alt="Cover preview" 
+                        className="w-full h-48 object-cover rounded-lg"
+                        style={{ border: `1px solid ${theme.border}` }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({...formData, cover_image: ''});
+                          setImagePreview(null);
+                        }}
+                        className="mt-2 text-sm text-red-600 hover:text-red-700"
+                      >
+                        ❌ Remove Image
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* File Upload */}
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                      id="cover-image-upload"
+                    />
+                    <label
+                      htmlFor="cover-image-upload"
+                      className="inline-flex items-center px-4 py-2 rounded-lg cursor-pointer transition-all duration-200 hover:scale-105"
+                      style={{ 
+                        backgroundColor: theme.accent,
+                        color: 'white',
+                        opacity: uploadingImage ? 0.5 : 1,
+                        pointerEvents: uploadingImage ? 'none' : 'auto'
+                      }}
+                    >
+                      {uploadingImage ? '📤 Uploading...' : '📁 Choose & Crop Image'}
+                    </label>
+                    
+                    <div className="text-xs" style={{ color: theme.text.secondary }}>
+                      Accepted formats: JPEG, PNG, GIF, WebP (Max 5MB)
+                    </div>
+                    
+                    {/* Alternative: URL input */}
+                    <div className="mt-4">
+                      <div className="text-sm mb-2" style={{ color: theme.text.secondary }}>Or enter image URL:</div>
+                      <input
+                        type="url"
+                        value={formData.cover_image}
+                        onChange={(e) => {
+                          setFormData({...formData, cover_image: e.target.value});
+                          setImagePreview(e.target.value);
+                        }}
+                        className="w-full p-3 rounded-lg border focus:ring-2 focus:ring-amber-500"
+                        style={{ 
+                          backgroundColor: theme.nestedBg,
+                          borderColor: theme.border,
+                          color: theme.text.primary
+                        }}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Content Editor */}
@@ -348,6 +568,7 @@ export default function BlogAdminPage() {
                     <RichTextEditor
                       value={formData.content}
                       onChange={(content) => setFormData({...formData, content})}
+                      onImageUpload={handleContentImageUpload}
                       theme={theme}
                     />
                   </div>
@@ -453,6 +674,17 @@ export default function BlogAdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Modal */}
+      {showCropper && tempImageForCrop && (
+        <ImageCropper
+          imageSrc={tempImageForCrop}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          aspectRatio={16/9}
+          theme={theme}
+        />
+      )}
     </div>
   );
 }

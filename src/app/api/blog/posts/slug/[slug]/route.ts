@@ -29,7 +29,14 @@ export async function GET(
       .update({ views_count: (post.views_count || 0) + 1 })
       .eq('id', post.id);
 
-    return NextResponse.json(post);
+    // Map the post to include frontend-compatible fields
+    const mappedPost = {
+      ...post,
+      preview: post.preview_text, // Map preview_text to preview
+      category: 'design-tips' // Default category since it's not in the main table
+    };
+
+    return NextResponse.json(mappedPost);
   } catch (error) {
     console.error('Blog post fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch post' }, { status: 500 });

@@ -11,7 +11,7 @@ interface BlogPostPageProps {
 async function getPost(slug: string) {
   try {
     // Use relative URL for server-side fetching in development
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     const response = await fetch(`${baseUrl}/api/blog/posts/slug/${slug}`, {
       cache: 'no-store'
     });

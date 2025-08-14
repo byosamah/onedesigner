@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Navigation } from '@/components/shared/Navigation';
-import { getTheme } from '@/lib/design-system';
+import { useTheme } from '@/lib/hooks/useTheme';
 import { BlogPost } from '@/types';
 
 interface BlogPostClientProps {
@@ -13,20 +12,7 @@ interface BlogPostClientProps {
 }
 
 export default function BlogPostClient({ post }: BlogPostClientProps) {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
-  }, []);
-
-  const toggleTheme = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-  };
-
-  const theme = getTheme(isDarkMode);
+  const { isDarkMode, theme, toggleTheme } = useTheme();
   const navTheme = {
     text: {
       primary: theme.text.primary,
@@ -134,7 +120,7 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
         theme={navTheme}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}
-        title="Blog"
+        title="OneDesigner Blog"
       />
       
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -210,10 +196,10 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
         <footer className="mt-12 pt-8 border-t" style={{ borderColor: theme.border }}>
           <div className="text-center">
             <h3 className="text-xl sm:text-2xl font-bold mb-4" style={{ color: theme.text.primary }}>
-              🚀 Ready to Start Your Design Journey?
+              🎨 Are You Looking for a Designer? Or Are You a Designer?
             </h3>
             <p className="text-base sm:text-lg mb-6" style={{ color: theme.text.secondary }}>
-              Connect with amazing designers and bring your ideas to life! ✨
+              Join OneDesigner today and connect with the perfect match! ✨
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
@@ -221,21 +207,32 @@ export default function BlogPostClient({ post }: BlogPostClientProps) {
                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
                 style={{ 
                   backgroundColor: theme.accent,
-                  color: 'white'
+                  color: '#1f2937'
                 }}
               >
-                Get Started 🎨
+                🎯 I Need a Designer
+              </Link>
+              <Link 
+                href="/designer/apply"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
+                style={{ 
+                  backgroundColor: theme.cardBg,
+                  color: theme.text.primary,
+                  border: `2px solid ${theme.accent}`
+                }}
+              >
+                ✏️ I'm a Designer
               </Link>
               <Link 
                 href="/blog"
                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:scale-105"
                 style={{ 
-                  backgroundColor: theme.cardBg,
-                  color: theme.text.primary,
+                  backgroundColor: theme.nestedBg,
+                  color: theme.text.secondary,
                   border: `1px solid ${theme.border}`
                 }}
               >
-                More Articles 📖
+                📖 More Articles
               </Link>
             </div>
           </div>
