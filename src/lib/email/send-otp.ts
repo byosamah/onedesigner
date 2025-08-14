@@ -3,7 +3,7 @@ import { logger } from '@/lib/core/logging-service'
 
 export async function sendOTPEmail(email: string, otp: string) {
   logger.info('Attempting to send OTP email to:', email)
-  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>')
+  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>')
   logger.info('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
   
   try {
@@ -14,13 +14,13 @@ export async function sendOTPEmail(email: string, otp: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'OneDesigner <magic@onedesigner.app>',
+        from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
         to: email,
         subject: 'Your OneDesigner verification code',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #f0ad4e; margin: 0;">OneDesigner</h1>
+            <div style="text-align: center; margin-bottom: 30px; padding: 20px; border-bottom: 1px solid #F3F4F6;">
+              <span style="color: #f0ad4e; font-size: 24px; font-weight: 700;">OneDesigner</span>
             </div>
             <div style="background: #f8f9fa; border-radius: 10px; padding: 30px; text-align: center;">
               <h2 style="color: #333; margin-bottom: 20px;">Verification Code</h2>

@@ -10,9 +10,16 @@ import { logger } from '@/lib/core/logging-service'
 import { ErrorManager } from '@/lib/core/error-manager'
 import { otpService } from '@/lib/core/otp-service'
 import { Features } from '@/lib/features'
+import { 
+  createWelcomeClientEmailMarcStyle,
+  createDesignerApprovalEmailMarcStyle,
+  createOTPEmailMarcStyle,
+  createProjectRequestEmailMarcStyle
+} from '@/lib/email/templates/marc-lou-style'
 
 export interface EmailConfig {
   from: string
+  fromName?: string // Optional sender name override
   replyTo?: string
   apiKey: string
   maxRetries: number
@@ -34,6 +41,7 @@ export interface EmailOptions {
   cc?: string | string[]
   bcc?: string | string[]
   replyTo?: string
+  fromName?: string // Override sender name for specific emails
   template?: string
   variables?: Record<string, any>
   attachments?: Array<{
@@ -86,7 +94,7 @@ export class EmailService {
 
     // Default configuration
     this.config = {
-      from: process.env.EMAIL_FROM || 'OneDesigner <noreply@onedesigner.app>',
+      from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
       replyTo: process.env.EMAIL_REPLY_TO,
       apiKey,
       maxRetries: 3,
@@ -262,6 +270,34 @@ export class EmailService {
   }
 
   /**
+   * Get the appropriate sender name based on email type
+   */
+  private getSenderName(templateName?: string, options?: EmailOptions): string {
+    // If there's a specific override in options, use it
+    if (options?.fromName) {
+      return options.fromName
+    }
+    
+    // For OTP emails, use simple "OneDesigner"
+    if (templateName === 'otp' || options?.tags?.type === 'otp') {
+      return 'OneDesigner'
+    }
+    
+    // For all other emails (approval, rejection, welcome, project requests, etc.)
+    // use "Zain from OneDesigner"
+    return 'Zain from OneDesigner'
+  }
+
+  /**
+   * Format the from address with the appropriate sender name
+   */
+  private formatFromAddress(templateName?: string, options?: EmailOptions): string {
+    const senderName = this.getSenderName(templateName, options)
+    const emailAddress = process.env.EMAIL_FROM_ADDRESS || 'team@onedesigner.app'
+    return `${senderName} <${emailAddress}>`
+  }
+
+  /**
    * Check rate limiting
    */
   private checkRateLimit(): boolean {
@@ -340,12 +376,13 @@ export class EmailService {
       const html = template.html ? this.replaceVariables(template.html, variables) : undefined
       const text = template.text ? this.replaceVariables(template.text, variables) : undefined
       
-      // Send email
+      // Send email with template name for sender determination
       return this.sendEmail({
         ...options,
         subject,
         html,
-        text
+        text,
+        template: templateName
       })
       
     } catch (error) {
@@ -381,9 +418,12 @@ export class EmailService {
         }
       }
       
+      // Determine the appropriate from address based on email type
+      const fromAddress = this.formatFromAddress(options.template, options)
+      
       // Send via Resend
       const result = await this.resend.emails.send({
-        from: this.config.from,
+        from: fromAddress,
         to: Array.isArray(options.to) ? options.to : [options.to],
         subject: options.subject,
         html: options.html,
@@ -551,7 +591,7 @@ export class EmailService {
   }
 
   /**
-   * Send OTP email
+   * Send OTP email with Marc Lou style
    */
   async sendOTPEmail(
     email: string,
@@ -559,14 +599,17 @@ export class EmailService {
     type: 'client' | 'designer' | 'admin',
     purpose: 'login' | 'signup' | 'reset' | 'verify'
   ): Promise<EmailResult> {
-    return this.sendTemplatedEmail('otp', {
+    // Use Marc Lou style OTP template
+    const emailContent = createOTPEmailMarcStyle({
+      otp: code,
+      purpose: purpose === 'signup' ? 'sign up' : purpose === 'login' ? 'log in' : purpose
+    })
+    
+    return this.sendEmail({
       to: email,
-      variables: {
-        code,
-        expiry: 10, // From OTP service config
-        type,
-        purpose
-      },
+      subject: emailContent.subject,
+      html: emailContent.html,
+      text: emailContent.text,
       tags: {
         type: 'otp',
         userType: type,
@@ -576,7 +619,7 @@ export class EmailService {
   }
 
   /**
-   * Send welcome email
+   * Send welcome email with Marc Lou style
    */
   async sendWelcomeEmail(
     email: string,
@@ -584,6 +627,26 @@ export class EmailService {
     userType: 'client' | 'designer',
     dashboardUrl: string
   ): Promise<EmailResult> {
+    // Use Marc Lou style template for clients
+    if (userType === 'client') {
+      const emailContent = createWelcomeClientEmailMarcStyle({
+        clientName: name,
+        dashboardUrl
+      })
+      
+      return this.sendEmail({
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+        tags: {
+          type: 'welcome',
+          userType
+        }
+      })
+    }
+    
+    // Use default template for designers (or could use Marc style too)
     return this.sendTemplatedEmail('welcome', {
       to: email,
       variables: {
@@ -598,7 +661,7 @@ export class EmailService {
   }
 
   /**
-   * Send designer approval email
+   * Send designer approval email with Marc Lou style
    */
   async sendDesignerApprovalEmail(
     email: string,
@@ -606,9 +669,27 @@ export class EmailService {
     approved: boolean,
     reason?: string
   ): Promise<EmailResult> {
-    const template = approved ? 'designer-approved' : 'designer-rejected'
+    if (approved) {
+      // Use Marc Lou style for approval
+      const emailContent = createDesignerApprovalEmailMarcStyle({
+        designerName: name,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+      })
+      
+      return this.sendEmail({
+        to: email,
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+        tags: {
+          type: 'designer-decision',
+          decision: 'approved'
+        }
+      })
+    }
     
-    return this.sendTemplatedEmail(template, {
+    // Use default template for rejection (can be updated to Marc style later)
+    return this.sendTemplatedEmail('designer-rejected', {
       to: email,
       variables: {
         name,
@@ -617,7 +698,7 @@ export class EmailService {
       },
       tags: {
         type: 'designer-decision',
-        decision: approved ? 'approved' : 'rejected'
+        decision: 'rejected'
       }
     })
   }

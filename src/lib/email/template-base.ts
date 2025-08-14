@@ -21,6 +21,7 @@ export interface EmailTemplateProps {
     }>
   }
   footerContent?: string
+  isOTPEmail?: boolean // Flag to determine sender name style
 }
 
 /**
@@ -153,8 +154,8 @@ export function createEmailTemplate(props: EmailTemplateProps): { html: string; 
 <body>
     <div class="email-container">
         <!-- Header -->
-        <div class="header">
-            <h1>OneDesigner</h1>
+        <div class="header" style="text-align: center;">
+            <h1 style="color: #f0ad4e; font-size: 28px; font-weight: bold; margin: 0;">OneDesigner</h1>
         </div>
         
         <!-- Content -->
@@ -182,7 +183,7 @@ export function createEmailTemplate(props: EmailTemplateProps): { html: string; 
         <!-- Footer -->
         <div class="footer">
             ${props.footerContent || `
-                <p><strong>OneDesigner</strong></p>
+                <p><strong>${props.isOTPEmail ? 'OneDesigner' : 'Zain from OneDesigner'}</strong></p>
                 <p>Connecting great clients with amazing designers</p>
                 <p>
                     <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}">Visit our website</a> | 
@@ -209,7 +210,7 @@ ${props.content.additionalSections ? props.content.additionalSections.map(sectio
 ).join('\n\n') : ''}
 
 ---
-OneDesigner
+${props.isOTPEmail ? 'OneDesigner' : 'Zain from OneDesigner'}
 Connecting great clients with amazing designers
 Visit: ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}
 `.trim()
@@ -297,6 +298,7 @@ export function createOTPEmail(data: {
   const template = createEmailTemplate({
     title: 'Your OneDesigner verification code',
     preheader: `Your code is ${data.otp}`,
+    isOTPEmail: true, // Mark as OTP email for proper sender name
     content: {
       greeting: 'Hello!',
       mainText: `Here's your verification code${data.purpose ? ` to ${data.purpose}` : ''}:
