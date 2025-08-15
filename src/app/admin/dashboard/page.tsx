@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
 interface Designer {
@@ -64,12 +64,7 @@ export default function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedDesigner, setSelectedDesigner] = useState<Designer | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     checkAuthAndFetchData()

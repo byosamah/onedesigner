@@ -3,16 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerVerifyPage() {
   const router = useRouter()
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const [otp, setOtp] = useState('')
-  const theme = getTheme(isDarkMode)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   
   const [email, setEmail] = useState('')
   
@@ -21,8 +19,6 @@ export default function DesignerVerifyPage() {
     const storedEmail = sessionStorage.getItem('designerEmail')
     if (storedEmail) setEmail(storedEmail)
   }, [])
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault()

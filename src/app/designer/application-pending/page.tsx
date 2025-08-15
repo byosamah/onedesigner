@@ -3,17 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { validateSession } from '@/lib/auth/session-handlers'
 
 export default function ApplicationPendingPage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   const [designerName, setDesignerName] = useState('')
   const [isLoading, setIsLoading] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
     checkDesignerStatus()

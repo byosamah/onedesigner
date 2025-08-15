@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { performanceMonitor } from '@/lib/monitoring/performance'
 import { logger } from '@/lib/core/logging-service'
 
@@ -23,12 +23,7 @@ export default function PerformanceDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<PerformanceStats>({})
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     checkAuth()

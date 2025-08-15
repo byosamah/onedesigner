@@ -1,16 +1,13 @@
 'use client'
 
-import { useState } from 'react'
 import { Navigation } from '@/components/shared/Navigation'
 import { Logo } from '@/components/shared/Logo'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { PRICING_PACKAGES, DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
 
 export default function TestComponentsPage() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   return (
     <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>

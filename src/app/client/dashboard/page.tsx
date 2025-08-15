@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { LoadingSpinner } from '@/components/shared'
 import { ContactDesignerModal, SuccessModal } from '@/lib/components/modals'
 import { SUCCESS_MESSAGES } from '@/lib/constants/messages'
@@ -55,7 +55,7 @@ interface ClientProfile {
 
 export default function ClientDashboard() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   const [client, setClient] = useState<ClientProfile | null>(null)
   const [matches, setMatches] = useState<EnhancedMatch[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -63,7 +63,6 @@ export default function ClientDashboard() {
   const [showContactModal, setShowContactModal] = useState(false)
   const [selectedMatchForContact, setSelectedMatchForContact] = useState<{ matchId: string, designerId: string, designerName: string } | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const theme = getTheme(isDarkMode)
 
   useEffect(() => {
     fetchDashboardData()
@@ -230,8 +229,6 @@ export default function ClientDashboard() {
       logger.error('Signout error:', error)
     }
   }
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   return (
     <main className="min-h-screen transition-colors duration-300" style={{ backgroundColor: theme.bg }}>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { MatchRequestCard } from '@/components/designer/MatchRequestCard'
 import { logger } from '@/lib/core/logging-service'
 
@@ -59,17 +59,11 @@ interface DesignerProfile {
 
 export default function DesignerDashboardPage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   const [designer, setDesigner] = useState<DesignerProfile | null>(null)
   const [requests, setRequests] = useState<EnhancedDesignerRequest[]>([])
-  const [matchRequests, setMatchRequests] = useState<any[]>([])
-  const [projectRequests, setProjectRequests] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
     fetchDashboardData()

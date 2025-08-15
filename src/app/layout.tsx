@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import '@/styles/globals.css'
 import { SuppressExtensionWarnings } from '@/components/suppress-extensions-warnings'
+import { ThemeProvider } from '@/lib/contexts/theme-context'
 
 const inter = Inter({ subsets: ['latin'] })
 const bricolageGrotesque = Bricolage_Grotesque({ 
@@ -31,7 +32,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${bricolageGrotesque.className} ${bricolageGrotesque.variable}`} suppressHydrationWarning>
         <SuppressExtensionWarnings />
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

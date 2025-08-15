@@ -4,19 +4,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Navigation } from '@/components/shared'
 import { OTPInput, LoadingButton } from '@/components/forms'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
 export default function VerifyPage() {
   const router = useRouter()
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   const handleVerify = async (code: string) => {
     setError('')

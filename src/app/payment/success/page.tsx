@@ -4,18 +4,13 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo, ThemeToggle } from '@/components/shared'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 
 export default function PaymentSuccessPage() {
   const router = useRouter()
   const [isVerifying, setIsVerifying] = useState(true)
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [lastBriefId, setLastBriefId] = useState<string | null>(null)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     // Get the last brief ID from sessionStorage

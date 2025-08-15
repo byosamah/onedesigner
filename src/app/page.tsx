@@ -1,21 +1,15 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { Logo, ThemeToggle } from '@/components/shared'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import PoopUp from '@/components/poopup/PoopUp'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export default function HomePage() {
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-between px-4 py-8 transition-colors duration-300" style={{ backgroundColor: theme.bg }}>

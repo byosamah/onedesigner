@@ -7,7 +7,7 @@ import { Navigation } from '@/components/shared'
 import { LoadingButton } from '@/components/forms'
 import { LoadingSpinner } from '@/components/shared'
 import { toast } from '@/lib/toast'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
 interface EnhancedDesigner {
@@ -84,12 +84,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true)
   const [unlocking, setUnlocking] = useState(false)
   const [credits, setCredits] = useState(0)
-  const [isDarkMode, setIsDarkMode] = useState(true)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode)
-  }
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     fetchMatch()

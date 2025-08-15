@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { DESIGN_STYLES, PROJECT_TYPES, INDUSTRIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
 
@@ -129,17 +129,10 @@ interface DesignerProfile {
 
 export default function DesignerProfilePage() {
   const router = useRouter()
-  const [isDarkMode, setIsDarkMode] = useState(true)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
   const [profile, setProfile] = useState<DesignerProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState<Partial<DesignerProfile>>({})
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
 
   useEffect(() => {
     fetchDesignerProfile()

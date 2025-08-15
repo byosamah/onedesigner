@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getTheme } from '@/lib/design-system'
+import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerSignupVerifyPage() {
@@ -11,12 +11,9 @@ export default function DesignerSignupVerifyPage() {
   const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const [error, setError] = useState('')
   const [isResending, setIsResending] = useState(false)
-  const theme = getTheme(isDarkMode)
-
-  const toggleTheme = () => setIsDarkMode(!isDarkMode)
+  const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem('designerSignupEmail')
