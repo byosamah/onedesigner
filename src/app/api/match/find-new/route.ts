@@ -155,13 +155,9 @@ Provide a JSON response with:
             yearsExperience: designer.years_experience,
             rating: designer.rating,
             totalProjects: designer.total_projects,
-            designPhilosophy: designer.design_philosophy,
-            primaryCategories: designer.categories,
-            styleKeywords: designer.styles,
-            portfolioProjects: designer.portfolio_projects || [],
-            portfolioImages: Array.isArray(designer.tools) ? designer.tools : [],
-            avgClientSatisfaction: 95,
-            onTimeDeliveryRate: 98
+            styles: designer.styles,
+            industries: designer.industries,
+            portfolioImages: Array.isArray(designer.tools) ? designer.tools : []
           },
           score: analysis.score,
           confidence: analysis.confidence,
@@ -303,12 +299,9 @@ Provide a JSON response with:
           yearsExperience: bestMatch.designer.yearsExperience,
           rating: bestMatch.designer.rating,
           totalProjects: bestMatch.designer.totalProjects,
-          designPhilosophy: bestMatch.designer.designPhilosophy,
-          primaryCategories: bestMatch.designer.primaryCategories,
-          styleKeywords: bestMatch.designer.styleKeywords,
-          portfolioProjects: bestMatch.designer.portfolioProjects,
-          avgClientSatisfaction: bestMatch.designer.avgClientSatisfaction,
-          onTimeDeliveryRate: bestMatch.designer.onTimeDeliveryRate
+          styles: bestMatch.designer.styles,
+          industries: bestMatch.designer.industries,
+          portfolioImages: bestMatch.designer.portfolioImages
         },
         aiAnalyzed: bestMatch.aiAnalyzed
       },

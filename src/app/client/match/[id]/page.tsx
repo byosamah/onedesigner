@@ -29,14 +29,6 @@ interface EnhancedDesigner {
   industries: string[]
   // Image fields
   avatar_url?: string
-  // Enhanced fields
-  designPhilosophy: string
-  primaryCategories: string[]
-  styleKeywords: string[]
-  avgClientSatisfaction: number
-  onTimeDeliveryRate: number
-  collaborationStyle?: string
-  turnaroundTimes?: Record<string, number>
   // Portfolio images
   portfolioImages?: {
     image_url: string
@@ -372,11 +364,6 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                   <span style={{ color: theme.text.muted }}>
                     {match.designer.totalProjects || (match.designer as any).total_projects} projects completed
                   </span>
-                  {match.designer.avgClientSatisfaction && (
-                    <span style={{ color: theme.text.muted }}>
-                      {match.designer.avgClientSatisfaction}% client satisfaction
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -423,21 +410,6 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
             </ul>
           </div>
 
-          {/* Design Philosophy */}
-          {match.designer.designPhilosophy && (
-            <div className="rounded-2xl p-6 mb-6" 
-              style={{ 
-                backgroundColor: theme.nestedBg,
-                border: `1px solid ${theme.border}`
-              }}>
-              <h3 className="font-bold text-lg mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                Design Philosophy:
-              </h3>
-              <p className="transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                {match.designer.designPhilosophy}
-              </p>
-            </div>
-          )}
 
           {/* Portfolio Images - Actual uploaded images */}
           <div className="rounded-2xl p-6 mb-6" 
@@ -526,48 +498,48 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
 
-          {/* Categories & Style */}
+          {/* Styles & Industries */}
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {match.designer.primaryCategories && match.designer.primaryCategories.length > 0 && (
+            {match.designer.styles && match.designer.styles.length > 0 && (
               <div className="rounded-2xl p-6" 
                 style={{ 
                   backgroundColor: theme.nestedBg,
                   border: `1px solid ${theme.border}`
                 }}>
                 <h3 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  Specializes In:
+                  Design Styles:
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {match.designer.primaryCategories.map((cat) => (
-                    <span key={cat} className="px-3 py-1 rounded-full text-sm"
-                      style={{ 
-                        backgroundColor: theme.accent + '20',
-                        color: theme.accent
-                      }}>
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {match.designer.styleKeywords && match.designer.styleKeywords.length > 0 && (
-              <div className="rounded-2xl p-6" 
-                style={{ 
-                  backgroundColor: theme.nestedBg,
-                  border: `1px solid ${theme.border}`
-                }}>
-                <h3 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
-                  Design Style:
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {match.designer.styleKeywords.map((style) => (
+                  {match.designer.styles.map((style) => (
                     <span key={style} className="px-3 py-1 rounded-full text-sm"
                       style={{ 
                         backgroundColor: theme.tagBg,
                         color: theme.text.secondary
                       }}>
                       {style}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {match.designer.industries && match.designer.industries.length > 0 && (
+              <div className="rounded-2xl p-6" 
+                style={{ 
+                  backgroundColor: theme.nestedBg,
+                  border: `1px solid ${theme.border}`
+                }}>
+                <h3 className="font-bold mb-3 transition-colors duration-300" style={{ color: theme.text.primary }}>
+                  Industries:
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {match.designer.industries.map((industry) => (
+                    <span key={industry} className="px-3 py-1 rounded-full text-sm"
+                      style={{ 
+                        backgroundColor: theme.accent + '20',
+                        color: theme.accent
+                      }}>
+                      {industry}
                     </span>
                   ))}
                 </div>

@@ -97,10 +97,8 @@ export async function POST(request: NextRequest) {
           country: match.designer.country,
           yearsExperience: match.designer.years_experience,
           totalProjects: match.designer.total_projects,
-          designPhilosophy: match.designer.design_philosophy,
-          primaryCategories: match.designer.categories,
-          styleKeywords: match.designer.styles,
-          portfolioProjects: match.designer.portfolio_projects || [],
+          styles: match.designer.styles,
+          industries: match.designer.industries,
           profilePicture: match.designer.avatar_url || null,
           portfolioImages: (() => {
             // Get portfolio images from tools array field (temporary storage)
@@ -120,9 +118,7 @@ export async function POST(request: NextRequest) {
               `https://picsum.photos/seed/${category}2-${match.designer.id}/800/600`,
               `https://picsum.photos/seed/${category}3-${match.designer.id}/800/600`
             ];
-          })(),
-          avgClientSatisfaction: 95,
-          onTimeDeliveryRate: 98
+          })()
         },
         aiAnalyzed: true
       }))
@@ -260,10 +256,8 @@ Provide a JSON response with:
             country: designer.country,
             yearsExperience: designer.years_experience,
             totalProjects: designer.total_projects,
-            designPhilosophy: designer.design_philosophy,
-            primaryCategories: designer.categories,
-            styleKeywords: designer.styles,
-            portfolioProjects: designer.portfolio_projects || [],
+            styles: designer.styles,
+            industries: designer.industries,
             profilePicture: designer.avatar_url || null,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
@@ -289,9 +283,7 @@ Provide a JSON response with:
               }
               
               return actualImages;
-            })(),
-            avgClientSatisfaction: 95,
-            onTimeDeliveryRate: 98
+            })()
           },
           score: analysis.score,
           confidence: analysis.confidence,
@@ -321,10 +313,8 @@ Provide a JSON response with:
             country: designer.country,
             yearsExperience: designer.years_experience,
             totalProjects: designer.total_projects,
-            designPhilosophy: designer.design_philosophy,
-            primaryCategories: designer.categories,
-            styleKeywords: designer.styles,
-            portfolioProjects: designer.portfolio_projects || [],
+            styles: designer.styles,
+            industries: designer.industries,
             profilePicture: designer.avatar_url || null,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
@@ -350,9 +340,7 @@ Provide a JSON response with:
               }
               
               return actualImages;
-            })(),
-            avgClientSatisfaction: 95,
-            onTimeDeliveryRate: 98
+            })()
           },
           // Generate a more realistic random score between 55-75 for fallback
           score: Math.floor(Math.random() * 20) + 55,
@@ -444,12 +432,9 @@ Provide a JSON response with:
           yearsExperience: match.designer.yearsExperience,
           rating: match.designer.rating,
           totalProjects: match.designer.totalProjects,
-          designPhilosophy: match.designer.designPhilosophy,
-          primaryCategories: match.designer.primaryCategories,
-          styleKeywords: match.designer.styleKeywords,
-          portfolioProjects: match.designer.portfolioProjects,
-          avgClientSatisfaction: match.designer.avgClientSatisfaction,
-          onTimeDeliveryRate: match.designer.onTimeDeliveryRate
+          styles: match.designer.styles,
+          industries: match.designer.industries,
+          portfolioImages: match.designer.portfolioImages
         },
         aiAnalyzed: match.aiAnalyzed
       })),
