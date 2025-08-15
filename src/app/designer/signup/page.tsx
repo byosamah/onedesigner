@@ -96,23 +96,23 @@ export default function DesignerSignupPage() {
               <div className="text-center mb-8">
                 <div className="text-6xl mb-4">🎨</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Join OneDesigner as a Designer
+                  Stop competing. Start earning.
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  Connect with amazing clients who need your talent
+                  Get matched with clients who already want <span style={{ color: theme.accent }}>you</span>. No pitching required.
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                    Enter your professional email
+                    Your work email (we check this)
                   </label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@designstudio.com"
+                    placeholder="sarah@studio.design"
                     className="w-full px-6 py-4 rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 text-lg"
                     style={{
                       backgroundColor: theme.nestedBg,
@@ -144,40 +144,55 @@ export default function DesignerSignupPage() {
                       Sending verification code...
                     </span>
                   ) : (
-                    'Continue with Email →'
+                    'Get Started →'
                   )}
                 </button>
 
                 <div className="text-center">
                   <p className="text-sm" style={{ color: theme.text.secondary }}>
-                    Already have an account?{' '}
+                    Already crushing it with us?{' '}
                     <Link 
                       href="/designer/login" 
                       className="font-medium transition-colors duration-300 hover:opacity-80"
                       style={{ color: theme.accent }}
                     >
-                      Sign in instead
+                      Sign in here
                     </Link>
                   </p>
                 </div>
               </form>
             </div>
 
-            {/* Benefits */}
-            <div className="mt-12 text-center space-y-6">
-              <div className="flex items-center justify-center gap-8 text-sm" style={{ color: theme.text.muted }}>
-                <div className="flex items-center gap-2">
-                  <span>💰</span>
-                  <span>Set your own rates</span>
+            {/* Benefits - Marc Lou style */}
+            <div className="mt-16 space-y-8">
+              <div className="text-center">
+                <p className="text-sm font-medium mb-4" style={{ color: theme.text.muted }}>
+                  THIS WEEK, 147 DESIGNERS GOT MATCHED
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+                <div className="text-center p-4 rounded-lg transition-all duration-300 hover:scale-105" style={{ backgroundColor: theme.nestedBg }}>
+                  <div className="text-2xl mb-2">💰</div>
+                  <div className="font-bold mb-1" style={{ color: theme.text.primary }}>$150-500/hr</div>
+                  <div className="text-xs" style={{ color: theme.text.muted }}>Average rates</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>🎯</span>
-                  <span>Pre-matched clients</span>
+                <div className="text-center p-4 rounded-lg transition-all duration-300 hover:scale-105" style={{ backgroundColor: theme.nestedBg }}>
+                  <div className="text-2xl mb-2">🎯</div>
+                  <div className="font-bold mb-1" style={{ color: theme.text.primary }}>0% effort</div>
+                  <div className="text-xs" style={{ color: theme.text.muted }}>Clients come to you</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>🚀</span>
-                  <span>No platform fees</span>
+                <div className="text-center p-4 rounded-lg transition-all duration-300 hover:scale-105" style={{ backgroundColor: theme.nestedBg }}>
+                  <div className="text-2xl mb-2">⚡</div>
+                  <div className="font-bold mb-1" style={{ color: theme.text.primary }}>48hr response</div>
+                  <div className="text-xs" style={{ color: theme.text.muted }}>Quick decisions</div>
                 </div>
+              </div>
+
+              <div className="text-center">
+                <p className="text-xs" style={{ color: theme.text.muted }}>
+                  <strong>Real talk:</strong> We reject 73% of applications. We only want designers who ship.
+                </p>
               </div>
             </div>
           </div>

@@ -154,22 +154,22 @@ export default function DesignerSignupVerifyPage() {
           <div className="animate-slideUp">
             <div className="max-w-xl mx-auto">
               <div className="text-center mb-8">
-                <div className="text-6xl mb-4">📧</div>
+                <div className="text-6xl mb-4">📬</div>
                 <h2 className="text-3xl font-bold mb-2" style={{ color: theme.text.primary }}>
-                  Check your email!
+                  Code's in your inbox
                 </h2>
                 <p className="text-lg" style={{ color: theme.text.secondary }}>
-                  We sent a 6-digit code to
+                  Just sent to <span className="font-semibold" style={{ color: theme.accent }}>{email}</span>
                 </p>
-                <p className="text-lg font-semibold" style={{ color: theme.text.primary }}>
-                  {email}
+                <p className="text-sm mt-2" style={{ color: theme.text.muted }}>
+                  (Check spam if you're waiting more than 30 seconds)
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                    Enter your verification code
+                    Type the 6 digits here
                   </label>
                   <input
                     type="text"
@@ -208,7 +208,7 @@ export default function DesignerSignupVerifyPage() {
                       Verifying...
                     </span>
                   ) : (
-                    'Verify & Continue →'
+                    'Let\'s Go →'
                   )}
                 </button>
 
@@ -220,7 +220,7 @@ export default function DesignerSignupVerifyPage() {
                     className="text-sm font-medium transition-colors duration-300 hover:opacity-80 disabled:opacity-50"
                     style={{ color: theme.accent }}
                   >
-                    {isResending ? 'Sending...' : "Didn't receive the code? Resend code"}
+                    {isResending ? 'Sending new code...' : "Code expired? Get a fresh one"}
                   </button>
                   
                   <div>
@@ -229,35 +229,24 @@ export default function DesignerSignupVerifyPage() {
                       className="text-sm transition-colors duration-300 hover:opacity-80"
                       style={{ color: theme.text.muted }}
                     >
-                      ← Back to signup
+                      ← Wrong email? Start over
                     </Link>
                   </div>
                 </div>
               </form>
             </div>
 
-            {/* Progress indicator */}
+            {/* Progress indicator - Marc Lou style */}
             <div className="mt-12 text-center">
               <div className="flex items-center justify-center gap-2">
                 <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.accent }}></div>
                 <div className="w-8 h-1 rounded-full" style={{ backgroundColor: theme.border }}></div>
               </div>
               <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
-                Step 1 of 2: Verify email
+                Almost there (30 seconds left)
               </p>
             </div>
 
-            {/* Benefits for designers */}
-            <div className="mt-8 text-center space-y-2">
-              <p className="text-xs" style={{ color: theme.text.muted }}>
-                After verification, you'll complete your designer profile
-              </p>
-              <div className="flex items-center justify-center gap-4 text-xs" style={{ color: theme.text.muted }}>
-                <span>✅ 100% Free to join</span>
-                <span>✅ No platform fees</span>
-                <span>✅ Direct client contact</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
