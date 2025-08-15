@@ -6,7 +6,17 @@ import { logger } from '@/lib/core/logging-service'
  * All database services should extend this class
  */
 export abstract class DatabaseService {
-  protected supabase = createServiceClient()
+  private _supabase: any = null
+  
+  /**
+   * Get Supabase client - lazily initialized to avoid cookies() error
+   */
+  protected get supabase() {
+    if (!this._supabase) {
+      this._supabase = createServiceClient()
+    }
+    return this._supabase
+  }
   
   /**
    * Handle database errors consistently

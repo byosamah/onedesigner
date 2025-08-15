@@ -62,6 +62,9 @@ export default function DesignerDashboardPage() {
   const { theme, isDarkMode, toggleTheme } = useTheme()
   const [designer, setDesigner] = useState<DesignerProfile | null>(null)
   const [requests, setRequests] = useState<EnhancedDesignerRequest[]>([])
+  const [matchRequests, setMatchRequests] = useState<any[]>([])
+  const [projectRequests, setProjectRequests] = useState<any[]>([])
+  const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 

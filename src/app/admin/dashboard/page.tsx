@@ -647,13 +647,6 @@ export default function AdminDashboardPage() {
                       {selectedDesigner.country || 'Not specified'}
                     </p>
                   </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Timezone</p>
-                    <p className="transition-colors duration-300" style={{ color: selectedDesigner.timezone ? theme.text.primary : theme.text.muted }}>
-                      {selectedDesigner.timezone || 'Not specified'}
-                    </p>
-                  </div>
                 </div>
               </div>
               
@@ -674,73 +667,50 @@ export default function AdminDashboardPage() {
               
               {/* Portfolio Images Section */}
               <div>
-                <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Portfolio Images</p>
-                {(() => {
-                  // Try to get portfolio images from various sources
-                  const portfolioImages = selectedDesigner.portfolio_images && selectedDesigner.portfolio_images.length > 0 
-                    ? selectedDesigner.portfolio_images
-                    : [
-                        // Temporarily use social media URLs as portfolio images if they look like image URLs
-                        selectedDesigner.dribbbleUrl && (selectedDesigner.dribbbleUrl.includes('picsum') || selectedDesigner.dribbbleUrl.includes('.jpg') || selectedDesigner.dribbbleUrl.includes('.png')) ? selectedDesigner.dribbbleUrl : null,
-                        selectedDesigner.behanceUrl && (selectedDesigner.behanceUrl.includes('picsum') || selectedDesigner.behanceUrl.includes('.jpg') || selectedDesigner.behanceUrl.includes('.png')) ? selectedDesigner.behanceUrl : null,
-                        selectedDesigner.linkedinUrl && (selectedDesigner.linkedinUrl.includes('picsum') || selectedDesigner.linkedinUrl.includes('.jpg') || selectedDesigner.linkedinUrl.includes('.png')) ? selectedDesigner.linkedinUrl : null
-                      ].filter(Boolean)
-                  
-                  if (portfolioImages.length > 0) {
-                    return (
-                      <div className="grid grid-cols-3 gap-4">
-                        {portfolioImages.map((image, index) => (
-                          <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2" style={{ borderColor: theme.border }}>
-                            <img 
-                              src={image} 
-                              alt={`Portfolio ${index + 1}`}
-                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
-                              onClick={() => window.open(image, '_blank')}
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none'
-                                e.currentTarget.parentElement!.innerHTML = `
-                                  <div class="w-full h-full flex items-center justify-center" style="background-color: ${theme.nestedBg}">
-                                    <div class="text-center">
-                                      <div class="text-2xl mb-1" style="color: ${theme.text.muted}">📷</div>
-                                      <div class="text-xs" style="color: ${theme.text.muted}">Load Failed</div>
-                                    </div>
-                                  </div>
-                                `
-                              }}
-                            />
-                          </div>
-                        ))}
-                        {/* Fill remaining slots with placeholders */}
-                        {Array.from({ length: 3 - portfolioImages.length }, (_, index) => (
-                          <div key={`placeholder-${index}`} className="aspect-square rounded-xl border-2 border-dashed flex items-center justify-center" 
-                               style={{ borderColor: theme.border, backgroundColor: theme.nestedBg }}>
+                <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Portfolio Samples</p>
+                <div className="grid grid-cols-3 gap-4">
+                  {selectedDesigner.portfolio_images && selectedDesigner.portfolio_images.length > 0 ? (
+                    selectedDesigner.portfolio_images.map((image, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2" style={{ borderColor: theme.border }}>
+                        {image && image.startsWith('data:image') ? (
+                          <img 
+                            src={image} 
+                            alt={`Portfolio ${index + 1}`}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300 cursor-pointer"
+                            onClick={() => {
+                              const newWindow = window.open();
+                              if (newWindow) {
+                                newWindow.document.write(`<img src="${image}" style="max-width: 100%; height: auto;" />`);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: theme.nestedBg }}>
                             <div className="text-center">
                               <div className="text-2xl mb-1" style={{ color: theme.text.muted }}>📷</div>
                               <div className="text-xs" style={{ color: theme.text.muted }}>No Image</div>
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )
-                  } else {
-                    return (
-                      <div className="grid grid-cols-3 gap-4">
-                        {[1, 2, 3].map((index) => (
-                          <div key={index} className="aspect-square rounded-xl border-2 border-dashed flex items-center justify-center" 
-                               style={{ borderColor: theme.border, backgroundColor: theme.nestedBg }}>
-                            <div className="text-center">
-                              <div className="text-2xl mb-1" style={{ color: theme.text.muted }}>📷</div>
-                              <div className="text-xs" style={{ color: theme.text.muted }}>No Image</div>
-                            </div>
-                          </div>
-                        ))}
+                    ))
+                  ) : (
+                    [1, 2, 3].map((index) => (
+                      <div key={index} className="aspect-square rounded-xl border-2 border-dashed flex items-center justify-center" 
+                           style={{ borderColor: theme.border, backgroundColor: theme.nestedBg }}>
+                        <div className="text-center">
+                          <div className="text-2xl mb-1" style={{ color: theme.text.muted }}>📷</div>
+                          <div className="text-xs" style={{ color: theme.text.muted }}>No Image</div>
+                        </div>
                       </div>
-                    )
-                  }
-                })()}
-                <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
-                  Portfolio images are temporarily stored in alternative fields for demonstration.
-                </p>
+                    ))
+                  )}
+                </div>
+                {(!selectedDesigner.portfolio_images || selectedDesigner.portfolio_images.length === 0) && (
+                  <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
+                    Portfolio images will appear here when uploaded by the designer.
+                  </p>
+                )}
               </div>
               
               {/* Portfolio URLs */}
@@ -827,156 +797,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               
-              {/* Skills & Expertise */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Skills & Expertise</h3>
-                
-                {selectedDesigner.styles && selectedDesigner.styles.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Design Styles</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDesigner.styles.map((style) => (
-                        <span 
-                          key={style}
-                          className="px-3 py-1 rounded-full text-sm"
-                          style={{ backgroundColor: theme.accent + '20', color: theme.accent }}
-                        >
-                          {style}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedDesigner.projectTypes && selectedDesigner.projectTypes.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Project Types</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDesigner.projectTypes.map((type) => (
-                        <span 
-                          key={type}
-                          className="px-3 py-1 rounded-full text-sm"
-                          style={{ backgroundColor: theme.tagBg, color: theme.text.secondary }}
-                        >
-                          {type}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedDesigner.industries && selectedDesigner.industries.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Industries</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDesigner.industries.map((industry) => (
-                        <span 
-                          key={industry}
-                          className="px-3 py-1 rounded-full text-sm"
-                          style={{ backgroundColor: theme.nestedBg, color: theme.text.primary }}
-                        >
-                          {industry}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedDesigner.specializations && selectedDesigner.specializations.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Specializations</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDesigner.specializations.map((spec) => (
-                        <span 
-                          key={spec}
-                          className="px-3 py-1 rounded-full text-sm"
-                          style={{ backgroundColor: theme.success + '20', color: theme.success }}
-                        >
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {selectedDesigner.softwareSkills && selectedDesigner.softwareSkills.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Software Skills</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedDesigner.softwareSkills.map((software) => (
-                        <span 
-                          key={software}
-                          className="px-3 py-1 rounded-full text-sm"
-                          style={{ backgroundColor: theme.error + '20', color: theme.error }}
-                        >
-                          {software}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Working Style & Preferences */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Working Style & Preferences</h3>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  {selectedDesigner.projectPreferences && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Project Preferences</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.projectPreferences || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedDesigner.workingStyle && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Working Style</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.workingStyle || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedDesigner.communicationStyle && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Communication Style</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.communicationStyle || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedDesigner.remoteExperience && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Remote Experience</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.remoteExperience || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedDesigner.teamCollaboration && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Team Collaboration</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.teamCollaboration || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                  
-                  {selectedDesigner.previousClients && (
-                    <div>
-                      <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Previous Clients</p>
-                      <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {selectedDesigner.previousClients || 'Not specified'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
               
               {/* Timestamps */}
               <div className="space-y-4">
