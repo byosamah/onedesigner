@@ -95,6 +95,7 @@ export class EmailService {
     // Default configuration
     this.config = {
       from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
+      fromName: 'OneDesigner', // Default sender name
       replyTo: process.env.EMAIL_REPLY_TO,
       apiKey,
       maxRetries: 3,

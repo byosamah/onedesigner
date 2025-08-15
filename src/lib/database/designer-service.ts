@@ -63,7 +63,7 @@ export class DesignerService extends DatabaseService {
       city: dbData.city || '',
       availability: dbData.availability || 'immediate',
       bio: dbData.bio || '',
-      portfolioImages: [], // Portfolio images not yet implemented in DB
+      portfolioImages: Array.isArray(dbData.tools) ? dbData.tools : [],
       isApproved: dbData.is_approved || false
     }
   }
@@ -112,12 +112,12 @@ export class DesignerService extends DatabaseService {
     if (formData.availability !== undefined) dbData.availability = formData.availability
     if (formData.bio !== undefined) dbData.bio = formData.bio
 
-    // Map portfolio images - commented out until columns are added
-    // if (formData.portfolioImages !== undefined) {
-    //   dbData.portfolio_image_1 = formData.portfolioImages?.[0] || null
-    //   dbData.portfolio_image_2 = formData.portfolioImages?.[1] || null
-    //   dbData.portfolio_image_3 = formData.portfolioImages?.[2] || null
-    // }
+    // Store portfolio images in the 'tools' array column (repurposing unused field)
+    // Since portfolio_image_1/2/3 columns don't exist yet
+    if (formData.portfolioImages !== undefined) {
+      // Store directly as array in the 'tools' field (which is currently unused)
+      dbData.tools = formData.portfolioImages.length > 0 ? formData.portfolioImages : []
+    }
 
     return dbData
   }

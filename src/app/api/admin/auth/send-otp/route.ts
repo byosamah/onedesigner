@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send OTP
-    await sendCustomOTP(email)
+    // Send OTP with admin user type
+    await sendCustomOTP(email, 'admin', 'login')
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -48,158 +48,66 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch all related data for each designer
-    const designersWithDetails = await Promise.all(
-      designers.map(async (designer) => {
-        try {
-          // Fetch styles
-          const { data: styles } = await supabase
-            .from('designer_styles')
-            .select('style')
-            .eq('designer_id', designer.id)
-          
-          // Fetch project types
-          const { data: projectTypes } = await supabase
-            .from('designer_project_types')
-            .select('project_type')
-            .eq('designer_id', designer.id)
-          
-          // Fetch industries
-          const { data: industries } = await supabase
-            .from('designer_industries')
-            .select('industry')
-            .eq('designer_id', designer.id)
-          
-          // Fetch specializations
-          const { data: specializations } = await supabase
-            .from('designer_specializations')
-            .select('specialization')
-            .eq('designer_id', designer.id)
-          
-          // Fetch software skills
-          const { data: softwareSkills } = await supabase
-            .from('designer_software_skills')
-            .select('software')
-            .eq('designer_id', designer.id)
-          
-          return {
-            // Basic info
-            id: designer.id,
-            firstName: designer.first_name,
-            lastName: designer.last_name,
-            email: designer.email,
-            phone: designer.phone,
-            avatar: designer.avatar_url,
-            
-            // Professional info
-            title: designer.title,
-            yearsExperience: designer.years_experience,
-            websiteUrl: designer.website_url,
-            portfolioUrl: designer.portfolio_url,
-            projectPriceFrom: designer.project_price_from,
-            projectPriceTo: designer.project_price_to,
-            
-            // Location & Availability
-            city: designer.city,
-            country: designer.country,
-            timezone: designer.timezone,
-            availability: designer.availability,
-            
-            // Bio
-            bio: designer.bio,
-            
-            // Portfolio links
-            dribbbleUrl: designer.dribbble_url,
-            behanceUrl: designer.behance_url,
-            linkedinUrl: designer.linkedin_url,
-            
-            // Experience & Preferences
-            previousClients: designer.previous_clients,
-            projectPreferences: designer.project_preferences,
-            workingStyle: designer.working_style,
-            communicationStyle: designer.communication_style,
-            remoteExperience: designer.remote_experience,
-            teamCollaboration: designer.team_collaboration,
-            
-            // Arrays from related tables
-            styles: styles?.map(s => s.style) || designer.styles || [],
-            projectTypes: projectTypes?.map(pt => pt.project_type) || designer.project_types || [],
-            industries: industries?.map(i => i.industry) || designer.industries || [],
-            specializations: specializations?.map(s => s.specialization) || [],
-            softwareSkills: softwareSkills?.map(s => s.software) || [],
-            
-            // Status
-            isVerified: designer.is_verified,
-            isApproved: designer.is_approved,
-            isAvailable: designer.is_available,
-            rejectionReason: designer.rejection_reason || null,
-            
-            // Metadata
-            totalProjects: designer.total_projects,
-            createdAt: designer.created_at,
-            updatedAt: designer.updated_at,
-            editedAfterApproval: designer.edited_after_approval || false,
-            // Portfolio images from database columns
-            portfolio_images: [
-              designer.portfolio_image_1,
-              designer.portfolio_image_2,
-              designer.portfolio_image_3
-            ].filter(Boolean)
-          }
-        } catch (e) {
-          // If tables don't exist, return designer with arrays from main table
-          return {
-            ...designer,
-            firstName: designer.first_name,
-            lastName: designer.last_name,
-            avatar: designer.avatar_url,
-            yearsExperience: designer.years_experience,
-            websiteUrl: designer.website_url,
-            portfolioUrl: designer.portfolio_url,
-            projectPriceFrom: designer.project_price_from,
-            projectPriceTo: designer.project_price_to,
-            dribbbleUrl: designer.dribbble_url,
-            behanceUrl: designer.behance_url,
-            linkedinUrl: designer.linkedin_url,
-            previousClients: designer.previous_clients,
-            projectPreferences: designer.project_preferences,
-            workingStyle: designer.working_style,
-            communicationStyle: designer.communication_style,
-            remoteExperience: designer.remote_experience,
-            teamCollaboration: designer.team_collaboration,
-            styles: designer.styles || [],
-            projectTypes: designer.project_types || [],
-            industries: designer.industries || [],
-            specializations: [],
-            softwareSkills: [],
-            isVerified: designer.is_verified,
-            isApproved: designer.is_approved,
-            isAvailable: designer.is_available,
-            rejectionReason: designer.rejection_reason || null,
-            totalProjects: designer.total_projects,
-            createdAt: designer.created_at,
-            updatedAt: designer.updated_at,
-            editedAfterApproval: designer.edited_after_approval || false,
-            portfolio_images: [
-              designer.portfolio_image_1,
-              designer.portfolio_image_2,
-              designer.portfolio_image_3
-            ].filter(Boolean)
-          }
-        }
-      })
-    )
+    // Map database fields to frontend format (matching actual application fields)
+    const designersWithDetails = designers.map((designer) => {
+      return {
+        // Basic info (from application form)
+        id: designer.id,
+        firstName: designer.first_name,
+        lastName: designer.last_name,
+        email: designer.email,
+        phone: designer.phone,
+        avatar: designer.avatar_url, // This is profilePicture in the application
+        
+        // Professional info (from application form)
+        title: designer.title,
+        portfolioUrl: designer.portfolio_url || designer.website_url,
+        dribbbleUrl: designer.dribbble_url,
+        behanceUrl: designer.behance_url,
+        linkedinUrl: designer.linkedin_url,
+        
+        // Location (from application form)
+        city: designer.city,
+        country: designer.country,
+        
+        // Availability (from application form)
+        availability: designer.availability,
+        
+        // Bio (from application form)
+        bio: designer.bio,
+        
+        // Status (internal admin fields)
+        isVerified: designer.is_verified,
+        isApproved: designer.is_approved,
+        rejectionReason: designer.rejection_reason || null,
+        
+        // Metadata (internal admin fields)
+        createdAt: designer.created_at,
+        updatedAt: designer.updated_at,
+        editedAfterApproval: designer.edited_after_approval || false,
+        
+        // Portfolio images - stored in tools array field (temporary storage)
+        portfolio_images: Array.isArray(designer.tools) ? designer.tools : [],
+        
+        // Fields for backward compatibility (not in application)
+        yearsExperience: designer.years_experience || '',
+        websiteUrl: designer.website_url,
+        projectTypes: designer.project_types || [],
+        styles: designer.styles || [],
+        industries: designer.industries || [],
+        specializations: [],
+        softwareSkills: []
+      }
+    })
 
     return NextResponse.json({
       designers: designersWithDetails,
       total: designersWithDetails.length,
-      pending: designersWithDetails.filter(d => !d.isApproved).length,
-      approved: designersWithDetails.filter(d => d.isApproved).length
     })
   } catch (error) {
     logger.error('Error in admin designers route:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch designers' },
       { status: 500 }
     )
   }

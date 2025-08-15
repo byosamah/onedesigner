@@ -6,6 +6,7 @@ import { Navigation } from '@/components/shared'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 
+// TODO(human): Update this interface to match the actual application fields
 interface Designer {
   id: string
   firstName: string
@@ -598,23 +599,6 @@ export default function AdminDashboardPage() {
                   </div>
                   
                   <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Experience</p>
-                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.yearsExperience} years
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Price Range</p>
-                    <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
-                      {selectedDesigner.projectPriceFrom && selectedDesigner.projectPriceTo 
-                        ? `$${selectedDesigner.projectPriceFrom} - $${selectedDesigner.projectPriceTo}` 
-                        : 'Not specified'
-                      }
-                    </p>
-                  </div>
-                  
-                  <div>
                     <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Availability</p>
                     <p className="transition-colors duration-300" style={{ color: theme.text.primary }}>
                       {selectedDesigner.availability ? (
@@ -713,43 +697,31 @@ export default function AdminDashboardPage() {
                 )}
               </div>
               
-              {/* Portfolio URLs */}
+              {/* Portfolio Links */}
               <div className="space-y-4">
                 <h3 className="font-bold text-lg" style={{ color: theme.text.primary }}>Portfolio Links</h3>
                 <div className="grid grid-cols-1 gap-3">
                   <div>
-                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Main Website/Portfolio</p>
-                    {selectedDesigner.websiteUrl ? (
+                    <p className="text-sm font-medium mb-1" style={{ color: theme.text.muted }}>Main Portfolio</p>
+                    {selectedDesigner.portfolioUrl ? (
                       <a 
-                        href={selectedDesigner.websiteUrl} 
+                        href={selectedDesigner.portfolioUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="transition-colors duration-300 hover:opacity-80 flex items-center gap-2"
                         style={{ color: theme.accent }}
                       >
-                        🌐 {selectedDesigner.websiteUrl} <span style={{ color: theme.text.muted }}>↗</span>
+                        🌐 {selectedDesigner.portfolioUrl} <span style={{ color: theme.text.muted }}>↗</span>
                       </a>
                     ) : (
                       <p style={{ color: theme.text.muted }}>Not provided</p>
                     )}
                   </div>
                   
-                  {(selectedDesigner.portfolioUrl || selectedDesigner.dribbbleUrl || selectedDesigner.behanceUrl || selectedDesigner.linkedinUrl) && (
+                  {(selectedDesigner.dribbbleUrl || selectedDesigner.behanceUrl || selectedDesigner.linkedinUrl) && (
                     <div>
                       <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Additional Links</p>
                       <div className="space-y-2">
-                        {selectedDesigner.portfolioUrl && (
-                          <a 
-                            href={selectedDesigner.portfolioUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="block transition-colors duration-300 hover:opacity-80"
-                            style={{ color: theme.accent }}
-                          >
-                            📁 Portfolio: {selectedDesigner.portfolioUrl} ↗
-                          </a>
-                        )}
-                        
                         {selectedDesigner.dribbbleUrl && (
                           <a 
                             href={selectedDesigner.dribbbleUrl} 
@@ -789,7 +761,7 @@ export default function AdminDashboardPage() {
                     </div>
                   )}
                   
-                  {!selectedDesigner.portfolioUrl && !selectedDesigner.dribbbleUrl && !selectedDesigner.behanceUrl && !selectedDesigner.linkedinUrl && (
+                  {!selectedDesigner.dribbbleUrl && !selectedDesigner.behanceUrl && !selectedDesigner.linkedinUrl && (
                     <p className="text-sm" style={{ color: theme.text.muted }}>
                       No additional portfolio links provided
                     </p>
