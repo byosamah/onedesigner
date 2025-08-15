@@ -8,6 +8,7 @@ import { logger } from '@/lib/core/logging-service'
 
 export default function DesignerLoginVerifyPage() {
   const router = useRouter()
+  const [otp, setOtp] = useState('')
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const { theme, isDarkMode, toggleTheme } = useTheme()

@@ -11,6 +11,8 @@ export default function ClientVerifyPage() {
   const [otp, setOtp] = useState('')
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [isResending, setIsResending] = useState(false)
   const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
