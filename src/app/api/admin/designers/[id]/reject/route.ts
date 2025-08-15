@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/send-email'
 import { logger } from '@/lib/core/logging-service'
-import { createDesignerRejectionEmail } from '@/lib/email/templates/designer-rejection'
+import { createDesignerRejectionEmailMarcStyle } from '@/lib/email/templates/marc-lou-style'
 import crypto from 'crypto'
 
 export async function POST(
@@ -62,9 +62,9 @@ export async function POST(
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
     const updateApplicationUrl = `${baseUrl}/designer/update-application?token=${updateToken}`
 
-    // Send rejection email to designer with new template
+    // Send rejection email to designer with Marc Lou style template
     try {
-      const emailTemplate = createDesignerRejectionEmail({
+      const emailTemplate = createDesignerRejectionEmailMarcStyle({
         designerName: designer.first_name,
         rejectionReason: reason,
         updateApplicationUrl

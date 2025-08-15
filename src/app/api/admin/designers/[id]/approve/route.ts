@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/email/send-email'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
+import { createDesignerApprovalEmailMarcStyle } from '@/lib/email/templates/marc-lou-style'
 
 export async function POST(
   request: NextRequest,
@@ -50,29 +51,18 @@ export async function POST(
     logger.info(`   Email: ${designer.email}`)
     logger.info(`   is_approved: ${designer.is_approved}`)
 
-    // Send approval email to designer (will use "Hala from OneDesigner" automatically)
+    // Send approval email using Marc Lou style template
     try {
+      const emailTemplate = createDesignerApprovalEmailMarcStyle({
+        designerName: designer.first_name,
+        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
+      })
+      
       await sendEmail({
         to: designer.email,
-        subject: 'Welcome to OneDesigner! Your application has been approved',
-        html: `
-          <h2>Congratulations ${designer.first_name}!</h2>
-          <p>Your application to join OneDesigner has been approved.</p>
-          <p>You can now:</p>
-          <ul>
-            <li>Log in to your dashboard</li>
-            <li>Receive match requests from clients</li>
-            <li>Update your profile</li>
-          </ul>
-          <p>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login" 
-               style="background: black; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
-              Go to Dashboard
-            </a>
-          </p>
-          <p>Best regards,<br>Hala from OneDesigner</p>
-        `,
-        text: `Congratulations ${designer.first_name}! Your application to join OneDesigner has been approved. You can now log in to your dashboard at ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text
       })
     } catch (emailError) {
       logger.error('Failed to send approval email:', emailError)

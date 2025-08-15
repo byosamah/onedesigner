@@ -393,6 +393,64 @@ export function createDesignerApprovalEmailMarcStyle(data: {
 }
 
 /**
+ * Designer rejection email - Marc Lou style
+ */
+export function createDesignerRejectionEmailMarcStyle(data: {
+  designerName: string
+  rejectionReason: string
+  updateApplicationUrl: string
+}): { subject: string; html: string; text: string } {
+  const template = createMarcLouStyleEmail({
+    title: "Not quite there yet",
+    preheader: 'Update your application based on our feedback',
+    content: {
+      greeting: `${data.designerName}, let's be honest 💭`,
+      mainText: `
+        Your application didn't make it this time. But here's the thing:
+        <br><br>
+        <strong>37% of our approved designers</strong> got rejected on their first try.
+        <br><br>
+        <div class="highlight-box" style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; margin: 24px 0; border-radius: 4px;">
+          <strong style="color: #92400E;">Why we couldn't approve you:</strong>
+          <br><br>
+          <span style="color: #78350F; line-height: 1.6;">${data.rejectionReason}</span>
+        </div>
+        
+        <strong>The good news?</strong>
+        <br><br>
+        Your application is still there. All your info, saved. 
+        Just update what needs fixing and resubmit.
+        <br><br>
+        No starting from scratch. No re-entering everything.
+        <br><br>
+        <strong>Quick tips that work:</strong>
+        <br><br>
+        ✓ Show real client work (not just concepts)<br>
+        ✓ Explain your design decisions<br>
+        ✓ Include before/after examples<br>
+        ✓ Add links to live projects
+      `,
+      ctaButton: {
+        text: 'Update Your Application',
+        href: data.updateApplicationUrl
+      },
+      additionalContent: `
+        <strong>PS:</strong> This link expires in 7 days. 
+        After that, you'll need to start fresh.
+        <br><br>
+        Don't wait. Fix it now while the feedback is fresh.
+      `,
+      signature: '— Hala from OneDesigner'
+    }
+  })
+
+  return {
+    subject: `${data.designerName}, quick fixes needed (then you're in)`,
+    ...template
+  }
+}
+
+/**
  * OTP verification email - Marc Lou style
  */
 export function createOTPEmailMarcStyle(data: {
