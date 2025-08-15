@@ -36,14 +36,10 @@ interface MatchData {
     country: string
     yearsExperience: number
     totalProjects: number
-    designPhilosophy?: string
-    primaryCategories?: string[]
-    styleKeywords?: string[]
-    portfolioProjects?: any[]
     portfolioImages?: string[]
     profilePicture?: string
-    avgClientSatisfaction?: number
-    onTimeDeliveryRate?: number
+    styles?: string[]
+    industries?: string[]
     email?: string
     phone?: string
     portfolioUrl?: string
@@ -199,27 +195,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             {match.designer.title}
           </p>
           
-          {match.designer.designPhilosophy && (
-            <p className="text-sm italic mb-3" style={{ color: theme.text.secondary }}>
-              "{match.designer.designPhilosophy}"
-            </p>
-          )}
           
-          {/* Categories */}
-          <div className="flex flex-wrap gap-2">
-            {match.designer.primaryCategories?.slice(0, 3).map(category => (
-              <span 
-                key={category}
-                className="px-3 py-1 rounded-full text-xs font-medium"
-                style={{ 
-                  backgroundColor: theme.accent + '20',
-                  color: theme.accent
-                }}
-              >
-                {category}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Match Score */}
@@ -278,29 +254,33 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
       {/* Designer Profile Highlights - Primary */}
       <div className="grid grid-cols-2 gap-4 mb-4">
         <ProfileHighlight 
-          icon="🎯"
-          label="Specializes In" 
-          value={match.designer.primaryCategories?.slice(0, 2).join(', ') || 'Multiple Areas'} 
-          theme={theme} 
-        />
-        <ProfileHighlight 
           icon="💼"
-          label="Experience Level" 
-          value={`${match.designer.yearsExperience}+ Years Professional`} 
+          label="Experience" 
+          value={`${match.designer.yearsExperience} years`} 
           theme={theme} 
         />
         <ProfileHighlight 
-          icon="🤝"
-          label="Working Style" 
-          value="Collaborative & Detail-Oriented" 
+          icon="📍"
+          label="Location" 
+          value={`${match.designer.city}, ${match.designer.country}`} 
           theme={theme} 
         />
-        <ProfileHighlight 
-          icon="🌟"
-          label="Best Known For" 
-          value={match.designer.styleKeywords?.slice(0, 2).join(' & ') || 'Creative Solutions'} 
-          theme={theme} 
-        />
+        {match.designer.styles && match.designer.styles.length > 0 && (
+          <ProfileHighlight 
+            icon="🎨"
+            label="Styles" 
+            value={match.designer.styles.slice(0, 2).join(', ')} 
+            theme={theme} 
+          />
+        )}
+        {match.designer.industries && match.designer.industries.length > 0 && (
+          <ProfileHighlight 
+            icon="🏢"
+            label="Industries" 
+            value={match.designer.industries.slice(0, 2).join(', ')} 
+            theme={theme} 
+          />
+        )}
       </div>
 
       {/* Portfolio Gallery - Always visible between highlights */}
@@ -362,51 +342,6 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         </div>
       </div>
 
-      {/* Designer Profile Highlights - Additional */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <ProfileHighlight 
-          icon="⚡"
-          label="Availability" 
-          value="Available Now" 
-          theme={theme}
-          compact={true}
-        />
-        <ProfileHighlight 
-          icon="⏱️"
-          label="Turnaround" 
-          value="2-3 Weeks" 
-          theme={theme}
-          compact={true}
-        />
-        <ProfileHighlight 
-          icon="💰"
-          label="Project Size" 
-          value="$5K - $25K" 
-          theme={theme}
-          compact={true}
-        />
-        <ProfileHighlight 
-          icon="🌍"
-          label="Languages" 
-          value="English, Spanish" 
-          theme={theme}
-          compact={true}
-        />
-        <ProfileHighlight 
-          icon="🕐"
-          label="Timezone" 
-          value={`${match.designer.city || 'PST'}`} 
-          theme={theme}
-          compact={true}
-        />
-        <ProfileHighlight 
-          icon="🎨"
-          label="Tools" 
-          value="Figma, Adobe" 
-          theme={theme}
-          compact={true}
-        />
-      </div>
 
 
       {/* Contact Details / Potential Challenges */}
