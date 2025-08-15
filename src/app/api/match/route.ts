@@ -103,29 +103,23 @@ export async function POST(request: NextRequest) {
           portfolioProjects: match.designer.portfolio_projects || [],
           profilePicture: match.designer.avatar_url || null,
           portfolioImages: (() => {
-            // Try to get actual portfolio images first
-            const actualImages = [
-              match.designer.portfolio_image_1,
-              match.designer.portfolio_image_2,
-              match.designer.portfolio_image_3
-            ].filter(Boolean);
-            
-            // If no actual images, generate Picsum placeholders
-            if (actualImages.length === 0) {
-              const category = match.designer.title?.includes('Graphic') ? 'abstract' :
-                              match.designer.title?.includes('Web') ? 'tech' :
-                              match.designer.title?.includes('UI/UX') ? 'app' :
-                              match.designer.title?.includes('Product') ? 'product' :
-                              match.designer.title?.includes('Motion') ? 'motion' : 'design';
-              
-              return [
-                `https://picsum.photos/seed/${category}1-${match.designer.id}/800/600`,
-                `https://picsum.photos/seed/${category}2-${match.designer.id}/800/600`,
-                `https://picsum.photos/seed/${category}3-${match.designer.id}/800/600`
-              ];
+            // Get portfolio images from tools array field (temporary storage)
+            if (Array.isArray(match.designer.tools) && match.designer.tools.length > 0) {
+              return match.designer.tools;
             }
             
-            return actualImages;
+            // If no actual images, generate Picsum placeholders
+            const category = match.designer.title?.includes('Graphic') ? 'abstract' :
+                            match.designer.title?.includes('Web') ? 'tech' :
+                            match.designer.title?.includes('UI/UX') ? 'app' :
+                            match.designer.title?.includes('Product') ? 'product' :
+                            match.designer.title?.includes('Motion') ? 'motion' : 'design';
+            
+            return [
+              `https://picsum.photos/seed/${category}1-${match.designer.id}/800/600`,
+              `https://picsum.photos/seed/${category}2-${match.designer.id}/800/600`,
+              `https://picsum.photos/seed/${category}3-${match.designer.id}/800/600`
+            ];
           })(),
           avgClientSatisfaction: 95,
           onTimeDeliveryRate: 98

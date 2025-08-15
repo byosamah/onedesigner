@@ -54,9 +54,7 @@ export async function GET(
           styles,
           industries,
           avatar_url,
-          portfolio_image_1,
-          portfolio_image_2,
-          portfolio_image_3
+          tools
         ),
         brief:briefs!matches_brief_id_fkey(
           project_type,
@@ -70,14 +68,10 @@ export async function GET(
       .eq('client_id', clientId)
       .single()
 
-    // Get portfolio images from the designer record
+    // Get portfolio images from the tools array field (temporary storage)
     let portfolioImages = []
-    if (match && match.designer) {
-      portfolioImages = [
-        match.designer.portfolio_image_1,
-        match.designer.portfolio_image_2,
-        match.designer.portfolio_image_3
-      ].filter(Boolean)
+    if (match && match.designer && Array.isArray(match.designer.tools)) {
+      portfolioImages = match.designer.tools
     }
 
     if (error || !match) {

@@ -159,11 +159,7 @@ Provide a JSON response with:
             primaryCategories: designer.categories,
             styleKeywords: designer.styles,
             portfolioProjects: designer.portfolio_projects || [],
-            portfolioImages: [
-              designer.portfolio_image_1,
-              designer.portfolio_image_2,
-              designer.portfolio_image_3
-            ].filter(Boolean),
+            portfolioImages: Array.isArray(designer.tools) ? designer.tools : [],
             avgClientSatisfaction: 95,
             onTimeDeliveryRate: 98
           },
