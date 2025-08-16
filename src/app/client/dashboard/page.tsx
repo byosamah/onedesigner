@@ -39,6 +39,8 @@ interface EnhancedMatch {
     linkedinUrl?: string
     dribbbleUrl?: string
     behanceUrl?: string
+    avatarUrl?: string
+    portfolioImages?: string[]
     designPhilosophy: string
     primaryCategories: string[]
     styleKeywords: string[]
@@ -501,6 +503,35 @@ export default function ClientDashboard() {
                     {match.brief?.designCategory || 'Not specified'} • {match.brief?.timeline || 'Not specified'} • {match.brief?.budget || 'Not specified'}
                   </p>
                 </div>
+
+                {/* Portfolio Images */}
+                {match.designer.portfolioImages && match.designer.portfolioImages.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                      Portfolio Samples
+                    </p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {match.designer.portfolioImages.slice(0, 3).map((imageUrl, imgIndex) => (
+                        <div 
+                          key={imgIndex}
+                          className="aspect-square rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          style={{ 
+                            backgroundColor: theme.nestedBg,
+                            border: `1px solid ${theme.border}`
+                          }}
+                          onClick={() => window.open(imageUrl, '_blank')}
+                        >
+                          <img 
+                            src={imageUrl} 
+                            alt={`Portfolio ${imgIndex + 1}`}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Contact Designer (if unlocked) */}
                 {match.status === 'unlocked' && (

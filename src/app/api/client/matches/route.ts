@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       
       const { data: designers } = await supabase
         .from('designers')
-        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, portfolio_url, linkedin_url, dribbble_url, behance_url, years_experience, total_projects, rating')
+        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, portfolio_url, linkedin_url, dribbble_url, behance_url, years_experience, total_projects, rating, tools, avatar_url')
         .in('id', designerIds)
       
       const { data: briefs } = await supabase
@@ -87,7 +87,9 @@ export async function GET(request: NextRequest) {
             behanceUrl: designer.behance_url,
             yearsExperience: designer.years_experience,
             rating: designer.rating,
-            totalProjects: designer.total_projects
+            totalProjects: designer.total_projects,
+            avatarUrl: designer.avatar_url,
+            portfolioImages: Array.isArray(designer.tools) ? designer.tools : []
           } : null,
           brief: brief || null
         }
