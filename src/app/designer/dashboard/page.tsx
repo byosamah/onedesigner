@@ -553,32 +553,44 @@ export default function DesignerDashboardPage() {
                           </p>
                         </div>
                         
-                        {request.brief && (
-                          <div className="flex gap-6 mb-4 px-4">
-                            {request.brief.projectType && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>🎨</span>
-                                <span className="text-sm" style={{ color: theme.text.secondary }}>
-                                  {request.brief.projectType}
-                                </span>
-                              </div>
-                            )}
-                            {request.brief.timeline && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>⏱️</span>
-                                <span className="text-sm" style={{ color: theme.text.secondary }}>
-                                  {request.brief.timeline}
-                                </span>
-                              </div>
-                            )}
-                            {request.brief.budget && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>💰</span>
-                                <span className="text-sm" style={{ color: theme.text.secondary }}>
-                                  {request.brief.budget}
-                                </span>
-                              </div>
-                            )}
+                        {(request.brief || request.matches?.briefs) && (
+                          <div className="p-4 mb-4 rounded-xl" style={{ backgroundColor: theme.bg }}>
+                            <h4 className="text-sm font-semibold mb-3" style={{ color: theme.text.primary }}>
+                              📋 Project Brief Details
+                            </h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              {(request.brief?.projectType || request.matches?.briefs?.project_type) && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs" style={{ color: theme.text.muted }}>Type:</span>
+                                  <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                                    {(request.brief?.projectType || request.matches?.briefs?.project_type || '').replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                  </span>
+                                </div>
+                              )}
+                              {(request.brief?.timeline || request.matches?.briefs?.timeline) && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs" style={{ color: theme.text.muted }}>Timeline:</span>
+                                  <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                                    {request.brief?.timeline || request.matches?.briefs?.timeline}
+                                  </span>
+                                </div>
+                              )}
+                              {(request.brief?.budget || request.matches?.briefs?.budget) && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs" style={{ color: theme.text.muted }}>Budget:</span>
+                                  <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                                    {request.brief?.budget || request.matches?.briefs?.budget}
+                                  </span>
+                                </div>
+                              )}
+                              {(request.brief?.industry || request.matches?.briefs?.industry) && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs" style={{ color: theme.text.muted }}>Industry:</span>
+                                  <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                                    {request.brief?.industry || request.matches?.briefs?.industry}
+                                  </span>
+                                </div>
+                              )}
                           </div>
                         )}
                       </div>

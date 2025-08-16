@@ -253,6 +253,15 @@ export class LoggingService {
       return {} // Skip in production for performance
     }
 
+    // Skip in Edge Runtime to avoid Node.js API errors
+    try {
+      if (typeof process === 'undefined' || typeof process.cwd !== 'function') {
+        return {}
+      }
+    } catch {
+      return {}
+    }
+
     const stack = new Error().stack
     if (!stack) return {}
 
@@ -264,18 +273,26 @@ export class LoggingService {
 
     const match = callerLine.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/)
     if (match) {
-      // Use conditional check to avoid process.cwd() in Edge Runtime
-      const cwd = typeof process !== 'undefined' && process.cwd ? process.cwd() : ''
-      let file = match[2]
-      if (cwd) {
-        file = file.replace(cwd, '')
-      }
-      file = file.replace('/Users/osamakhalil/OneDesigner', '')
-      
-      return {
-        function: match[1],
-        file,
-        line: parseInt(match[3])
+      try {
+        const cwd = process.cwd()
+        let file = match[2]
+        if (cwd) {
+          file = file.replace(cwd, '')
+        }
+        file = file.replace('/Users/osamakhalil/OneDesigner', '')
+        
+        return {
+          function: match[1],
+          file,
+          line: parseInt(match[3])
+        }
+      } catch {
+        // Edge Runtime fallback
+        return {
+          function: match[1],
+          file: match[2],
+          line: parseInt(match[3])
+        }
       }
     }
 

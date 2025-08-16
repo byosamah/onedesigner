@@ -1,6 +1,8 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/core/logging-service'
+import { emailService } from '@/lib/core/email-service'
+import { createUnlockNotificationEmail } from '@/lib/email/templates/unlock-notification'
 
 // Custom error types for better error handling
 export class DatabaseError extends Error {
@@ -468,6 +470,41 @@ export class DataService {
 
     // Track unlocked designer
     await this.trackUnlockedDesigner(clientId, match.designer_id)
+
+    // Send unlock notification email to designer
+    try {
+      // Get designer details
+      const designer = await this.getDesigner(match.designer_id)
+      
+      // Get brief details for the email
+      const { data: brief } = await this.supabase
+        .from('briefs')
+        .select('project_type, industry, timeline, budget')
+        .eq('id', match.brief_id)
+        .single()
+      
+      if (designer?.email) {
+        const emailHtml = createUnlockNotificationEmail({
+          designerName: designer.first_name || 'Designer',
+          projectType: brief?.project_type,
+          industry: brief?.industry,
+          timeline: brief?.timeline,
+          budget: brief?.budget,
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+        })
+        
+        await emailService.sendEmail({
+          to: designer.email,
+          subject: '🔓 A Client Has Unlocked Your Profile!',
+          html: emailHtml
+        })
+        
+        logger.info('Unlock notification email sent to designer:', designer.id)
+      }
+    } catch (error) {
+      logger.error('Failed to send unlock notification email:', error)
+      // Don't fail the unlock operation if email fails
+    }
 
     return {
       success: true,

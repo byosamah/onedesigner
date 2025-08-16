@@ -1,4 +1,4 @@
-import { logger } from '@/lib/core/logging-service'
+// Note: Removed logger import to avoid Edge Runtime issues in middleware
 
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor
@@ -25,7 +25,7 @@ export class PerformanceMonitor {
   endTimer(operation: string): number {
     const startTime = this.timers.get(operation)
     if (!startTime) {
-      logger.warn(`No timer found for operation: ${operation}`)
+      console.warn(`No timer found for operation: ${operation}`)
       return 0
     }
     
@@ -57,7 +57,7 @@ export class PerformanceMonitor {
     
     // Log to console in development
     if (process.env.NODE_ENV === 'development') {
-      logger.info(`[PERF] ${event}: ${duration}ms`)
+      console.log(`[PERF] ${event}: ${duration}ms`)
     }
   }
   
@@ -76,7 +76,7 @@ export class PerformanceMonitor {
     
     const threshold = thresholds[event]
     if (threshold && duration > threshold) {
-      logger.warn(`⚠️ Performance degradation detected: ${event} took ${duration}ms (threshold: ${threshold}ms)`)
+      console.warn(`⚠️ Performance degradation detected: ${event} took ${duration}ms (threshold: ${threshold}ms)`)
       
       // Could send to monitoring service here
       this.reportToMonitoring(event, duration, threshold)
@@ -159,7 +159,7 @@ export class PerformanceMonitor {
           })
         })
       } catch (error) {
-        logger.error('Failed to report to monitoring:', error)
+        console.error('Failed to report to monitoring:', error)
       }
     }
   }
