@@ -510,11 +510,11 @@ export default function ClientDashboard() {
                     <p className="text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
                       Portfolio Samples
                     </p>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="flex gap-2">
                       {match.designer.portfolioImages.slice(0, 3).map((imageUrl, imgIndex) => (
                         <div 
                           key={imgIndex}
-                          className="aspect-square rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
+                          className="w-20 h-20 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex-shrink-0"
                           style={{ 
                             backgroundColor: theme.nestedBg,
                             border: `1px solid ${theme.border}`

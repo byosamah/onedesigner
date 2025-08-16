@@ -2,6 +2,7 @@ import { AIProvider, MatchResult } from '../types'
 import { API_ENDPOINTS } from '@/lib/constants'
 import { MATCHING_PROMPT_CONFIG } from '@/config/matching/prompt.config'
 import { logger } from '@/lib/core/logging-service'
+import { RetryHelper } from '@/lib/ai/retry-helper'
 
 export class DeepSeekProvider implements AIProvider {
   private apiKey: string
@@ -232,24 +233,8 @@ REMEMBER: Select THE ONE designer who seems custom-built for this project. Make 
       }]
     } catch (error) {
       logger.error('Error parsing DeepSeek response:', error)
-      // Fallback to best available designer
-      if (designers.length === 0) return []
-      
-      return [{
-        designer: designers[0],
-        score: 70,
-        reasons: [
-          'Available designer with relevant experience',
-          'Matches project requirements',
-          'Within budget range'
-        ],
-        personalizedReasons: [],
-        confidence: 'low',
-        uniqueValue: 'Experienced designer available for your project',
-        challenges: ['AI analysis unavailable - manual review recommended'],
-        riskLevel: 'medium',
-        matchSummary: 'This designer appears suitable for your project based on availability and experience.'
-      }]
+      // No fallback - throw error to enforce AI-only matching policy
+      throw new Error('AI matching service failed to parse response. Please try again.')
     }
   }
 
@@ -442,23 +427,8 @@ REMEMBER: Only recommend if this designer seems custom-built for this project (7
       }
     } catch (error) {
       logger.error('Error parsing DeepSeek match analysis:', error)
-      // Return NO MATCH if parsing fails
-      return {
-        designer,
-        score: 0,
-        confidence: 'low',
-        reasons: ['Unable to complete AI analysis'],
-        personalizedReasons: ['Unable to complete AI analysis'],
-        strengths: [],
-        weaknesses: ['AI analysis failed'],
-        uniqueValue: 'Manual review required',
-        riskLevel: 'high',
-        matchSummary: 'AI analysis failed - manual review needed',
-        isMatch: false,
-        aiAnalyzed: false,
-        matchDecision: 'NO MATCH: AI analysis unavailable',
-        nextSteps: 'Manual review required'
-      }
+      // No fallback - throw error to enforce AI-only matching policy
+      throw new Error('AI match analysis failed. Please try again.')
     }
   }
 

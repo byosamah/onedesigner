@@ -32,7 +32,7 @@ export class EmbeddingService {
       return Math.round(similarity * 100)
     } catch (error) {
       logger.error('Embedding calculation error:', error)
-      return 50 // Fallback score
+      throw new Error('Failed to calculate embedding similarity score')
     }
   }
   
