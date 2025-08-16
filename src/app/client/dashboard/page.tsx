@@ -72,6 +72,8 @@ export default function ClientDashboard() {
   const [showContactModal, setShowContactModal] = useState(false)
   const [selectedMatchForContact, setSelectedMatchForContact] = useState<{ matchId: string, designerId: string, designerName: string } | null>(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<{ url: string, index: number, total: number } | null>(null)
 
   useEffect(() => {
     fetchDashboardData()
@@ -519,7 +521,14 @@ export default function ClientDashboard() {
                             backgroundColor: theme.nestedBg,
                             border: `1px solid ${theme.border}`
                           }}
-                          onClick={() => window.open(imageUrl, '_blank')}
+                          onClick={() => {
+                            setSelectedImage({ 
+                              url: imageUrl, 
+                              index: imgIndex, 
+                              total: match.designer.portfolioImages?.length || 0 
+                            })
+                            setShowImageModal(true)
+                          }}
                         >
                           <img 
                             src={imageUrl} 
@@ -671,6 +680,54 @@ export default function ClientDashboard() {
           onSend={sendContactMessage}
           isDarkMode={isDarkMode}
         />
+      )}
+
+      {/* Image Modal */}
+      {showImageModal && selectedImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)'
+          }}
+          onClick={() => {
+            setShowImageModal(false)
+            setSelectedImage(null)
+          }}
+        >
+          <div 
+            className="relative max-w-5xl max-h-[90vh] w-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => {
+                setShowImageModal(false)
+                setSelectedImage(null)
+              }}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
+              style={{ backgroundColor: theme.cardBg, color: theme.text.primary }}
+            >
+              ✕
+            </button>
+
+            {/* Image */}
+            <img
+              src={selectedImage.url}
+              alt={`Portfolio ${selectedImage.index + 1}`}
+              className="max-w-full max-h-[85vh] object-contain rounded-2xl"
+            />
+
+            {/* Image counter */}
+            <div 
+              className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium"
+              style={{ backgroundColor: theme.cardBg, color: theme.text.primary }}
+            >
+              {selectedImage.index + 1} / {selectedImage.total}
+            </div>
+          </div>
+        </div>
       )}
     </main>
   )

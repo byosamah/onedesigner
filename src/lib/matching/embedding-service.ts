@@ -22,7 +22,7 @@ export class EmbeddingService {
       ])
       
       if (!designerEmb || !briefEmb) {
-        return 50 // Default middle score if embeddings unavailable
+        throw new Error('Embeddings not available for similarity calculation')
       }
       
       // Calculate cosine similarity

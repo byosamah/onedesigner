@@ -156,9 +156,27 @@ export function handleApiError(error: any, context?: string): NextResponse {
     return apiResponse.validationError(error.details || error.message)
   }
 
-  // Default to server error
-  return apiResponse.serverError(
-    error?.message || 'An unexpected error occurred',
-    error
-  )
+  // Handle AI service errors with user-friendly messages
+  if (error?.message?.includes('AI matching service failed') || 
+      error?.message?.includes('AI match analysis failed') ||
+      error?.message?.includes('DeepSeek')) {
+    return apiResponse.serverError(
+      'Our matching service is temporarily busy. Please try again in a moment.',
+      { retryable: true }
+    )
+  }
+
+  if (error?.message?.includes('Failed to calculate embedding')) {
+    return apiResponse.serverError(
+      'Unable to process match similarity. Please try again.',
+      { retryable: true }
+    )
+  }
+
+  // Default to server error with user-friendly message
+  const userMessage = error?.message?.length > 100 
+    ? 'An unexpected error occurred. Please try again or contact support.'
+    : (error?.message || 'An unexpected error occurred')
+    
+  return apiResponse.serverError(userMessage, error)
 }

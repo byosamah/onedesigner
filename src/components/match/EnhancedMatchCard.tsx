@@ -189,13 +189,11 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
           <p className="text-lg mb-3" style={{ color: theme.text.secondary }}>
             {match.designer.title}
           </p>
-          
-          
         </div>
 
         {/* Match Score */}
         <div className="text-center flex-shrink-0">
-          <div className="text-4xl font-bold mb-1" style={{ color: theme.accent }}>
+          <div className="text-5xl font-bold mb-1" style={{ color: theme.accent }}>
             {match.score}%
           </div>
           <p className="text-xs font-medium" style={{ color: theme.text.secondary }}>

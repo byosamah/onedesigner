@@ -22,50 +22,59 @@ export class DeepSeekProvider implements AIProvider {
     brief: any,
     count: number = 3
   ): Promise<MatchResult[]> {
-    try {
-      const prompt = this.createMatchingPrompt(designers, brief)
-      
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'system',
-              content: this.config.systemRole
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: this.config.aiSettings.temperature,
-          max_tokens: this.config.aiSettings.maxTokens
+    return RetryHelper.withRetry(
+      async () => {
+        const prompt = this.createMatchingPrompt(designers, brief)
+        
+        const response = await fetch(`${this.baseURL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: this.model,
+            messages: [
+              {
+                role: 'system',
+                content: this.config.systemRole
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: this.config.aiSettings.temperature,
+            max_tokens: this.config.aiSettings.maxTokens
+          })
         })
-      })
 
-      if (!response.ok) {
-        const error = await response.text()
-        logger.error('DeepSeek API error:', error)
-        throw new Error(`DeepSeek API error: ${response.status}`)
+        if (!response.ok) {
+          const error = await response.text()
+          logger.error('DeepSeek API error:', error)
+          const apiError = new Error(`DeepSeek API error: ${response.status}`) as any
+          apiError.status = response.status
+          throw apiError
+        }
+
+        const data = await response.json()
+        const content = data.choices[0]?.message?.content
+
+        if (!content) {
+          throw new Error('No response from DeepSeek')
+        }
+
+        return this.parseMatchResults(content, designers)
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        retryCondition: (error) => RetryHelper.isRetryableError(error),
+        onRetry: (attempt, error) => {
+          logger.info(`Retrying DeepSeek API call (attempt ${attempt}):`, error.message)
+        }
       }
-
-      const data = await response.json()
-      const content = data.choices[0]?.message?.content
-
-      if (!content) {
-        throw new Error('No response from DeepSeek')
-      }
-
-      return this.parseMatchResults(content, designers)
-    } catch (error) {
-      logger.error('DeepSeek matching error:', error)
-      throw error
-    }
+    )
   }
 
   private createMatchingPrompt(designers: any[], brief: any): string {
@@ -239,54 +248,63 @@ REMEMBER: Select THE ONE designer who seems custom-built for this project. Make 
   }
 
   async analyzeMatch(designer: any, brief: any): Promise<any> {
-    try {
-      const prompt = this.createDetailedMatchAnalysisPrompt(designer, brief)
-      
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'system',
-              content: `You are an elite designer-client matchmaker AI with deep understanding of design disciplines, client needs, and professional compatibility. 
+    return RetryHelper.withRetry(
+      async () => {
+        const prompt = this.createDetailedMatchAnalysisPrompt(designer, brief)
+        
+        const response = await fetch(`${this.baseURL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: this.model,
+            messages: [
+              {
+                role: 'system',
+                content: `You are an elite designer-client matchmaker AI with deep understanding of design disciplines, client needs, and professional compatibility. 
 Your job is to analyze if this specific designer is THE PERFECT MATCH for this client's project with surgical precision. 
 Be critical and thorough - only recommend if the match is truly exceptional. A score below 70 means NO MATCH.
 Consider all aspects: category expertise, style alignment, project fit, working compatibility, and value factors.`
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.2, // Lower temperature for more consistent, realistic scoring
-          max_tokens: 1500,
-          stream: false // Ensure non-streaming for consistent responses
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.2, // Lower temperature for more consistent, realistic scoring
+            max_tokens: 1500,
+            stream: false // Ensure non-streaming for consistent responses
+          })
         })
-      })
 
-      if (!response.ok) {
-        const error = await response.text()
-        logger.error('DeepSeek API error:', error)
-        throw new Error(`DeepSeek API error: ${response.status}`)
+        if (!response.ok) {
+          const error = await response.text()
+          logger.error('DeepSeek API error:', error)
+          const apiError = new Error(`DeepSeek API error: ${response.status}`) as any
+          apiError.status = response.status
+          throw apiError
+        }
+
+        const data = await response.json()
+        const content = data.choices[0]?.message?.content
+
+        if (!content) {
+          throw new Error('No response from DeepSeek')
+        }
+
+        return this.parseDetailedMatchResult(content, designer)
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 1000,
+        retryCondition: (error) => RetryHelper.isRetryableError(error),
+        onRetry: (attempt, error) => {
+          logger.info(`Retrying DeepSeek match analysis (attempt ${attempt}):`, error.message)
+        }
       }
-
-      const data = await response.json()
-      const content = data.choices[0]?.message?.content
-
-      if (!content) {
-        throw new Error('No response from DeepSeek')
-      }
-
-      return this.parseDetailedMatchResult(content, designer)
-    } catch (error) {
-      logger.error('DeepSeek match analysis error:', error)
-      throw error
-    }
+    )
   }
 
   private createDetailedMatchAnalysisPrompt(designer: any, brief: any): string {
