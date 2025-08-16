@@ -503,10 +503,10 @@ export default function DesignerDashboardPage() {
           <>
             <div className="mb-6">
               <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-                📧 Client Contact Requests
+                💬 Messages from Clients
               </h2>
               <p className="text-sm mt-1" style={{ color: theme.text.secondary }}>
-                Clients who contacted you directly after unlocking
+                Clients who want to work with you
               </p>
             </div>
             
@@ -519,21 +519,23 @@ export default function DesignerDashboardPage() {
                     className="rounded-2xl p-6 transition-all duration-300 hover:scale-[1.002] animate-slideUp"
                     style={{
                       backgroundColor: theme.cardBg,
-                      border: `1px solid ${theme.border}`,
+                      border: `2px solid ${theme.accent}40`,
                       boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
                     }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className="text-2xl">💌</span>
-                          <div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.accent + '20' }}>
+                            <span className="text-xl">💌</span>
+                          </div>
+                          <div className="flex-1">
                             <h3 className="text-lg font-bold" style={{ color: theme.text.primary }}>
-                              New Project Request
+                              New Client Message
                             </h3>
                             <p className="text-xs" style={{ color: theme.text.muted }}>
-                              {new Date(request.createdAt).toLocaleDateString('en-US', { 
-                                month: 'long', 
+                              Received {new Date(request.createdAt || Date.now()).toLocaleDateString('en-US', { 
+                                month: 'short', 
                                 day: 'numeric',
                                 hour: '2-digit',
                                 minute: '2-digit'
@@ -542,70 +544,66 @@ export default function DesignerDashboardPage() {
                           </div>
                         </div>
                         
-                        <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: theme.nestedBg }}>
-                          <p className="text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                            Client Message:
-                          </p>
-                          <p className="text-sm" style={{ color: theme.text.primary }}>
-                            "{request.message}"
+                        <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: theme.nestedBg, border: `1px solid ${theme.border}` }}>
+                          <p className="text-sm" style={{ color: theme.text.primary, lineHeight: '1.6' }}>
+                            {typeof request.message === 'string' 
+                              ? request.message 
+                              : (request.message?.text || request.message?.content || 'Client wants to work with you on their project.')
+                            }
                           </p>
                         </div>
                         
                         {request.brief && (
-                          <div className="grid grid-cols-3 gap-4 mb-4">
-                            <div>
-                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Project Type</p>
-                              <p className="text-sm" style={{ color: theme.text.primary }}>
-                                {request.brief.projectType || 'Not specified'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Timeline</p>
-                              <p className="text-sm" style={{ color: theme.text.primary }}>
-                                {request.brief.timeline || 'Not specified'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs font-medium" style={{ color: theme.text.muted }}>Budget</p>
-                              <p className="text-sm" style={{ color: theme.text.primary }}>
-                                {request.brief.budget || 'Not specified'}
-                              </p>
-                            </div>
+                          <div className="flex gap-6 mb-4 px-4">
+                            {request.brief.projectType && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs" style={{ color: theme.text.muted }}>🎨</span>
+                                <span className="text-sm" style={{ color: theme.text.secondary }}>
+                                  {request.brief.projectType}
+                                </span>
+                              </div>
+                            )}
+                            {request.brief.timeline && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs" style={{ color: theme.text.muted }}>⏱️</span>
+                                <span className="text-sm" style={{ color: theme.text.secondary }}>
+                                  {request.brief.timeline}
+                                </span>
+                              </div>
+                            )}
+                            {request.brief.budget && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs" style={{ color: theme.text.muted }}>💰</span>
+                                <span className="text-sm" style={{ color: theme.text.secondary }}>
+                                  {request.brief.budget}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         )}
-                        
-                        <div className="p-3 rounded-lg" style={{ backgroundColor: theme.accent + '10', border: `1px solid ${theme.accent}40` }}>
-                          <p className="text-xs font-medium mb-1" style={{ color: theme.accent }}>
-                            ⚠️ Important:
-                          </p>
-                          <p className="text-xs" style={{ color: theme.text.secondary }}>
-                            Client email will be revealed after you approve the project request.
-                          </p>
-                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex gap-3 mt-4">
+                    <div className="flex gap-3 mt-4 pt-4" style={{ borderTop: `1px solid ${theme.border}` }}>
                       <button
                         onClick={() => handleProjectRequestResponse(request.id, 'reject')}
-                        className="flex-1 font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        className="px-6 py-2.5 rounded-xl font-medium transition-all duration-300 hover:opacity-80"
                         style={{
-                          backgroundColor: 'transparent',
-                          border: `2px solid ${theme.error}`,
-                          color: theme.error
+                          backgroundColor: theme.nestedBg,
+                          color: theme.text.secondary
                         }}
                       >
-                        Decline
+                        Not Interested
                       </button>
                       <button
                         onClick={() => handleProjectRequestResponse(request.id, 'approve')}
-                        className="flex-1 font-semibold py-2 px-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                        className="flex-1 font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
                         style={{
-                          backgroundColor: theme.success,
-                          color: '#FFF'
+                          backgroundColor: theme.accent,
+                          color: '#000'
                         }}
                       >
-                        ✅ Approve & Get Contact
+                        Accept & Get Contact Info
                       </button>
                     </div>
                   </div>
@@ -617,23 +615,28 @@ export default function DesignerDashboardPage() {
                 .map((request) => (
                   <div 
                     key={request.id}
-                    className="rounded-2xl p-6 transition-all duration-300 animate-slideUp"
+                    className="rounded-2xl p-5 transition-all duration-300 animate-slideUp"
                     style={{
                       backgroundColor: theme.success + '10',
                       border: `1px solid ${theme.success}40`
                     }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium mb-1" style={{ color: theme.success }}>
-                          ✅ Approved Project
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.success + '20' }}>
+                        <span>✅</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium" style={{ color: theme.text.primary }}>
+                          Accepted • Client: <strong>{request.client?.email || 'Contact info available'}</strong>
                         </p>
-                        <p className="text-sm" style={{ color: theme.text.primary }}>
-                          Client Email: <strong>{request.client.email}</strong>
+                        <p className="text-xs" style={{ color: theme.text.muted }}>
+                          {request.message && typeof request.message === 'string' 
+                            ? request.message.substring(0, 60) + '...'
+                            : 'Project request accepted'}
                         </p>
                       </div>
                       <p className="text-xs" style={{ color: theme.text.muted }}>
-                        Approved {new Date(request.approvedAt).toLocaleDateString()}
+                        {new Date(request.approvedAt || request.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
