@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClientWithoutCookies } from '@/lib/supabase/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
 import { projectRequestService } from '@/lib/database/project-request-service'
@@ -24,7 +24,7 @@ export async function POST(
       return apiResponse.badRequest('Designer ID is required')
     }
 
-    const supabase = createServiceClient()
+    const supabase = createServiceClientWithoutCookies()
 
     // Get the match details
     const { data: match, error: matchError } = await supabase
