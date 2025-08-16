@@ -72,8 +72,47 @@ export async function POST(request: NextRequest) {
           break
         }
 
-        // Add credits to client
+        // IMPORTANT: Check if this order has already been processed to prevent duplicate credits
+        const { data: existingPayment } = await supabase
+          .from('payments')
+          .select('id')
+          .eq('order_id', order.id)
+          .single()
+        
+        if (existingPayment) {
+          logger.info(`⚠️ Order ${order.id} already processed - skipping to prevent duplicate credits`)
+          return NextResponse.json({ received: true, status: 'already_processed' })
+        }
+
         const credits = parseInt(customData.credits)
+        
+        // Record payment FIRST - this will fail if order_id already exists (UNIQUE constraint)
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert({
+            client_id: customData.client_id,
+            order_id: order.id,
+            amount: order.attributes.total,
+            currency: order.attributes.currency,
+            status: 'completed',
+            product_name: order.attributes.first_order_item?.product?.name || 'Unknown Product',
+            credits_purchased: credits,
+            lemonsqueezy_data: order
+          })
+        
+        if (paymentError) {
+          // If it's a duplicate key error, the order was already processed
+          if (paymentError.code === '23505' || paymentError.message?.includes('duplicate')) {
+            logger.info(`⚠️ Order ${order.id} already exists in payments table - skipping`)
+            return NextResponse.json({ received: true, status: 'already_processed' })
+          }
+          logger.error('Failed to record payment:', paymentError)
+          throw new Error('Failed to record payment')
+        }
+        
+        logger.info(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
+
+        // Now add credits to client (only happens if payment record was successful)
         const { data: client } = await supabase
           .from('clients')
           .select('id, match_credits')
@@ -91,35 +130,23 @@ export async function POST(request: NextRequest) {
           
           if (updateError) {
             logger.error('Failed to update client credits:', updateError)
+            // Rollback the payment record since credits couldn't be added
+            await supabase
+              .from('payments')
+              .delete()
+              .eq('order_id', order.id)
             throw new Error('Failed to update client credits')
           }
           
           logger.info(`✅ Credits updated: Client ${client.id} now has ${newCredits} credits (added ${credits})`)
         } else {
           logger.error('❌ Client not found with ID:', customData.client_id)
+          // Rollback the payment record since client doesn't exist
+          await supabase
+            .from('payments')
+            .delete()
+            .eq('order_id', order.id)
           throw new Error('Client not found')
-        }
-
-        // Record payment
-        const { error: paymentError } = await supabase
-          .from('payments')
-          .insert({
-            client_id: customData.client_id,
-            order_id: order.id,
-            amount: order.attributes.total,
-            currency: order.attributes.currency,
-            status: 'completed',
-            product_name: order.attributes.first_order_item?.product?.name || 'Unknown Product',
-            credits_purchased: credits,
-            lemonsqueezy_data: order
-          })
-        
-        if (paymentError) {
-          logger.error('Failed to record payment:', paymentError)
-          // Don't throw here - credits were already added
-          logger.warn('⚠️ Payment recorded to database failed, but credits were added')
-        } else {
-          logger.info(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
         }
 
         // If there's a specific match to unlock
