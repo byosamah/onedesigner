@@ -36,6 +36,7 @@ interface MatchData {
     country: string
     yearsExperience: number
     totalProjects: number
+    availability?: string
     portfolioImages?: string[]
     profilePicture?: string
     styles?: string[]
@@ -253,18 +254,31 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
 
       {/* Designer Profile Highlights - Primary */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <ProfileHighlight 
-          icon="💼"
-          label="Experience" 
-          value={`${match.designer.yearsExperience} years`} 
-          theme={theme} 
-        />
+        {match.designer.yearsExperience !== undefined && match.designer.yearsExperience !== null && (
+          <ProfileHighlight 
+            icon="💼"
+            label="Experience" 
+            value={`${match.designer.yearsExperience}+ years`} 
+            theme={theme} 
+          />
+        )}
         <ProfileHighlight 
           icon="📍"
           label="Location" 
           value={`${match.designer.city}, ${match.designer.country}`} 
           theme={theme} 
         />
+        {match.designer.availability && (
+          <ProfileHighlight 
+            icon="✅"
+            label="Availability" 
+            value={match.designer.availability === 'immediate' ? 'Available Now' : 
+                   match.designer.availability === 'within_week' ? 'Within a Week' :
+                   match.designer.availability === 'within_month' ? 'Within a Month' :
+                   match.designer.availability} 
+            theme={theme} 
+          />
+        )}
         {match.designer.styles && match.designer.styles.length > 0 && (
           <ProfileHighlight 
             icon="🎨"

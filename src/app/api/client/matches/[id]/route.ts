@@ -51,6 +51,7 @@ export async function GET(
           years_experience,
           rating,
           total_projects,
+          availability,
           styles,
           industries,
           avatar_url,

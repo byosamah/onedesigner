@@ -155,6 +155,7 @@ Provide a JSON response with:
             yearsExperience: designer.years_experience,
             rating: designer.rating,
             totalProjects: designer.total_projects,
+            availability: designer.availability,
             styles: designer.styles,
             industries: designer.industries,
             portfolioImages: Array.isArray(designer.tools) ? designer.tools : []
@@ -299,6 +300,7 @@ Provide a JSON response with:
           yearsExperience: bestMatch.designer.yearsExperience,
           rating: bestMatch.designer.rating,
           totalProjects: bestMatch.designer.totalProjects,
+          availability: bestMatch.designer.availability,
           styles: bestMatch.designer.styles,
           industries: bestMatch.designer.industries,
           portfolioImages: bestMatch.designer.portfolioImages
