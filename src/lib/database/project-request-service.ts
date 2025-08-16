@@ -36,9 +36,8 @@ export interface ProjectRequestWithRelations extends ProjectRequest {
       project_type: string
       timeline: string
       budget: string
-      description: string
       industry: string
-      design_styles: string[]
+      styles: any
     }
   }
 }
@@ -80,9 +79,8 @@ class ProjectRequestService {
               project_type,
               timeline,
               budget,
-              description,
               industry,
-              design_styles
+              styles
             )
           ),
           clients (
