@@ -182,7 +182,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
               {match.designer.firstName} {isUnlocked ? match.designer.lastName : `${match.designer.lastInitial}.`}
             </h3>
             <span className="text-base" style={{ color: theme.text.secondary }}>
-              {match.designer.city}
+              {match.designer.country}
             </span>
           </div>
           
