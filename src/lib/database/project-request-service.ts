@@ -43,11 +43,10 @@ export interface ProjectRequestWithRelations extends ProjectRequest {
 }
 
 class ProjectRequestService {
-  private supabase = createServiceClient()
-
   async create(data: Omit<ProjectRequest, 'id' | 'created_at' | 'updated_at'>): Promise<ProjectRequest | null> {
     try {
-      const { data: projectRequest, error } = await this.supabase
+      const supabase = createServiceClient()
+      const { data: projectRequest, error } = await supabase
         .from('project_requests')
         .insert(data)
         .select()
@@ -67,7 +66,8 @@ class ProjectRequestService {
 
   async getByDesigner(designerId: string): Promise<ProjectRequestWithRelations[]> {
     try {
-      const { data: projectRequests, error } = await this.supabase
+      const supabase = createServiceClient()
+      const { data: projectRequests, error } = await supabase
         .from('project_requests')
         .select(`
           *,
@@ -105,7 +105,8 @@ class ProjectRequestService {
 
   async getById(id: string, designerId?: string): Promise<ProjectRequestWithRelations | null> {
     try {
-      let query = this.supabase
+      const supabase = createServiceClient()
+      let query = supabase
         .from('project_requests')
         .select(`
           *,
@@ -142,7 +143,8 @@ class ProjectRequestService {
 
   async approve(id: string, designerId: string): Promise<boolean> {
     try {
-      const { error } = await this.supabase
+      const supabase = createServiceClient()
+      const { error } = await supabase
         .from('project_requests')
         .update({
           status: 'approved',
@@ -166,7 +168,8 @@ class ProjectRequestService {
 
   async reject(id: string, designerId: string, rejectionReason?: string): Promise<boolean> {
     try {
-      const { error } = await this.supabase
+      const supabase = createServiceClient()
+      const { error } = await supabase
         .from('project_requests')
         .update({
           status: 'rejected',
@@ -191,7 +194,8 @@ class ProjectRequestService {
 
   async checkExisting(matchId: string, clientId: string, designerId: string): Promise<boolean> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createServiceClient()
+      const { data, error } = await supabase
         .from('project_requests')
         .select('id')
         .eq('match_id', matchId)
