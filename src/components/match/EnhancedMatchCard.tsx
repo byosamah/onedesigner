@@ -181,15 +181,9 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             <h3 className="text-2xl font-bold" style={{ color: theme.text.primary }}>
               {match.designer.firstName} {isUnlocked ? match.designer.lastName : `${match.designer.lastInitial}.`}
             </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-base" style={{ color: theme.text.secondary }}>
-                {match.designer.yearsExperience}+ years
-              </span>
-              <span style={{ color: theme.text.muted }}>•</span>
-              <span className="text-base" style={{ color: theme.text.secondary }}>
-                {match.designer.city}
-              </span>
-            </div>
+            <span className="text-base" style={{ color: theme.text.secondary }}>
+              {match.designer.city}
+            </span>
           </div>
           
           <p className="text-lg mb-3" style={{ color: theme.text.secondary }}>
@@ -254,14 +248,6 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
 
       {/* Designer Profile Highlights - Primary */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        {match.designer.yearsExperience !== undefined && match.designer.yearsExperience !== null && (
-          <ProfileHighlight 
-            icon="💼"
-            label="Experience" 
-            value={`${match.designer.yearsExperience}+ years`} 
-            theme={theme} 
-          />
-        )}
         <ProfileHighlight 
           icon="📍"
           label="Location" 
