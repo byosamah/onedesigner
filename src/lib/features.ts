@@ -12,7 +12,7 @@ export const Features = {
    * When false, uses legacy direct Supabase calls
    */
   get USE_NEW_DATA_SERVICE(): boolean {
-    return getOneDesignerConfig('features.dataService', false)
+    return getOneDesignerConfig('features.dataService', false) || process.env.USE_NEW_DATA_SERVICE === 'true'
   },
 
   /**
@@ -21,7 +21,7 @@ export const Features = {
    * When false, uses legacy inline session validation
    */
   get USE_AUTH_MIDDLEWARE(): boolean {
-    return getOneDesignerConfig('features.authMiddleware', false)
+    return getOneDesignerConfig('features.authMiddleware', false) || process.env.USE_AUTH_MIDDLEWARE === 'true'
   },
 
   /**
@@ -39,7 +39,7 @@ export const Features = {
    * When false, uses legacy error handling
    */
   get USE_ERROR_MANAGER(): boolean {
-    return getOneDesignerConfig('features.errorManager', false)
+    return getOneDesignerConfig('features.errorManager', false) || process.env.USE_ERROR_MANAGER === 'true'
   },
 
   /**
@@ -48,7 +48,7 @@ export const Features = {
    * When false, uses legacy request handling
    */
   get USE_REQUEST_PIPELINE(): boolean {
-    return getOneDesignerConfig('features.requestPipeline', false)
+    return getOneDesignerConfig('features.requestPipeline', false) || process.env.USE_REQUEST_PIPELINE === 'true'
   },
 
   /**
