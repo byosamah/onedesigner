@@ -187,20 +187,23 @@ Provide a JSON response with:
     // Create match record for the best new match
     const bestMatch = matches[0]
     
-    // If auto-unlock, deduct credit first
+    // If auto-unlock, deduct credit first using CENTRALIZED method
     let remainingCredits = brief.client?.match_credits || 0
+    let updatedClient = null
     if (autoUnlock) {
-      const { error: creditError } = await supabase
-        .from('clients')
-        .update({ match_credits: brief.client.match_credits - 1 })
-        .eq('id', brief.client_id)
-      
-      if (creditError) {
+      try {
+        const { DataService } = await import('@/lib/services/data-service')
+        const dataService = DataService.getInstance()
+        updatedClient = await dataService.deductCredits(brief.client_id, 1)
+        remainingCredits = updatedClient.match_credits
+        logger.info('✅ Credit deducted using centralized method, remaining:', remainingCredits)
+      } catch (creditError) {
         logger.error('Error deducting credit:', creditError)
+        if (creditError instanceof Error && creditError.message.includes('Insufficient')) {
+          return apiResponse.error('Insufficient credits. Need at least 1 credit to find and unlock a new match.')
+        }
         return apiResponse.error('Failed to process credit payment')
       }
-      remainingCredits = brief.client.match_credits - 1
-      logger.info('✅ Credit deducted, remaining:', remainingCredits)
     }
     
     // Create match with appropriate status
@@ -221,12 +224,16 @@ Provide a JSON response with:
     if (matchError) {
       logger.error('Error creating new match record:', matchError)
       
-      // If auto-unlock was attempted, refund the credit
-      if (autoUnlock) {
-        await supabase
-          .from('clients')
-          .update({ match_credits: brief.client.match_credits })
-          .eq('id', brief.client_id)
+      // If auto-unlock was attempted, refund the credit using CENTRALIZED method
+      if (autoUnlock && updatedClient) {
+        try {
+          const { DataService } = await import('@/lib/services/data-service')
+          const dataService = DataService.getInstance()
+          await dataService.addCredits(brief.client_id, 1)
+          logger.info('✅ Refunded credit due to match creation failure')
+        } catch (refundError) {
+          logger.error('Failed to refund credit:', refundError)
+        }
       }
       
       return apiResponse.error('Failed to save new match')

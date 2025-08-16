@@ -217,14 +217,16 @@ export class DataService {
   }
 
   /**
-   * Add credits to client
+   * Add credits to client - CENTRALIZED METHOD
+   * Always use this method instead of direct database updates
    */
   async addCredits(clientId: string, credits: number): Promise<Client> {
     const client = await this.getClientWithCredits(clientId)
     
+    const newCredits = (client.match_credits || 0) + credits
     const { data, error } = await this.supabase
       .from('clients')
-      .update({ match_credits: client.match_credits + credits })
+      .update({ match_credits: newCredits })
       .eq('id', clientId)
       .select()
       .single()
@@ -236,6 +238,37 @@ export class DataService {
     // Clear cache
     this.queryCache.delete(`client:${clientId}`)
     
+    logger.info(`✅ Credits added: Client ${clientId} now has ${newCredits} credits (added ${credits})`)
+    return data as Client
+  }
+
+  /**
+   * Deduct credits from client - CENTRALIZED METHOD
+   * Always use this method instead of direct database updates
+   */
+  async deductCredits(clientId: string, credits: number): Promise<Client> {
+    const client = await this.getClientWithCredits(clientId)
+    
+    if (client.match_credits < credits) {
+      throw new Error(`Insufficient credits. Has ${client.match_credits}, needs ${credits}`)
+    }
+    
+    const newCredits = client.match_credits - credits
+    const { data, error } = await this.supabase
+      .from('clients')
+      .update({ match_credits: newCredits })
+      .eq('id', clientId)
+      .select()
+      .single()
+
+    if (error) {
+      throw new DatabaseError('Failed to deduct credits', error)
+    }
+
+    // Clear cache
+    this.queryCache.delete(`client:${clientId}`)
+    
+    logger.info(`✅ Credits deducted: Client ${clientId} now has ${newCredits} credits (deducted ${credits})`)
     return data as Client
   }
 

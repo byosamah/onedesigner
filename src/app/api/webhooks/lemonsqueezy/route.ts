@@ -112,41 +112,23 @@ export async function POST(request: NextRequest) {
         
         logger.info(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
 
-        // Now add credits to client (only happens if payment record was successful)
-        const { data: client } = await supabase
-          .from('clients')
-          .select('id, match_credits')
-          .eq('id', customData.client_id)
-          .single()
-
-        if (client) {
-          const newCredits = (client.match_credits || 0) + credits
-          const { error: updateError } = await supabase
-            .from('clients')
-            .update({ 
-              match_credits: newCredits
-            })
-            .eq('id', client.id)
+        // Now add credits using CENTRALIZED DataService method
+        try {
+          // Import DataService singleton
+          const { DataService } = await import('@/lib/services/data-service')
+          const dataService = DataService.getInstance()
           
-          if (updateError) {
-            logger.error('Failed to update client credits:', updateError)
-            // Rollback the payment record since credits couldn't be added
-            await supabase
-              .from('payments')
-              .delete()
-              .eq('order_id', order.id)
-            throw new Error('Failed to update client credits')
-          }
+          // Add credits using centralized method
+          await dataService.addCredits(customData.client_id, credits)
           
-          logger.info(`✅ Credits updated: Client ${client.id} now has ${newCredits} credits (added ${credits})`)
-        } else {
-          logger.error('❌ Client not found with ID:', customData.client_id)
-          // Rollback the payment record since client doesn't exist
+        } catch (creditError) {
+          logger.error('Failed to add credits:', creditError)
+          // Rollback the payment record since credits couldn't be added
           await supabase
             .from('payments')
             .delete()
             .eq('order_id', order.id)
-          throw new Error('Client not found')
+          throw new Error('Failed to add credits to client')
         }
 
         // If there's a specific match to unlock
@@ -159,17 +141,15 @@ export async function POST(request: NextRequest) {
             .single()
           
           if (matchData) {
-            // Deduct 1 credit for auto-unlock since match is included in purchase
-            const autoUnlockCredits = Math.max(0, newCredits - 1)
-            const { error: creditDeductError } = await supabase
-              .from('clients')
-              .update({ match_credits: autoUnlockCredits })
-              .eq('id', customData.client_id)
-            
-            if (creditDeductError) {
-              logger.error('Failed to deduct credit for auto-unlock:', creditDeductError)
-            } else {
-              logger.info(`✅ Deducted 1 credit for auto-unlock: Client now has ${autoUnlockCredits} credits`)
+            // Deduct 1 credit for auto-unlock using CENTRALIZED method
+            try {
+              const { DataService } = await import('@/lib/services/data-service')
+              const dataService = DataService.getInstance()
+              await dataService.deductCredits(customData.client_id, 1)
+              logger.info(`✅ Deducted 1 credit for auto-unlock using centralized method`)
+            } catch (deductError) {
+              logger.error('Failed to deduct credit for auto-unlock:', deductError)
+              // Non-critical error, continue
             }
 
             await supabase
@@ -232,22 +212,16 @@ export async function POST(request: NextRequest) {
           .eq('order_id', order.id)
           .single()
         
-        if (payment) {
-          // Remove credits from client
-          const { data: client } = await supabase
-            .from('clients')
-            .select('id, match_credits')
-            .eq('id', payment.client_id)
-            .single()
-          
-          if (client) {
-            const newCredits = Math.max(0, (client.match_credits || 0) - (payment.credits_purchased || 0))
-            await supabase
-              .from('clients')
-              .update({ match_credits: newCredits })
-              .eq('id', client.id)
-            
-            logger.info(`✅ Refund processed: Removed ${payment.credits_purchased} credits from client ${client.id}`)
+        if (payment && payment.credits_purchased) {
+          // Remove credits using CENTRALIZED DataService method
+          try {
+            const { DataService } = await import('@/lib/services/data-service')
+            const dataService = DataService.getInstance()
+            await dataService.deductCredits(payment.client_id, payment.credits_purchased)
+            logger.info(`✅ Refund processed: Removed ${payment.credits_purchased} credits using centralized method`)
+          } catch (deductError) {
+            logger.error('Failed to remove credits for refund:', deductError)
+            // If insufficient credits, just log it - don't fail the refund processing
           }
         }
         

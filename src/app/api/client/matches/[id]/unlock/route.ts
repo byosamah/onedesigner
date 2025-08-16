@@ -249,13 +249,18 @@ export async function POST(
     }
 
     // Start transaction: deduct credit and unlock match
-    // Deduct credit
-    const { error: creditError } = await supabase
-      .from('clients')
-      .update({ match_credits: client.match_credits - 1 })
-      .eq('id', clientId)
-
-    if (creditError) {
+    // Deduct credit using CENTRALIZED DataService method
+    const { DataService } = await import('@/lib/services/data-service')
+    const dataService = DataService.getInstance()
+    
+    let updatedClient
+    try {
+      updatedClient = await dataService.deductCredits(clientId, 1)
+    } catch (creditError) {
+      logger.error('Failed to deduct credit:', creditError)
+      if (creditError instanceof Error && creditError.message.includes('Insufficient')) {
+        return apiResponse.error('Insufficient credits')
+      }
       throw creditError
     }
 
@@ -274,11 +279,13 @@ export async function POST(
       .eq('id', params.id)
 
     if (matchUpdateError) {
-      // Rollback credit deduction
-      await supabase
-        .from('clients')
-        .update({ match_credits: client.match_credits })
-        .eq('id', clientId)
+      // Rollback credit deduction using CENTRALIZED method
+      try {
+        await dataService.addCredits(clientId, 1)
+        logger.info('✅ Rolled back credit deduction')
+      } catch (rollbackError) {
+        logger.error('Failed to rollback credit:', rollbackError)
+      }
       
       throw matchUpdateError
     }
@@ -327,7 +334,7 @@ export async function POST(
     return apiResponse.success({
       success: true,
       message: 'Match unlocked successfully',
-      remainingCredits: client.match_credits - 1
+      remainingCredits: updatedClient.match_credits
     })
   } catch (error) {
     // Use new ErrorManager if feature flag is enabled
