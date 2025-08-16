@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/supabase/server'
+import { createServiceClientWithoutCookies } from '@/lib/supabase/server'
 import { logger } from '@/lib/core/logging-service'
 
 export interface ProjectRequest {
@@ -45,7 +45,7 @@ export interface ProjectRequestWithRelations extends ProjectRequest {
 class ProjectRequestService {
   async create(data: Omit<ProjectRequest, 'id' | 'created_at' | 'updated_at'>): Promise<ProjectRequest | null> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       const { data: projectRequest, error } = await supabase
         .from('project_requests')
         .insert(data)
@@ -66,7 +66,7 @@ class ProjectRequestService {
 
   async getByDesigner(designerId: string): Promise<ProjectRequestWithRelations[]> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       const { data: projectRequests, error } = await supabase
         .from('project_requests')
         .select(`
@@ -105,7 +105,7 @@ class ProjectRequestService {
 
   async getById(id: string, designerId?: string): Promise<ProjectRequestWithRelations | null> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       let query = supabase
         .from('project_requests')
         .select(`
@@ -143,7 +143,7 @@ class ProjectRequestService {
 
   async approve(id: string, designerId: string): Promise<boolean> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       const { error } = await supabase
         .from('project_requests')
         .update({
@@ -168,7 +168,7 @@ class ProjectRequestService {
 
   async reject(id: string, designerId: string, rejectionReason?: string): Promise<boolean> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       const { error } = await supabase
         .from('project_requests')
         .update({
@@ -194,7 +194,7 @@ class ProjectRequestService {
 
   async checkExisting(matchId: string, clientId: string, designerId: string): Promise<boolean> {
     try {
-      const supabase = createServiceClient()
+      const supabase = createServiceClientWithoutCookies()
       const { data, error } = await supabase
         .from('project_requests')
         .select('id')

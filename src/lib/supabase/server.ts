@@ -62,3 +62,24 @@ export function createServiceClient() {
     }
   )
 }
+
+// Service client that doesn't use cookies - safe to use in services/utilities
+export function createServiceClientWithoutCookies() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        get() {
+          return undefined
+        },
+        set() {
+          // Service role doesn't need cookies
+        },
+        remove() {
+          // Service role doesn't need cookies
+        },
+      },
+    }
+  )
+}
