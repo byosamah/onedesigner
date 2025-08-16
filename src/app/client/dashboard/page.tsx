@@ -32,6 +32,13 @@ interface EnhancedMatch {
     yearsExperience: number
     rating: number
     totalProjects: number
+    email?: string
+    phone?: string
+    website?: string
+    portfolioUrl?: string
+    linkedinUrl?: string
+    dribbbleUrl?: string
+    behanceUrl?: string
     designPhilosophy: string
     primaryCategories: string[]
     styleKeywords: string[]
@@ -446,7 +453,6 @@ export default function ClientDashboard() {
                     
                     <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: theme.text.muted }}>
                       <span>Match Score: <strong style={{ color: theme.accent }}>{match.score}%</strong></span>
-                      <span>Rating: ⭐ {match.designer.rating}/5</span>
                       <span>{new Date(match.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
@@ -508,6 +514,91 @@ export default function ClientDashboard() {
                     <p className="text-sm font-medium mb-3" style={{ color: theme.success }}>
                       ✅ Designer Unlocked
                     </p>
+                    
+                    {/* Contact Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                      {match.designer.email && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>📧 Email:</span>
+                          <a 
+                            href={`mailto:${match.designer.email}`}
+                            className="text-sm hover:underline"
+                            style={{ color: theme.text.primary }}
+                          >
+                            {match.designer.email}
+                          </a>
+                        </div>
+                      )}
+                      {match.designer.phone && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>📱 Phone:</span>
+                          <a 
+                            href={`tel:${match.designer.phone}`}
+                            className="text-sm hover:underline"
+                            style={{ color: theme.text.primary }}
+                          >
+                            {match.designer.phone}
+                          </a>
+                        </div>
+                      )}
+                      {match.designer.website && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>🌐 Website:</span>
+                          <a 
+                            href={match.designer.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline"
+                            style={{ color: theme.accent }}
+                          >
+                            View Portfolio →
+                          </a>
+                        </div>
+                      )}
+                      {match.designer.portfolioUrl && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>🎨 Portfolio:</span>
+                          <a 
+                            href={match.designer.portfolioUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline"
+                            style={{ color: theme.accent }}
+                          >
+                            View Work →
+                          </a>
+                        </div>
+                      )}
+                      {match.designer.linkedinUrl && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>💼 LinkedIn:</span>
+                          <a 
+                            href={match.designer.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline"
+                            style={{ color: theme.accent }}
+                          >
+                            View Profile →
+                          </a>
+                        </div>
+                      )}
+                      {match.designer.dribbbleUrl && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm" style={{ color: theme.text.muted }}>🏀 Dribbble:</span>
+                          <a 
+                            href={match.designer.dribbbleUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm hover:underline"
+                            style={{ color: theme.accent }}
+                          >
+                            View Shots →
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                    
                     <div className="flex items-center justify-between">
                       <div className="text-sm" style={{ color: theme.text.secondary }}>
                         Ready to start your project with {match.designer.firstName}?

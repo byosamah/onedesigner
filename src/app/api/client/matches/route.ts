@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       
       const { data: designers } = await supabase
         .from('designers')
-        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, years_experience, total_projects')
+        .select('id, first_name, last_name, last_initial, title, city, country, email, phone, website_url, portfolio_url, linkedin_url, dribbble_url, behance_url, years_experience, total_projects, rating')
         .in('id', designerIds)
       
       const { data: briefs } = await supabase
@@ -81,6 +81,10 @@ export async function GET(request: NextRequest) {
             email: designer.email,
             phone: designer.phone,
             website: designer.website_url,
+            portfolioUrl: designer.portfolio_url,
+            linkedinUrl: designer.linkedin_url,
+            dribbbleUrl: designer.dribbble_url,
+            behanceUrl: designer.behance_url,
             yearsExperience: designer.years_experience,
             rating: designer.rating,
             totalProjects: designer.total_projects
@@ -98,7 +102,11 @@ export async function GET(request: NextRequest) {
               ...match.designer,
               email: undefined,
               phone: undefined,
-              website: undefined
+              website: undefined,
+              portfolioUrl: undefined,
+              linkedinUrl: undefined,
+              dribbbleUrl: undefined,
+              behanceUrl: undefined
             } : null
           }
         }
