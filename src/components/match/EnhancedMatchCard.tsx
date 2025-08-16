@@ -195,7 +195,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
 
         {/* Match Score */}
         <div className="text-center flex-shrink-0">
-          <div className="text-3xl font-bold mb-1" style={{ color: theme.accent }}>
+          <div className="text-4xl font-bold mb-1" style={{ color: theme.accent }}>
             {match.score}%
           </div>
           <p className="text-xs font-medium" style={{ color: theme.text.secondary }}>
