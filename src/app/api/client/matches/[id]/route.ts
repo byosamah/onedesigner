@@ -41,12 +41,17 @@ export async function GET(
           id,
           first_name,
           last_initial,
+          last_name,
           title,
           city,
           country,
           email,
           phone,
-          website:website_url,
+          website_url,
+          portfolio_url,
+          linkedin_url,
+          dribbble_url,
+          behance_url,
           bio,
           years_experience,
           rating,
@@ -87,21 +92,30 @@ export async function GET(
         ...designer,
         firstName: designer.first_name,
         lastName: designer.last_name || designer.last_initial,
+        lastInitial: designer.last_initial,
         yearsExperience: designer.years_experience,
         totalProjects: designer.total_projects,
         profilePicture: designer.avatar_url || null,
-        portfolioImages: portfolioImages
+        portfolioImages: portfolioImages,
+        // Map URL fields properly
+        portfolioUrl: designer.portfolio_url || designer.website_url,
+        linkedinUrl: designer.linkedin_url,
+        dribbbleUrl: designer.dribbble_url,
+        behanceUrl: designer.behance_url
       }
     }
 
     // Hide contact info for locked matches
     if (match.status === 'pending' || match.status === 'declined') {
-      const { email, phone, website, ...safeDesigner } = match.designer
+      const { email, phone, portfolioUrl, linkedinUrl, dribbbleUrl, behanceUrl, ...safeDesigner } = match.designer
       match.designer = {
         ...safeDesigner,
         email: '***',
         phone: '***', 
-        website: '***'
+        portfolioUrl: '***',
+        linkedinUrl: '***',
+        dribbbleUrl: '***',
+        behanceUrl: '***'
       }
     }
 

@@ -95,12 +95,18 @@ export async function POST(request: NextRequest) {
           title: match.designer.title,
           city: match.designer.city,
           country: match.designer.country,
+          email: match.designer.email,
+          phone: match.designer.phone,
           yearsExperience: match.designer.years_experience,
           totalProjects: match.designer.total_projects,
           availability: match.designer.availability,
           styles: match.designer.styles,
           industries: match.designer.industries,
           profilePicture: match.designer.avatar_url || null,
+          portfolioUrl: match.designer.portfolio_url,
+          linkedinUrl: match.designer.linkedin_url,
+          dribbbleUrl: match.designer.dribbble_url,
+          behanceUrl: match.designer.behance_url,
           portfolioImages: (() => {
             // Get portfolio images from tools array field (temporary storage)
             if (Array.isArray(match.designer.tools) && match.designer.tools.length > 0) {
@@ -255,12 +261,18 @@ Provide a JSON response with:
             title: designer.title,
             city: designer.city,
             country: designer.country,
+            email: designer.email,
+            phone: designer.phone,
             yearsExperience: designer.years_experience,
             totalProjects: designer.total_projects,
             availability: designer.availability,
             styles: designer.styles,
             industries: designer.industries,
             profilePicture: designer.avatar_url || null,
+            portfolioUrl: designer.portfolio_url,
+            linkedinUrl: designer.linkedin_url,
+            dribbbleUrl: designer.dribbble_url,
+            behanceUrl: designer.behance_url,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
               const actualImages = [
@@ -313,12 +325,18 @@ Provide a JSON response with:
             title: designer.title,
             city: designer.city,
             country: designer.country,
+            email: designer.email,
+            phone: designer.phone,
             yearsExperience: designer.years_experience,
             totalProjects: designer.total_projects,
             availability: designer.availability,
             styles: designer.styles,
             industries: designer.industries,
             profilePicture: designer.avatar_url || null,
+            portfolioUrl: designer.portfolio_url,
+            linkedinUrl: designer.linkedin_url,
+            dribbbleUrl: designer.dribbble_url,
+            behanceUrl: designer.behance_url,
             portfolioImages: (() => {
               // Try to get actual portfolio images first
               const actualImages = [
@@ -432,13 +450,19 @@ Provide a JSON response with:
           title: match.designer.title,
           city: match.designer.city,
           country: match.designer.country,
+          email: match.designer.email,
+          phone: match.designer.phone,
           yearsExperience: match.designer.yearsExperience,
           rating: match.designer.rating,
           totalProjects: match.designer.totalProjects,
           availability: match.designer.availability,
           styles: match.designer.styles,
           industries: match.designer.industries,
-          portfolioImages: match.designer.portfolioImages
+          portfolioImages: match.designer.portfolioImages,
+          portfolioUrl: match.designer.portfolioUrl,
+          linkedinUrl: match.designer.linkedinUrl,
+          dribbbleUrl: match.designer.dribbbleUrl,
+          behanceUrl: match.designer.behanceUrl
         },
         aiAnalyzed: match.aiAnalyzed
       })),
