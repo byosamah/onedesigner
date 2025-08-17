@@ -5,8 +5,8 @@
 ### **🎯 Golden Rules (NEVER CHANGE):**
 1. ✅ **Golden OneDesigner text**: `color: #f0ad4e` in all email headers
 2. ✅ **No logos**: Simple text-only branding (email client compatible)
-3. ✅ **team@onedesigner.app**: Default sender for all emails
-4. ✅ **Sender names**: "OneDesigner" for OTP, "Hala from OneDesigner" for others
+3. ✅ **team@onedesigner.app**: Default sender email address
+4. ✅ **Sender name**: "Hala from OneDesigner" for ALL emails (personal touch)
 
 ---
 
@@ -37,10 +37,7 @@
 
 ### **Sender Names:**
 ```typescript
-// OTP and verification emails
-"OneDesigner <team@onedesigner.app>"
-
-// All other emails (welcome, approval, project requests, etc.)
+// ALL emails now use the personalized sender
 "Hala from OneDesigner <team@onedesigner.app>"
 ```
 

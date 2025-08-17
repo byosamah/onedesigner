@@ -10,15 +10,8 @@ interface EmailOptions {
 
 export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
-    // Determine sender name based on subject content
-    // OTP emails typically have "verification" or "code" in subject
-    const isOTPEmail = subject.toLowerCase().includes('verification') || 
-                       subject.toLowerCase().includes('code') ||
-                       subject.toLowerCase().includes('otp')
-    
-    const defaultSender = isOTPEmail 
-      ? 'OneDesigner <team@onedesigner.app>'
-      : 'Hala from OneDesigner <team@onedesigner.app>'
+    // Always use personalized sender for all emails
+    const defaultSender = 'Hala from OneDesigner <team@onedesigner.app>'
     
     // Use Resend API if available
     if (process.env.RESEND_API_KEY) {
