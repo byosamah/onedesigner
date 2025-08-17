@@ -26,31 +26,27 @@ export async function PUT(request: NextRequest) {
       edited_after_approval: true
     }
 
-    // Map camelCase fields to snake_case database columns
-    if (profileData.firstName !== undefined) updateData.first_name = profileData.firstName
-    if (profileData.lastName !== undefined) updateData.last_name = profileData.lastName
-    if (profileData.lastName !== undefined) updateData.last_initial = profileData.lastName.charAt(0).toUpperCase()
-    if (profileData.title !== undefined) updateData.title = profileData.title
-    if (profileData.phone !== undefined) updateData.phone = profileData.phone || null
-    if (profileData.bio !== undefined) updateData.bio = profileData.bio
-    if (profileData.city !== undefined) updateData.city = profileData.city
-    if (profileData.country !== undefined) updateData.country = profileData.country
-    if (profileData.timezone !== undefined) updateData.timezone = profileData.timezone
-    if (profileData.yearsExperience !== undefined) updateData.years_experience = profileData.yearsExperience
-    if (profileData.availability !== undefined) updateData.availability = profileData.availability
-    if (profileData.websiteUrl !== undefined) updateData.website_url = profileData.websiteUrl
-    if (profileData.portfolioUrl !== undefined) updateData.portfolio_url = profileData.portfolioUrl || null
-    if (profileData.dribbbleUrl !== undefined) updateData.dribbble_url = profileData.dribbbleUrl || null
-    if (profileData.behanceUrl !== undefined) updateData.behance_url = profileData.behanceUrl || null
-    if (profileData.linkedinUrl !== undefined) updateData.linkedin_url = profileData.linkedinUrl || null
-    if (profileData.projectPriceFrom !== undefined) updateData.project_price_from = profileData.projectPriceFrom
-    if (profileData.projectPriceTo !== undefined) updateData.project_price_to = profileData.projectPriceTo
-    if (profileData.previousClients !== undefined) updateData.previous_clients = profileData.previousClients || null
-    if (profileData.projectPreferences !== undefined) updateData.project_preferences = profileData.projectPreferences
-    if (profileData.workingStyle !== undefined) updateData.working_style = profileData.workingStyle
-    if (profileData.communicationStyle !== undefined) updateData.communication_style = profileData.communicationStyle
-    if (profileData.remoteExperience !== undefined) updateData.remote_experience = profileData.remoteExperience
-    if (profileData.teamCollaboration !== undefined) updateData.team_collaboration = profileData.teamCollaboration || null
+    // Profile data is already in snake_case from the frontend
+    // Only include fields that are actually editable
+    const editableFields = [
+      'first_name', 'last_name', 'title', 'phone', 'bio', 
+      'city', 'country', 'timezone', 'years_experience', 'availability',
+      'website_url', 'portfolio_url', 'dribbble_url', 'behance_url', 'linkedin_url',
+      'project_price_from', 'project_price_to', 'previous_clients',
+      'project_preferences', 'working_style', 'communication_style',
+      'remote_experience', 'team_collaboration'
+    ]
+    
+    editableFields.forEach(field => {
+      if (profileData[field] !== undefined) {
+        updateData[field] = profileData[field] || null
+      }
+    })
+    
+    // Update last_initial if last_name changed
+    if (profileData.last_name !== undefined) {
+      updateData.last_initial = profileData.last_name.charAt(0).toUpperCase()
+    }
 
     // Also update array columns in designers table for styles and industries
     if (profileData.styles !== undefined) {
@@ -179,35 +175,10 @@ export async function PUT(request: NextRequest) {
     logger.info('✅ Designer profile updated:', designer.id)
     logger.info('⚠️ Designer marked as unapproved after edit')
 
+    // Return snake_case to match what profile page expects
     return apiResponse.success({
       designer: {
-        id: updatedProfile.id,
-        firstName: updatedProfile.first_name,
-        lastName: updatedProfile.last_name,
-        email: updatedProfile.email,
-        phone: updatedProfile.phone,
-        title: updatedProfile.title,
-        bio: updatedProfile.bio,
-        city: updatedProfile.city,
-        country: updatedProfile.country,
-        timezone: updatedProfile.timezone,
-        yearsExperience: updatedProfile.years_experience,
-        availability: updatedProfile.availability,
-        websiteUrl: updatedProfile.website_url,
-        portfolioUrl: updatedProfile.portfolio_url,
-        dribbbleUrl: updatedProfile.dribbble_url,
-        behanceUrl: updatedProfile.behance_url,
-        linkedinUrl: updatedProfile.linkedin_url,
-        projectPriceFrom: updatedProfile.project_price_from,
-        projectPriceTo: updatedProfile.project_price_to,
-        previousClients: updatedProfile.previous_clients,
-        projectPreferences: updatedProfile.project_preferences,
-        workingStyle: updatedProfile.working_style,
-        communicationStyle: updatedProfile.communication_style,
-        remoteExperience: updatedProfile.remote_experience,
-        teamCollaboration: updatedProfile.team_collaboration,
-        isApproved: updatedProfile.is_approved,
-        isVerified: updatedProfile.is_verified,
+        ...updatedProfile, // Include all fields in snake_case
         styles: styles?.map(s => s.style) || [],
         projectTypes: projectTypes?.map(pt => pt.project_type) || [],
         industries: industries?.map(i => i.industry) || [],
@@ -293,35 +264,11 @@ export async function GET(request: NextRequest) {
       specializations
     })
 
+    // Return snake_case to match what profile page expects
     return apiResponse.success({
       designer: {
-        id: designer.id,
-        firstName: designer.first_name,
-        lastName: designer.last_name,
-        email: designer.email,
-        phone: designer.phone,
-        title: designer.title,
-        bio: designer.bio,
-        city: designer.city,
-        country: designer.country,
-        timezone: designer.timezone,
-        yearsExperience: designer.years_experience,
-        availability: designer.availability,
-        websiteUrl: designer.website_url,
-        portfolioUrl: designer.portfolio_url,
-        dribbbleUrl: designer.dribbble_url,
-        behanceUrl: designer.behance_url,
-        linkedinUrl: designer.linkedin_url,
-        projectPriceFrom: designer.project_price_from,
-        projectPriceTo: designer.project_price_to,
-        previousClients: designer.previous_clients,
-        projectPreferences: designer.project_preferences,
-        workingStyle: designer.working_style,
-        communicationStyle: designer.communication_style,
-        remoteExperience: designer.remote_experience,
-        teamCollaboration: designer.team_collaboration,
-        isApproved: designer.is_approved,
-        isVerified: designer.is_verified,
+        ...designer, // Include all original fields in snake_case
+        // Add the normalized table data (overrides array columns if they exist)
         styles,
         projectTypes,
         industries,
