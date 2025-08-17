@@ -61,6 +61,9 @@ export default function DesignerLoginVerifyPage() {
           if (status === 'approved') {
             logger.info('➡️ Redirecting to dashboard (approved designer)')
             router.push('/designer/dashboard')
+          } else if (status === 'rejected') {
+            logger.info('➡️ Redirecting to dashboard (rejected designer - will show rejection feedback)')
+            router.push('/designer/dashboard')
           } else if (status === 'pending') {
             logger.info('➡️ Redirecting to under-review page (pending approval)')
             router.push('/designer/application-pending')

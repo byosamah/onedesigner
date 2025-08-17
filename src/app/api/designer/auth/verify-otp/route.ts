@@ -64,6 +64,9 @@ export async function POST(request: NextRequest) {
       // Determine designer status based on their profile
       if (existingDesigner.is_approved) {
         designerStatus = 'approved'
+      } else if (existingDesigner.rejection_reason) {
+        // Designer has been rejected
+        designerStatus = 'rejected'
       } else if (existingDesigner.first_name && existingDesigner.last_name && existingDesigner.title && existingDesigner.bio) {
         // Has filled out application but not approved (bio is required, portfolio_url is optional)
         designerStatus = 'pending'
@@ -107,7 +110,9 @@ export async function POST(request: NextRequest) {
         status: designerStatus,
         isApproved: existingDesigner?.is_approved || false,
         firstName: existingDesigner?.first_name || '',
-        lastName: existingDesigner?.last_name || ''
+        lastName: existingDesigner?.last_name || '',
+        rejectionReason: existingDesigner?.rejection_reason || null,
+        rejectionSeen: existingDesigner?.rejection_seen || false
       }
     })
   } catch (error) {
