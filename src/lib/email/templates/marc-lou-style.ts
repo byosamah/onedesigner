@@ -17,6 +17,7 @@ export interface MarcLouEmailProps {
     signature?: string
   }
   isOTPEmail?: boolean
+  isRejectionEmail?: boolean
 }
 
 /**
@@ -393,16 +394,19 @@ export function createDesignerApprovalEmailMarcStyle(data: {
 }
 
 /**
- * Designer rejection email - Marc Lou style
+ * Designer rejection email - Marc Lou style (simplified without token)
  */
 export function createDesignerRejectionEmailMarcStyle(data: {
   designerName: string
   rejectionReason: string
-  updateApplicationUrl: string
+  loginUrl?: string
 }): { subject: string; html: string; text: string } {
+  const loginLink = data.loginUrl || 'https://onedesigner.app/designer/login'
+  
   const template = createMarcLouStyleEmail({
     title: "Not quite there yet",
     preheader: 'Update your application based on our feedback',
+    isRejectionEmail: true,
     content: {
       greeting: `${data.designerName}, let's be honest 💭`,
       mainText: `
@@ -418,10 +422,9 @@ export function createDesignerRejectionEmailMarcStyle(data: {
         
         <strong>The good news?</strong>
         <br><br>
-        Your application is still there. All your info, saved. 
-        Just update what needs fixing and resubmit.
+        You can fix this right now. Just log in, go to your profile, and update it.
         <br><br>
-        No starting from scratch. No re-entering everything.
+        No starting from scratch. No re-entering everything. Just fix what needs fixing.
         <br><br>
         <strong>Quick tips that work:</strong>
         <br><br>
@@ -431,14 +434,19 @@ export function createDesignerRejectionEmailMarcStyle(data: {
         ✓ Add links to live projects
       `,
       ctaButton: {
-        text: 'Update Your Application',
-        href: data.updateApplicationUrl
+        text: 'Login & Update Profile',
+        href: loginLink
       },
       additionalContent: `
-        <strong>PS:</strong> This link expires in 7 days. 
-        After that, you'll need to start fresh.
+        <strong>How to update:</strong>
+        <br>
+        1. Login to your account<br>
+        2. You'll see our feedback<br>
+        3. Click "Edit Profile"<br>
+        4. Make the changes<br>
+        5. Hit "Resubmit for Review"
         <br><br>
-        Don't wait. Fix it now while the feedback is fresh.
+        Takes about 5 minutes. Then we'll review it again (usually within 24 hours).
       `,
       signature: '— Hala from OneDesigner'
     }

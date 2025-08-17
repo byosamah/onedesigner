@@ -2,6 +2,7 @@ import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
+import { getDesignerSessionCookie, getClientSessionCookie, getAdminSessionCookie, parseSessionCookie } from './cookie-utils'
 
 /**
  * Centralized session management for all user types
@@ -32,21 +33,36 @@ export interface AdminSessionData extends SessionData {
 }
 
 /**
- * Get session data for any user type
+ * Get session data for any user type with backward compatibility
  */
 export async function getSession(type: keyof typeof AUTH_COOKIES): Promise<SessionData | null> {
   try {
-    const cookieStore = cookies()
-    const cookieName = AUTH_COOKIES[type]
-    logger.info(`🍪 Looking for cookie: ${cookieName}`)
+    let sessionCookie
     
-    const sessionCookie = cookieStore.get(cookieName)
-    logger.info(`🍪 Cookie found: ${sessionCookie ? 'Yes' : 'No'}`)
+    // Use backward-compatible cookie getters
+    switch (type) {
+      case 'DESIGNER':
+        sessionCookie = getDesignerSessionCookie()
+        break
+      case 'CLIENT':
+        sessionCookie = getClientSessionCookie()
+        break
+      case 'ADMIN':
+        sessionCookie = getAdminSessionCookie()
+        break
+      default:
+        const cookieStore = cookies()
+        sessionCookie = cookieStore.get(AUTH_COOKIES[type])
+    }
+    
+    logger.info(`🍪 Looking for ${type} cookie: ${sessionCookie ? 'Found' : 'Not found'}`)
     
     if (!sessionCookie) return null
     
-    const session = JSON.parse(sessionCookie.value)
-    logger.info(`🍪 Session parsed:`, session)
+    const session = parseSessionCookie(sessionCookie.value)
+    if (!session) return null
+    
+    logger.info(`🍪 Session parsed for ${type}`)
     
     // Validate session structure
     if (!session.email) return null
@@ -95,19 +111,28 @@ export async function clearSession(type: keyof typeof AUTH_COOKIES): Promise<voi
 }
 
 /**
- * Validate session and return user data
+ * Validate session and return user data with multiple compatibility properties
  */
 export async function validateSession(
   type: keyof typeof AUTH_COOKIES
-): Promise<{ valid: boolean; session?: SessionData; user?: any }> {
+): Promise<{ 
+  valid: boolean; 
+  success?: boolean; // For backward compatibility
+  session?: SessionData; 
+  user?: any;
+  designerId?: string; // For designer routes
+  clientId?: string; // For client routes
+  adminId?: string; // For admin routes
+}> {
   const session = await getSession(type)
-  if (!session) return { valid: false }
+  if (!session) return { valid: false, success: false }
   
   const supabase = createServiceClient()
   
   // Get user data based on type
   let userData = null
   let error = null
+  let typeSpecificId = null
   
   switch (type) {
     case 'CLIENT':
@@ -118,6 +143,7 @@ export async function validateSession(
         .single()
       userData = clientResult.data
       error = clientResult.error
+      typeSpecificId = userData?.id
       break
       
     case 'DESIGNER':
@@ -128,23 +154,38 @@ export async function validateSession(
         .single()
       userData = designerResult.data
       error = designerResult.error
+      typeSpecificId = userData?.id
       break
       
     case 'ADMIN':
       // Verify admin email against whitelist
       const adminEmails = ['osamah96@gmail.com'] // Add other admin emails as needed
       if (!adminEmails.includes(session.email)) {
-        return { valid: false }
+        return { valid: false, success: false }
       }
       userData = { email: session.email, role: 'admin' }
+      typeSpecificId = session.email
       break
   }
   
   if (error || !userData) {
-    return { valid: false }
+    return { valid: false, success: false }
   }
   
-  return { valid: true, session, user: userData }
+  // Return with multiple properties for compatibility
+  const result: any = { 
+    valid: true, 
+    success: true, // Alias for backward compatibility
+    session, 
+    user: userData 
+  }
+  
+  // Add type-specific ID for convenience
+  if (type === 'DESIGNER') result.designerId = typeSpecificId
+  if (type === 'CLIENT') result.clientId = typeSpecificId
+  if (type === 'ADMIN') result.adminId = typeSpecificId
+  
+  return result
 }
 
 /**

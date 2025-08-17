@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { MatchRequestCard } from '@/components/designer/MatchRequestCard'
 import { logger } from '@/lib/core/logging-service'
+import { RejectionFeedbackModal } from '@/components/designer/RejectionFeedbackModal'
 
 interface EnhancedDesignerRequest {
   id: string
@@ -52,6 +53,10 @@ interface DesignerProfile {
   title: string
   isApproved: boolean
   isVerified: boolean
+  editedAfterApproval?: boolean
+  status?: 'pending' | 'approved' | 'rejected' | 'resubmitted'
+  rejectionReason?: string
+  rejectionSeen?: boolean
   designPhilosophy: string
   primaryCategories: string[]
   yearsExperience: number | string
@@ -67,6 +72,7 @@ export default function DesignerDashboardPage() {
   const [selectedRequest, setSelectedRequest] = useState<EnhancedDesignerRequest | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showRejectionModal, setShowRejectionModal] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -127,6 +133,15 @@ export default function DesignerDashboardPage() {
       setRequests(requestsData.requests || [])
       setMatchRequests(matchRequestsData.data || [])
       setProjectRequests(projectRequestsData.projectRequests || [])
+      
+      // Check if designer is rejected and hasn't seen the feedback
+      if (sessionData.designer.status === 'rejected' && 
+          sessionData.designer.rejectionReason && 
+          !sessionData.designer.rejectionSeen) {
+        setShowRejectionModal(true)
+        // Mark as seen via API
+        markRejectionAsSeen()
+      }
 
     } catch (error) {
       logger.error('Dashboard error:', error)
@@ -262,6 +277,17 @@ export default function DesignerDashboardPage() {
       router.push('/designer/login')
     } catch (error) {
       logger.error('Signout error:', error)
+    }
+  }
+  
+  const markRejectionAsSeen = async () => {
+    try {
+      await fetch('/api/designer/rejection-seen', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      logger.error('Error marking rejection as seen:', error)
     }
   }
 
@@ -430,7 +456,24 @@ export default function DesignerDashboardPage() {
               </div>
             </div>
 
-            {!designer.isApproved && (
+            {/* Show different status messages based on approval and edit status */}
+            {!designer.isApproved && designer.editedAfterApproval && (
+              <div 
+                className="mt-4 p-4 rounded-xl"
+                style={{
+                  backgroundColor: theme.warning + '10',
+                  border: `1px solid ${theme.warning}40`
+                }}
+              >
+                <p className="text-sm" style={{ color: theme.text.primary }}>
+                  <strong>🔄 Profile Changes Under Review:</strong> You recently edited your profile. 
+                  Your changes are being reviewed and you'll be notified once approved. 
+                  Some features may be limited until re-approval.
+                </p>
+              </div>
+            )}
+            
+            {!designer.isApproved && !designer.editedAfterApproval && (
               <div 
                 className="mt-4 p-4 rounded-xl"
                 style={{
@@ -441,6 +484,21 @@ export default function DesignerDashboardPage() {
                 <p className="text-sm" style={{ color: theme.text.primary }}>
                   <strong>Profile Under Review:</strong> Your profile is being reviewed by our team. 
                   You'll start receiving project requests once approved (usually within 24 hours).
+                </p>
+              </div>
+            )}
+            
+            {designer.isApproved && designer.editedAfterApproval && (
+              <div 
+                className="mt-4 p-4 rounded-xl"
+                style={{
+                  backgroundColor: theme.warning + '10',
+                  border: `1px solid ${theme.warning}40`
+                }}
+              >
+                <p className="text-sm" style={{ color: theme.text.primary }}>
+                  <strong>⚠️ Profile Updates Pending:</strong> Your recent profile changes are under review. 
+                  You can still receive project requests, but your updated information won't be visible to clients until approved.
                 </p>
               </div>
             )}
@@ -917,6 +975,16 @@ export default function DesignerDashboardPage() {
             </button>
           </div>
         </div>
+      )}
+      
+      {/* Rejection Feedback Modal */}
+      {designer && (
+        <RejectionFeedbackModal
+          isOpen={showRejectionModal}
+          onClose={() => setShowRejectionModal(false)}
+          rejectionReason={designer.rejectionReason || ''}
+          designerName={designer.firstName}
+        />
       )}
     </main>
   )

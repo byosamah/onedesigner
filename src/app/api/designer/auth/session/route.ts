@@ -74,6 +74,16 @@ export async function GET(request: NextRequest) {
         title: designer.title,
         isApproved: designer.is_approved,
         isVerified: designer.is_verified,
+        editedAfterApproval: designer.edited_after_approval || false,
+        // Derive status from existing columns if status column doesn't exist
+        status: designer.status || (
+          designer.is_approved ? 'approved' : 
+          designer.rejection_reason ? 'rejected' : 
+          'pending'
+        ),
+        rejectionReason: designer.rejection_reason,
+        // Use fallback for rejection_seen if column doesn't exist
+        rejectionSeen: designer.rejection_seen ?? false,
         yearsExperience: designer.years_experience,
         bio: designer.bio,
         city: designer.city,

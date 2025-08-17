@@ -28,11 +28,11 @@ export default function DesignerSignupPage() {
       // Store email for verification page
       sessionStorage.setItem('designerSignupEmail', email)
       
-      // Send OTP
-      const response = await fetch('/api/auth/send-otp', {
+      // Send OTP to designer-specific endpoint
+      const response = await fetch('/api/designer/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, isLogin: false }),
       })
 
       const data = await response.json()

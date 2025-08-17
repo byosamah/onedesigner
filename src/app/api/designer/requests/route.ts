@@ -1,16 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { logger } from '@/lib/core/logging-service'
+import { getDesignerSessionCookie, parseSessionCookie } from '@/lib/auth/cookie-utils'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
-    // Get designer session from cookie
-    const cookieStore = cookies()
-    const sessionCookie = cookieStore.get('designer-auth')
+    // Get designer session from cookie with backward compatibility
+    const sessionCookie = getDesignerSessionCookie()
     
     if (!sessionCookie) {
       return NextResponse.json(
@@ -19,7 +18,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const session = JSON.parse(sessionCookie.value)
+    const session = parseSessionCookie(sessionCookie.value)
     const { designerId } = session
 
     const supabase = createServiceClient()

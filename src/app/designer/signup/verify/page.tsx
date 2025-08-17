@@ -86,10 +86,10 @@ export default function DesignerSignupVerifyPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/auth/send-otp', {
+      const response = await fetch('/api/designer/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, isLogin: false }),
       })
 
       const data = await response.json()

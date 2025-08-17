@@ -125,6 +125,8 @@ interface DesignerProfile {
   teamCollaboration?: string
   isApproved: boolean
   isVerified: boolean
+  status?: 'pending' | 'approved' | 'rejected' | 'resubmitted'
+  rejectionReason?: string
 }
 
 export default function DesignerProfilePage() {
@@ -462,6 +464,37 @@ export default function DesignerProfilePage() {
             </div>
           </div>
         )}
+        
+        {/* Rejection Feedback Banner */}
+        {profile?.status === 'rejected' && profile.rejectionReason && (
+          <div className="mb-6 p-6 rounded-2xl animate-slideUp" style={{
+            backgroundColor: theme.warning + '10',
+            border: `2px solid ${theme.warning}`,
+            borderLeft: `6px solid ${theme.warning}`
+          }}>
+            <div className="flex items-start gap-4">
+              <div className="text-2xl">⚠️</div>
+              <div className="flex-1">
+                <h3 className="font-bold text-lg mb-2" style={{ color: theme.text.primary }}>
+                  Application Update Required
+                </h3>
+                <p className="mb-3" style={{ color: theme.text.primary }}>
+                  <strong>Feedback from our review team:</strong>
+                </p>
+                <p className="p-3 rounded-xl" style={{ 
+                  backgroundColor: theme.nestedBg,
+                  color: theme.text.primary,
+                  border: `1px solid ${theme.border}`
+                }}>
+                  {profile.rejectionReason}
+                </p>
+                <p className="mt-3 text-sm" style={{ color: theme.text.secondary }}>
+                  Please update your profile based on this feedback and click "Resubmit for Review" when done.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {profile && (
           <>
@@ -540,7 +573,7 @@ export default function DesignerProfilePage() {
                           color: '#FFF'
                         }}
                       >
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+                        {isSaving ? 'Saving...' : profile?.status === 'rejected' ? 'Resubmit for Review' : 'Save Changes'}
                       </button>
                       <button
                         onClick={() => {

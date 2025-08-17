@@ -1,6 +1,7 @@
 import { DatabaseService } from './base'
 import { z } from 'zod'
 import { logger } from '@/lib/core/logging-service'
+import { transformDesignerFormData } from '@/lib/utils/data-transformers'
 
 // Centralized designer form schema - single page application
 export const designerFormSchema = z.object({
@@ -63,6 +64,7 @@ export class DesignerService extends DatabaseService {
       city: dbData.city || '',
       availability: dbData.availability || 'immediate',
       bio: dbData.bio || '',
+      // Read portfolio images from tools array (portfolio_image columns don't exist yet)
       portfolioImages: Array.isArray(dbData.tools) ? dbData.tools : [],
       isApproved: dbData.is_approved || false
     }
@@ -112,11 +114,17 @@ export class DesignerService extends DatabaseService {
     if (formData.availability !== undefined) dbData.availability = formData.availability
     if (formData.bio !== undefined) dbData.bio = formData.bio
 
-    // Store portfolio images in the 'tools' array column (repurposing unused field)
-    // Since portfolio_image_1/2/3 columns don't exist yet
-    if (formData.portfolioImages !== undefined) {
-      // Store directly as array in the 'tools' field (which is currently unused)
+    // Store portfolio images in the 'tools' array column
+    // The portfolio_image_1/2/3 columns don't exist in the database yet
+    if (formData.portfolioImages !== undefined && Array.isArray(formData.portfolioImages)) {
+      // Store in tools array which exists in the database
       dbData.tools = formData.portfolioImages.length > 0 ? formData.portfolioImages : []
+      
+      // Only add individual columns if they exist in the database
+      // For now, commenting these out since they don't exist
+      // dbData.portfolio_image_1 = formData.portfolioImages[0] || null
+      // dbData.portfolio_image_2 = formData.portfolioImages[1] || null
+      // dbData.portfolio_image_3 = formData.portfolioImages[2] || null
     }
 
     return dbData
