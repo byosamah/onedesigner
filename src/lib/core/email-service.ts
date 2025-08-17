@@ -279,13 +279,8 @@ export class EmailService {
       return options.fromName
     }
     
-    // For OTP emails, use simple "OneDesigner"
-    if (templateName === 'otp' || options?.tags?.type === 'otp') {
-      return 'OneDesigner'
-    }
-    
-    // For all other emails (approval, rejection, welcome, project requests, etc.)
-    // use "Hala from OneDesigner"
+    // Always use "Hala from OneDesigner" for ALL emails including OTP
+    // This provides a consistent, personal touch
     return 'Hala from OneDesigner'
   }
 
