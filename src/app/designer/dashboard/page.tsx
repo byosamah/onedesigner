@@ -134,6 +134,14 @@ export default function DesignerDashboardPage() {
       setMatchRequests(matchRequestsData.data || [])
       setProjectRequests(projectRequestsData.projectRequests || [])
       
+      // Debug logging to diagnose the issue
+      console.log('Dashboard Debug - Designer data received:', {
+        status: sessionData.designer.status,
+        isApproved: sessionData.designer.isApproved,
+        rejectionReason: sessionData.designer.rejectionReason,
+        rejectionSeen: sessionData.designer.rejectionSeen
+      })
+      
       // Check if designer is rejected and hasn't seen the feedback
       if (sessionData.designer.status === 'rejected' && 
           sessionData.designer.rejectionReason && 
