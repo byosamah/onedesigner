@@ -433,9 +433,13 @@ export default function DesignerDashboardPage() {
               </div>
               
               <div className="flex items-center gap-3">
-                {designer.isApproved ? (
+                {designer.status === 'approved' || designer.isApproved ? (
                   <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
                     ✓ Approved
+                  </span>
+                ) : designer.status === 'rejected' ? (
+                  <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.error + '20', color: theme.error }}>
+                    ❌ Rejected
                   </span>
                 ) : (
                   <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
@@ -457,7 +461,24 @@ export default function DesignerDashboardPage() {
             </div>
 
             {/* Show different status messages based on approval and edit status */}
-            {!designer.isApproved && designer.editedAfterApproval && (
+            {designer.status === 'rejected' && designer.rejectionReason && (
+              <div 
+                className="mt-4 p-4 rounded-xl"
+                style={{
+                  backgroundColor: theme.error + '10',
+                  border: `1px solid ${theme.error}40`
+                }}
+              >
+                <p className="text-sm" style={{ color: theme.text.primary }}>
+                  <strong>❌ Application Rejected:</strong> {designer.rejectionReason}
+                </p>
+                <p className="text-sm mt-2" style={{ color: theme.text.secondary }}>
+                  Please update your profile based on the feedback above and resubmit for review.
+                </p>
+              </div>
+            )}
+            
+            {!designer.isApproved && designer.editedAfterApproval && designer.status !== 'rejected' && (
               <div 
                 className="mt-4 p-4 rounded-xl"
                 style={{
@@ -473,7 +494,7 @@ export default function DesignerDashboardPage() {
               </div>
             )}
             
-            {!designer.isApproved && !designer.editedAfterApproval && (
+            {!designer.isApproved && !designer.editedAfterApproval && designer.status !== 'rejected' && (
               <div 
                 className="mt-4 p-4 rounded-xl"
                 style={{

@@ -15,6 +15,7 @@ export interface Theme {
   accent: string
   success: string
   error: string
+  warning: string
   shadow: string
 }
 
@@ -32,6 +33,7 @@ export const getTheme = (isDarkMode: boolean): Theme => ({
   accent: '#f0ad4e',
   success: '#10B981',
   error: '#EF4444',
+  warning: '#F59E0B',
   shadow: isDarkMode ? '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
 })
 
