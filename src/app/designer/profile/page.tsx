@@ -398,12 +398,9 @@ export default function DesignerProfilePage() {
                   <div className="w-full h-full flex items-center justify-center border-2 border-dashed"
                        style={{ borderColor: theme.border }}>
                     <div className="text-center p-4">
-                      <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
+                      <div className="text-4xl mb-3" style={{ color: theme.text.muted }}>
                         📸
                       </div>
-                      <p className="text-sm mb-2 font-medium" style={{ color: theme.text.secondary }}>
-                        {field.label}
-                      </p>
                       <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
                         {field.helpText || 'No image uploaded yet'}
                       </p>
