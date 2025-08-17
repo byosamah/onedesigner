@@ -20,10 +20,7 @@ import {
 } from '@/lib/config/designer-fields'
 
 import {
-  transformDesignerApiToUI,
-  transformDesignerUIToApi,
-  cleanDesignerData,
-  getChangedFields
+  cleanDesignerData
 } from '@/lib/utils/designer-data-transformer'
 
 export default function DesignerProfilePage() {
@@ -79,17 +76,21 @@ export default function DesignerProfilePage() {
       const data = await response.json()
       logger.info('Profile API response:', data)
       
-      // Transform API response to UI format using centralized transformer
-      const transformedData = transformDesignerApiToUI(data.designer)
-      logger.info('Transformed profile data:', transformedData)
+      // Don't transform to camelCase - keep snake_case for form fields
+      // The fields use snake_case keys (first_name, not firstName)
+      const designerData = data.designer
+      logger.info('Designer profile data:', designerData)
       
-      setProfile(transformedData)
-      setFormData(transformedData)
+      setProfile(designerData)
+      setFormData(designerData)
       
       // Check if designer was rejected and hasn't seen feedback
-      if (transformedData.status === 'rejected' && 
-          transformedData.rejectionReason && 
-          !transformedData.rejectionSeen) {
+      const status = designerData.is_approved === false && designerData.rejection_reason ? 'rejected' : 
+                     designerData.is_approved ? 'approved' : 'pending'
+      
+      if (status === 'rejected' && 
+          designerData.rejection_reason && 
+          !designerData.rejection_seen) {
         setShowRejectionModal(true)
         markRejectionAsSeen()
       }
@@ -157,19 +158,18 @@ export default function DesignerProfilePage() {
       setIsSaving(true)
       setError(null)
       
-      // Clean and transform data for API
+      // Data is already in snake_case, no need to transform
       const cleanedData = cleanDesignerData(formData)
-      const apiData = transformDesignerUIToApi(cleanedData)
       
       // Check if reapproval is needed
-      const needsReapproval = profile?.isApproved && 
-        checkReapprovalNeeded(transformDesignerUIToApi(profile), apiData)
+      const needsReapproval = profile?.is_approved && 
+        checkReapprovalNeeded(profile, cleanedData)
       
       const response = await fetch('/api/designer/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(apiData)
+        body: JSON.stringify(cleanedData)
       })
 
       if (!response.ok) {
@@ -179,10 +179,9 @@ export default function DesignerProfilePage() {
 
       const updatedData = await response.json()
       
-      // Transform response back to UI format
-      const transformedData = transformDesignerApiToUI(updatedData.designer)
-      setProfile(transformedData)
-      setFormData(transformedData)
+      // Keep data in snake_case format
+      setProfile(updatedData.designer)
+      setFormData(updatedData.designer)
       setIsEditing(false)
       
       if (needsReapproval) {
@@ -204,7 +203,7 @@ export default function DesignerProfilePage() {
   const renderField = (field: DesignerField) => {
     const value = formData[field.key] || ''
     const error = validationErrors[field.key]
-    const isDisabled = !isEditing && profile?.isApproved
+    const isDisabled = !isEditing && profile?.is_approved
     
     switch (field.type) {
       case 'text':
@@ -338,6 +337,49 @@ export default function DesignerProfilePage() {
             )}
           </div>
         )
+        
+      case 'image':
+        return (
+          <div key={field.key} className="mb-6">
+            <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+              {field.label}
+            </label>
+            <div className="flex items-center gap-4">
+              {value ? (
+                <img 
+                  src={value} 
+                  alt="Profile" 
+                  className="w-24 h-24 rounded-full object-cover"
+                  style={{ border: `2px solid ${theme.border}` }}
+                />
+              ) : (
+                <div 
+                  className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
+                  style={{ 
+                    backgroundColor: theme.tagBg, 
+                    color: theme.text.secondary,
+                    border: `2px solid ${theme.border}` 
+                  }}
+                >
+                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                </div>
+              )}
+              {isEditing && (
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-lg text-sm"
+                  style={{
+                    backgroundColor: theme.cardBg,
+                    color: theme.text.primary,
+                    border: `2px solid ${theme.border}`
+                  }}
+                >
+                  Change Photo
+                </button>
+              )}
+            </div>
+          </div>
+        )
       
       default:
         return null
@@ -432,11 +474,11 @@ export default function DesignerProfilePage() {
           
           <div className="flex items-center gap-4">
             {/* Status Badge */}
-            {profile?.status === 'approved' || profile?.isApproved ? (
+            {profile?.is_approved ? (
               <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
                 ✓ Approved
               </span>
-            ) : profile?.status === 'rejected' ? (
+            ) : profile?.rejection_reason ? (
               <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: theme.error + '20', color: theme.error }}>
                 ❌ Rejected
               </span>
@@ -501,14 +543,14 @@ export default function DesignerProfilePage() {
         )}
         
         {/* Rejection Banner */}
-        {profile?.status === 'rejected' && profile?.rejectionReason && (
+        {profile?.rejection_reason && !profile?.is_approved && (
           <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: theme.warning + '20', border: `2px solid ${theme.warning}` }}>
             <div className="flex items-start gap-3">
               <span className="text-2xl">💡</span>
               <div>
                 <strong style={{ color: theme.text.primary }}>Feedback from admin:</strong>
                 <p style={{ color: theme.text.secondary, marginTop: '0.5rem' }}>
-                  {profile.rejectionReason}
+                  {profile.rejection_reason}
                 </p>
                 <p className="text-sm mt-2" style={{ color: theme.text.muted }}>
                   Please update your profile based on this feedback and save to resubmit for approval.
@@ -553,13 +595,62 @@ export default function DesignerProfilePage() {
               </div>
             </div>
           )}
+          
+          {/* Portfolio Images */}
+          <div className="p-6 rounded-2xl" style={{ backgroundColor: theme.cardBg }}>
+            <h2 className="text-xl font-bold mb-6" style={{ color: theme.text.primary }}>
+              Portfolio Images
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[1, 2, 3].map((num) => {
+                const imageKey = `portfolio_image_${num}`
+                const imageUrl = profile?.[imageKey]
+                
+                return (
+                  <div key={imageKey} className="aspect-video rounded-xl overflow-hidden" 
+                       style={{ backgroundColor: theme.border }}>
+                    {imageUrl ? (
+                      <img 
+                        src={imageUrl} 
+                        alt={`Portfolio ${num}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
+                            📸
+                          </div>
+                          <p className="text-sm" style={{ color: theme.text.muted }}>
+                            Portfolio Image {num}
+                          </p>
+                          {isEditing && (
+                            <button
+                              type="button"
+                              className="mt-2 px-3 py-1 rounded-lg text-xs"
+                              style={{
+                                backgroundColor: theme.accent,
+                                color: '#000'
+                              }}
+                            >
+                              Upload
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Rejection Feedback Modal */}
-      {showRejectionModal && profile?.rejectionReason && (
+      {showRejectionModal && profile?.rejection_reason && (
         <RejectionFeedbackModal
-          rejectionReason={profile.rejectionReason}
+          rejectionReason={profile.rejection_reason}
           onClose={() => setShowRejectionModal(false)}
         />
       )}
