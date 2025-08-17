@@ -616,26 +616,38 @@ export default function DesignerProfilePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="text-center">
+                      <div className="w-full h-full flex items-center justify-center border-2 border-dashed"
+                           style={{ borderColor: theme.border }}>
+                        <div className="text-center p-4">
                           <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
                             📸
                           </div>
-                          <p className="text-sm" style={{ color: theme.text.muted }}>
+                          <p className="text-sm mb-3 font-medium" style={{ color: theme.text.secondary }}>
                             Portfolio Image {num}
                           </p>
-                          {isEditing && (
-                            <button
-                              type="button"
-                              className="mt-2 px-3 py-1 rounded-lg text-xs"
-                              style={{
-                                backgroundColor: theme.accent,
-                                color: '#000'
-                              }}
-                            >
-                              Upload
-                            </button>
-                          )}
+                          <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
+                            {imageUrl ? 'Current image will be shown here' : 'No image uploaded yet'}
+                          </p>
+                          <button
+                            type="button"
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                            style={{
+                              backgroundColor: isEditing ? theme.accent : theme.cardBg,
+                              color: isEditing ? '#000' : theme.text.muted,
+                              border: `2px solid ${isEditing ? theme.accent : theme.border}`,
+                              cursor: isEditing ? 'pointer' : 'not-allowed',
+                              opacity: isEditing ? 1 : 0.7
+                            }}
+                            disabled={!isEditing}
+                            onClick={() => {
+                              if (isEditing) {
+                                // TODO: Implement file upload
+                                alert('Portfolio image upload will be implemented soon!')
+                              }
+                            }}
+                          >
+                            {isEditing ? 'Upload Image' : 'Upload Disabled'}
+                          </button>
                         </div>
                       </div>
                     )}

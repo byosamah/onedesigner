@@ -170,28 +170,6 @@ export const DESIGNER_FIELDS: DesignerField[] = [
       maxLength: 1000
     }
   },
-  {
-    key: 'years_experience',
-    label: 'Years of Experience',
-    type: 'select',
-    category: 'professional',
-    showInApplication: true,
-    showInProfile: true,
-    showInMatching: true,
-    showInAdmin: true,
-    editableAfterApproval: true,
-    requiresReapproval: false,
-    options: [
-      { value: '0-2', label: '0-2 years', description: 'Junior Designer' },
-      { value: '2-5', label: '2-5 years', description: 'Mid-level Designer' },
-      { value: '5-8', label: '5-8 years', description: 'Senior Designer' },
-      { value: '8-12', label: '8-12 years', description: 'Lead Designer' },
-      { value: '12+', label: '12+ years', description: 'Principal/Director' }
-    ],
-    validation: {
-      required: true
-    }
-  },
   
   // ===== LOCATION & AVAILABILITY =====
   {
@@ -214,6 +192,8 @@ export const DESIGNER_FIELDS: DesignerField[] = [
       { value: 'Germany', label: 'Germany' },
       { value: 'France', label: 'France' },
       { value: 'Netherlands', label: 'Netherlands' },
+      { value: 'Saudi Arabia', label: 'Saudi Arabia' },
+      { value: 'United Arab Emirates', label: 'United Arab Emirates' },
       { value: 'Other', label: 'Other' }
     ],
     validation: {
