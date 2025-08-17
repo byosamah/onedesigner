@@ -339,47 +339,104 @@ export default function DesignerProfilePage() {
         )
         
       case 'image':
-        return (
-          <div key={field.key} className="mb-6">
-            <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-              {field.label}
-            </label>
-            <div className="flex items-center gap-4">
-              {value ? (
-                <img 
-                  src={value} 
-                  alt="Profile" 
-                  className="w-24 h-24 rounded-full object-cover"
-                  style={{ border: `2px solid ${theme.border}` }}
-                />
-              ) : (
-                <div 
-                  className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
-                  style={{ 
-                    backgroundColor: theme.tagBg, 
-                    color: theme.text.secondary,
-                    border: `2px solid ${theme.border}` 
-                  }}
-                >
-                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                </div>
-              )}
-              {isEditing && (
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-lg text-sm"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    color: theme.text.primary,
-                    border: `2px solid ${theme.border}`
-                  }}
-                >
-                  Change Photo
-                </button>
-              )}
+        // Different rendering for avatar vs portfolio images
+        if (field.key === 'avatar_url') {
+          return (
+            <div key={field.key} className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                {field.label}
+              </label>
+              <div className="flex items-center gap-4">
+                {value ? (
+                  <img 
+                    src={value} 
+                    alt="Profile" 
+                    className="w-24 h-24 rounded-full object-cover"
+                    style={{ border: `2px solid ${theme.border}` }}
+                  />
+                ) : (
+                  <div 
+                    className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
+                    style={{ 
+                      backgroundColor: theme.tagBg, 
+                      color: theme.text.secondary,
+                      border: `2px solid ${theme.border}` 
+                    }}
+                  >
+                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                  </div>
+                )}
+                {isEditing && (
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded-lg text-sm"
+                    style={{
+                      backgroundColor: theme.cardBg,
+                      color: theme.text.primary,
+                      border: `2px solid ${theme.border}`
+                    }}
+                  >
+                    Change Photo
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        )
+          )
+        } else {
+          // Portfolio images rendering
+          return (
+            <div key={field.key} className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                {field.label}
+              </label>
+              <div className="aspect-video rounded-xl overflow-hidden" 
+                   style={{ backgroundColor: theme.border }}>
+                {value ? (
+                  <img 
+                    src={value} 
+                    alt={field.label}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center border-2 border-dashed"
+                       style={{ borderColor: theme.border }}>
+                    <div className="text-center p-4">
+                      <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
+                        📸
+                      </div>
+                      <p className="text-sm mb-3 font-medium" style={{ color: theme.text.secondary }}>
+                        {field.label}
+                      </p>
+                      <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
+                        {field.helpText || 'No image uploaded yet'}
+                      </p>
+                      <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
+                        style={{
+                          backgroundColor: isEditing ? theme.accent : theme.cardBg,
+                          color: isEditing ? '#000' : theme.text.muted,
+                          border: `2px solid ${isEditing ? theme.accent : theme.border}`,
+                          cursor: isEditing ? 'pointer' : 'not-allowed',
+                          opacity: isEditing ? 1 : 0.7
+                        }}
+                        disabled={!isEditing}
+                        onClick={() => {
+                          if (isEditing) {
+                            // TODO: Implement file upload
+                            alert('Portfolio image upload will be implemented soon!')
+                          }
+                        }}
+                      >
+                        {isEditing ? 'Upload Image' : 'Upload Disabled'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        }
       
       default:
         return null
@@ -584,78 +641,47 @@ export default function DesignerProfilePage() {
             </div>
           )}
           
-          {/* Portfolio Links */}
+          {/* Portfolio */}
           {fieldsByCategory.portfolio.length > 0 && (
             <div className="p-6 rounded-2xl" style={{ backgroundColor: theme.cardBg }}>
               <h2 className="text-xl font-bold mb-6" style={{ color: theme.text.primary }}>
-                Portfolio Links
+                Portfolio
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {fieldsByCategory.portfolio.map(field => renderField(field))}
+              <div className="space-y-6">
+                {/* Portfolio images in a grid */}
+                {fieldsByCategory.portfolio
+                  .filter(field => field.key.startsWith('portfolio_image'))
+                  .length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
+                      Portfolio Images
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {fieldsByCategory.portfolio
+                        .filter(field => field.key.startsWith('portfolio_image'))
+                        .map(field => renderField(field))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Portfolio links in a grid */}
+                {fieldsByCategory.portfolio
+                  .filter(field => !field.key.startsWith('portfolio_image'))
+                  .length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
+                      Portfolio Links
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {fieldsByCategory.portfolio
+                        .filter(field => !field.key.startsWith('portfolio_image'))
+                        .map(field => renderField(field))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
-          
-          {/* Portfolio Images */}
-          <div className="p-6 rounded-2xl" style={{ backgroundColor: theme.cardBg }}>
-            <h2 className="text-xl font-bold mb-6" style={{ color: theme.text.primary }}>
-              Portfolio Images
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[1, 2, 3].map((num) => {
-                const imageKey = `portfolio_image_${num}`
-                const imageUrl = profile?.[imageKey]
-                
-                return (
-                  <div key={imageKey} className="aspect-video rounded-xl overflow-hidden" 
-                       style={{ backgroundColor: theme.border }}>
-                    {imageUrl ? (
-                      <img 
-                        src={imageUrl} 
-                        alt={`Portfolio ${num}`}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center border-2 border-dashed"
-                           style={{ borderColor: theme.border }}>
-                        <div className="text-center p-4">
-                          <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
-                            📸
-                          </div>
-                          <p className="text-sm mb-3 font-medium" style={{ color: theme.text.secondary }}>
-                            Portfolio Image {num}
-                          </p>
-                          <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
-                            {imageUrl ? 'Current image will be shown here' : 'No image uploaded yet'}
-                          </p>
-                          <button
-                            type="button"
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
-                            style={{
-                              backgroundColor: isEditing ? theme.accent : theme.cardBg,
-                              color: isEditing ? '#000' : theme.text.muted,
-                              border: `2px solid ${isEditing ? theme.accent : theme.border}`,
-                              cursor: isEditing ? 'pointer' : 'not-allowed',
-                              opacity: isEditing ? 1 : 0.7
-                            }}
-                            disabled={!isEditing}
-                            onClick={() => {
-                              if (isEditing) {
-                                // TODO: Implement file upload
-                                alert('Portfolio image upload will be implemented soon!')
-                              }
-                            }}
-                          >
-                            {isEditing ? 'Upload Image' : 'Upload Disabled'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
         </div>
       </div>
 

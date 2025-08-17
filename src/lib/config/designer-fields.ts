@@ -376,6 +376,47 @@ export const DESIGNER_FIELDS: DesignerField[] = [
     editableAfterApproval: true,
     requiresReapproval: false,
     helpText: 'Upload a professional photo'
+  },
+  
+  // ===== PORTFOLIO IMAGES =====
+  {
+    key: 'portfolio_image_1',
+    label: 'Portfolio Image 1',
+    type: 'image',
+    category: 'portfolio',
+    showInApplication: true,
+    showInProfile: true,
+    showInMatching: false,
+    showInAdmin: true,
+    editableAfterApproval: true,
+    requiresReapproval: false,
+    helpText: 'Upload your best work sample (JPG, PNG, max 5MB)'
+  },
+  {
+    key: 'portfolio_image_2',
+    label: 'Portfolio Image 2',
+    type: 'image',
+    category: 'portfolio',
+    showInApplication: true,
+    showInProfile: true,
+    showInMatching: false,
+    showInAdmin: true,
+    editableAfterApproval: true,
+    requiresReapproval: false,
+    helpText: 'Upload your second work sample (JPG, PNG, max 5MB)'
+  },
+  {
+    key: 'portfolio_image_3',
+    label: 'Portfolio Image 3',
+    type: 'image',
+    category: 'portfolio',
+    showInApplication: true,
+    showInProfile: true,
+    showInMatching: false,
+    showInAdmin: true,
+    editableAfterApproval: true,
+    requiresReapproval: false,
+    helpText: 'Upload your third work sample (JPG, PNG, max 5MB)'
   }
 ]
 
