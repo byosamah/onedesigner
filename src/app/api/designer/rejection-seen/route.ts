@@ -24,18 +24,18 @@ export async function POST(request: NextRequest) {
         .update({ rejection_seen: true })
         .eq('id', designer.id)
       
-      if (error && error.message?.includes('column')) {
-        // Column doesn't exist yet, store in session/localStorage instead
-        logger.info(`rejection_seen column doesn't exist, using session storage for designer ${designer.id}`)
+      if (error) {
+        if (error.message?.includes('column')) {
+          // Column doesn't exist yet, store in session/localStorage instead
+          logger.info(`rejection_seen column doesn't exist, using session storage for designer ${designer.id}`)
+        } else {
+          logger.error('Error marking rejection as seen:', error)
+          return apiResponse.error('Failed to update rejection status')
+        }
       }
     } catch (updateError) {
       // Fallback: store in session or return success anyway
       logger.info(`Using fallback for rejection_seen: ${updateError}`)
-    }
-
-    if (error) {
-      logger.error('Error marking rejection as seen:', error)
-      return apiResponse.error('Failed to update rejection status')
     }
 
     logger.info(`Marked rejection as seen for designer ${designer.id}`)

@@ -135,6 +135,7 @@ export default function DesignerProfilePage() {
   const [profile, setProfile] = useState<DesignerProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchDesignerProfile()
