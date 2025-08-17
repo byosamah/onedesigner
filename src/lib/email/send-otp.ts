@@ -3,7 +3,7 @@ import { logger } from '@/lib/core/logging-service'
 
 export async function sendOTPEmail(email: string, otp: string) {
   logger.info('Attempting to send OTP email to:', email)
-  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'Hala from OneDesigner <team@onedesigner.app>'
+  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'Hala from OneDesigner <team@onedesigner.app>')
   logger.info('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
   
   try {
