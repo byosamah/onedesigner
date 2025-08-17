@@ -308,108 +308,16 @@ Consider all aspects: category expertise, style alignment, project fit, working 
   }
 
   private createDetailedMatchAnalysisPrompt(designer: any, brief: any): string {
-    return `
-==== YOUR MISSION ====
-Determine if this designer is THE PERFECT MATCH for this client's project. Apply the elite matching algorithm with surgical precision.
-
-==== CLIENT PROJECT ANALYSIS ====
-
-CORE REQUIREMENTS:
-- Company: ${brief.company_name}
-- Industry: ${brief.industry}
-- Project Type: ${brief.project_type || brief.projectType}
-- Budget: ${brief.budget}
-- Timeline: ${brief.timeline}
-- Design Styles: ${JSON.stringify(brief.styles)}
-
-PROJECT ESSENCE:
-- Requirements: ${brief.requirements || 'Not specified'}
-- Target Audience: ${brief.target_audience || 'Not specified'}
-- Brand Personality: ${brief.brand_personality || 'Not specified'}
-- Success Metrics: ${brief.success_metrics || 'Not specified'}
-- Inspiration: ${brief.inspiration || 'None provided'}
-
-==== DESIGNER EVALUATION ====
-
-Name: ${designer.first_name} ${designer.last_name}
-
-CATEGORY EXPERTISE:
-- Specializations: ${JSON.stringify(designer.specializations || [])}
-- Industries: ${JSON.stringify(designer.industries || [])}
-- Experience: ${designer.years_experience || 0} years
-- Total Projects: ${designer.total_projects_completed || designer.total_projects || 0}
-
-STYLE DNA:
-- Design Styles: ${JSON.stringify(designer.styles || [])}
-- Portfolio Keywords: ${JSON.stringify(designer.portfolio_keywords || [])}
-- Design Philosophy: ${designer.design_philosophy || 'Not specified'}
-
-PRACTICAL FIT:
-- Location: ${designer.city}, ${designer.country} (${designer.timezone || 'Unknown'})
-- Current Availability: ${designer.availability}
-- Timeline Preference: ${designer.preferred_timeline || 'unknown'}
-- Project Size Preference: ${designer.preferred_project_size || 'unknown'}
-
-WORKING STYLE:
-- Communication Style: ${designer.communication_style || 'unknown'}
-- Team Size: ${designer.team_size || 'solo'}
-- Work Approach: ${designer.work_approach || 'Not specified'}
-
-PERFORMANCE METRICS:
-- Client Satisfaction: ${designer.avg_client_satisfaction || 'Unknown'}/5
-- On-time Delivery: ${designer.on_time_delivery_rate || 'Unknown'}%
-- Budget Adherence: ${designer.budget_adherence_rate || 'Unknown'}%
-
-==== MATCHING ALGORITHM ====
-
-STEP 1: ELIMINATION FILTERS
-Verify designer passes ALL:
-□ Correct specialization for ${brief.project_type}
-□ Within budget range ${brief.budget} (+/- 20%)
-□ Available for ${brief.timeline} timeline
-□ Style matches ${brief.styles.join(', ')}
-□ Has relevant industry experience
-
-STEP 2: SCORING MATRIX (100 points)
-- CATEGORY MASTERY (30 pts): Specialization + portfolio + experience
-- STYLE ALIGNMENT (25 pts): Style match + philosophy + range
-- PROJECT FIT (20 pts): Industry + scale + success history
-- WORKING COMPATIBILITY (15 pts): Communication + process
-- VALUE FACTORS (10 pts): Budget fit + availability + extras
-
-STEP 3: DECISION
-- Score 85+: PERFECT MATCH - Recommend immediately
-- Score 70-84: GOOD MATCH - Recommend with noted considerations
-- Score <70: NO MATCH - Do not recommend
-
-==== RESPONSE FORMAT ====
-{
-  "isMatch": true/false,
-  "score": 0-100,
-  "confidence": "100%|95%|90%|85%",
-  "matchDecision": "PERFECT MATCH: [compelling reason]" or "NO MATCH: [key gap]",
-  "keyDistinction": "The only designer who [unique strength]",
-  "scoreBreakdown": {
-    "categoryMastery": 0-30,
-    "styleAlignment": 0-25,
-    "projectFit": 0-20,
-    "workingCompatibility": 0-15,
-    "valueFactors": 0-10
-  },
-  "matchNarrative": "[2-3 sentences why THIS designer for THIS project]",
-  "specificEvidence": [
-    "Portfolio example proving capability",
-    "Metric demonstrating reliability",
-    "Unique qualification for client need",
-    "Past project showing alignment"
-  ],
-  "riskMitigation": "How they solve client's specific concerns",
-  "surpriseDelight": "Unexpected bonus value",
-  "potentialConcerns": ["Any honest concern"],
-  "nextSteps": "Contact immediately for [dates]" or "Find alternative designer"
-}
-
-REMEMBER: Only recommend if this designer seems custom-built for this project (70+ score).`
+    // Import centralized matching functions
+    const { prepareDesignerForMatching, prepareBriefForMatching, createCentralizedMatchPrompt } = 
+      require('@/lib/matching/centralized-matcher')
+    
+    // Prepare data using centralized system
+    const preparedDesigner = prepareDesignerForMatching(designer)
+    const preparedBrief = prepareBriefForMatching(brief)
+    
+    // Use centralized prompt that only references existing fields
+    return createCentralizedMatchPrompt(preparedDesigner, preparedBrief)
   }
 
   private parseDetailedMatchResult(content: string, designer: any): any {
@@ -421,21 +329,21 @@ REMEMBER: Only recommend if this designer seems custom-built for this project (7
 
       const parsed = JSON.parse(jsonMatch[0])
       
-      // Ensure score is realistic
-      const score = Math.min(100, Math.max(0, parsed.score))
+      // Ensure score is realistic (using matchScore from centralized format)
+      const score = Math.min(100, Math.max(0, parsed.matchScore || parsed.score || 0))
       
       return {
         designer,
         score,
-        confidence: parsed.confidence || '85%',
+        confidence: parsed.confidence || 'medium',
         reasons: parsed.specificEvidence || [],
         personalizedReasons: parsed.specificEvidence || [],
         strengths: parsed.specificEvidence?.slice(0, 2) || [],
         weaknesses: parsed.potentialConcerns || [],
-        uniqueValue: parsed.keyDistinction || parsed.surpriseDelight,
+        uniqueValue: parsed.keyDistinction || '',
         riskLevel: score >= 85 ? 'low' : score >= 70 ? 'medium' : 'high',
-        matchSummary: parsed.matchNarrative || parsed.matchDecision,
-        isMatch: parsed.isMatch && score >= 70,
+        matchSummary: parsed.matchDecision || '',
+        isMatch: parsed.isRecommended !== false && score >= 70,
         aiAnalyzed: true,
         matchDecision: parsed.matchDecision,
         scoreBreakdown: parsed.scoreBreakdown,
