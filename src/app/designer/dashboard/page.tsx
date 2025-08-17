@@ -129,23 +129,42 @@ export default function DesignerDashboardPage() {
         throw new Error('Designer data not found in session response')
       }
 
-      setDesigner(sessionData.designer)
+      // Ensure status is derived if missing
+      const designerWithStatus = {
+        ...sessionData.designer,
+        status: sessionData.designer.status || (
+          sessionData.designer.isApproved ? 'approved' : 
+          sessionData.designer.rejectionReason ? 'rejected' : 
+          'pending'
+        )
+      }
+      
+      setDesigner(designerWithStatus)
       setRequests(requestsData.requests || [])
       setMatchRequests(matchRequestsData.data || [])
       setProjectRequests(projectRequestsData.projectRequests || [])
       
       // Debug logging to diagnose the issue
-      console.log('Dashboard Debug - Designer data received:', {
+      console.log('🔍 Dashboard Debug - Full Designer Object:', sessionData.designer)
+      console.log('📊 Dashboard Debug - Status Fields:', {
         status: sessionData.designer.status,
         isApproved: sessionData.designer.isApproved,
         rejectionReason: sessionData.designer.rejectionReason,
         rejectionSeen: sessionData.designer.rejectionSeen
       })
+      console.log('🎯 Dashboard Debug - Status Logic:', {
+        'Derived status': sessionData.designer.status,
+        'Should show Approved?': sessionData.designer.status === 'approved' || sessionData.designer.isApproved,
+        'Should show Rejected?': sessionData.designer.status === 'rejected',
+        'Will show': sessionData.designer.status === 'rejected' ? '❌ Rejected' : 
+                     (sessionData.designer.status === 'approved' || sessionData.designer.isApproved) ? '✓ Approved' : 
+                     '⏳ Under Review'
+      })
       
       // Check if designer is rejected and hasn't seen the feedback
-      if (sessionData.designer.status === 'rejected' && 
-          sessionData.designer.rejectionReason && 
-          !sessionData.designer.rejectionSeen) {
+      if (designerWithStatus.status === 'rejected' && 
+          designerWithStatus.rejectionReason && 
+          !designerWithStatus.rejectionSeen) {
         setShowRejectionModal(true)
         // Mark as seen via API
         markRejectionAsSeen()
