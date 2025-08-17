@@ -383,12 +383,9 @@ export default function DesignerProfilePage() {
             </div>
           )
         } else {
-          // Portfolio images rendering
+          // Portfolio images rendering - no label above since it's in the grid header
           return (
-            <div key={field.key} className="mb-6">
-              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
-                {field.label}
-              </label>
+            <div key={field.key}>
               <div className="aspect-video rounded-xl overflow-hidden" 
                    style={{ backgroundColor: theme.border }}>
                 {value ? (
@@ -404,7 +401,7 @@ export default function DesignerProfilePage() {
                       <div className="text-4xl mb-2" style={{ color: theme.text.muted }}>
                         📸
                       </div>
-                      <p className="text-sm mb-3 font-medium" style={{ color: theme.text.secondary }}>
+                      <p className="text-sm mb-2 font-medium" style={{ color: theme.text.secondary }}>
                         {field.label}
                       </p>
                       <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
