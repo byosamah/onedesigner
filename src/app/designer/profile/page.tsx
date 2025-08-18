@@ -834,15 +834,27 @@ export default function DesignerProfilePage() {
               </span>
             )}
             
-            {/* Edit/Save Button */}
+            {/* Edit/Save Button - Only allow editing for approved or rejected designers */}
             {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
-                style={{ backgroundColor: theme.accent, color: '#000' }}
-              >
-                Edit Profile
-              </button>
+              <>
+                {profile?.is_approved || profile?.rejection_reason ? (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
+                    style={{ backgroundColor: theme.accent, color: '#000' }}
+                  >
+                    {profile?.rejection_reason ? 'Address Feedback' : 'Edit Profile'}
+                  </button>
+                ) : (
+                  <div className="px-6 py-2 rounded-xl font-medium" style={{ 
+                    backgroundColor: theme.border + '40', 
+                    color: theme.text.muted,
+                    opacity: 0.7
+                  }}>
+                    Under Review - Editing Disabled
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex gap-2">
                 <button
@@ -905,6 +917,25 @@ export default function DesignerProfilePage() {
                 </p>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Under Review Banner */}
+        {!profile?.is_approved && !profile?.rejection_reason && (
+          <div className="mb-6 p-6 rounded-xl text-center" style={{ 
+            backgroundColor: theme.accent + '10', 
+            border: `2px solid ${theme.accent}40` 
+          }}>
+            <div className="text-4xl mb-3">⏳</div>
+            <h3 className="text-xl font-bold mb-2" style={{ color: theme.text.primary }}>
+              Your Profile is Under Review
+            </h3>
+            <p className="text-base mb-3" style={{ color: theme.text.secondary }}>
+              Our team is carefully reviewing your application. We'll notify you within 48 hours.
+            </p>
+            <p className="text-sm" style={{ color: theme.text.muted }}>
+              Profile editing is temporarily disabled during the review process.
+            </p>
           </div>
         )}
 
