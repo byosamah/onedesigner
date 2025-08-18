@@ -731,54 +731,65 @@ export default function AdminDashboardPage() {
                     )}
                   </div>
                   
-                  {(selectedDesigner.dribbbleUrl || selectedDesigner.behanceUrl || selectedDesigner.linkedinUrl) && (
-                    <div>
-                      <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Additional Links</p>
-                      <div className="space-y-2">
-                        {selectedDesigner.dribbbleUrl && (
-                          <a 
-                            href={selectedDesigner.dribbbleUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="block transition-colors duration-300 hover:opacity-80"
-                            style={{ color: theme.accent }}
-                          >
-                            🎨 Dribbble: {selectedDesigner.dribbbleUrl} ↗
-                          </a>
-                        )}
-                        
-                        {selectedDesigner.behanceUrl && (
-                          <a 
-                            href={selectedDesigner.behanceUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="block transition-colors duration-300 hover:opacity-80"
-                            style={{ color: theme.accent }}
-                          >
-                            🎯 Behance: {selectedDesigner.behanceUrl} ↗
-                          </a>
-                        )}
-                        
-                        {selectedDesigner.linkedinUrl && (
-                          <a 
-                            href={selectedDesigner.linkedinUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="block transition-colors duration-300 hover:opacity-80"
-                            style={{ color: theme.accent }}
-                          >
-                            💼 LinkedIn: {selectedDesigner.linkedinUrl} ↗
-                          </a>
-                        )}
+                  {(() => {
+                    // Helper function to check if URL is valid
+                    const isValidUrl = (url: string | undefined): boolean => {
+                      return url && url.trim() !== '' && !url.includes('null') && url.startsWith('http')
+                    }
+                    
+                    const validDribbble = isValidUrl(selectedDesigner.dribbbleUrl)
+                    const validBehance = isValidUrl(selectedDesigner.behanceUrl)
+                    const validLinkedIn = isValidUrl(selectedDesigner.linkedinUrl)
+                    
+                    const hasValidLinks = validDribbble || validBehance || validLinkedIn
+                    
+                    return hasValidLinks ? (
+                      <div>
+                        <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Additional Links</p>
+                        <div className="space-y-2">
+                          {validDribbble && (
+                            <a 
+                              href={selectedDesigner.dribbbleUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block transition-colors duration-300 hover:opacity-80"
+                              style={{ color: theme.accent }}
+                            >
+                              🎨 Dribbble: {selectedDesigner.dribbbleUrl} ↗
+                            </a>
+                          )}
+                          
+                          {validBehance && (
+                            <a 
+                              href={selectedDesigner.behanceUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block transition-colors duration-300 hover:opacity-80"
+                              style={{ color: theme.accent }}
+                            >
+                              🎯 Behance: {selectedDesigner.behanceUrl} ↗
+                            </a>
+                          )}
+                          
+                          {validLinkedIn && (
+                            <a 
+                              href={selectedDesigner.linkedinUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block transition-colors duration-300 hover:opacity-80"
+                              style={{ color: theme.accent }}
+                            >
+                              💼 LinkedIn: {selectedDesigner.linkedinUrl} ↗
+                            </a>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  
-                  {!selectedDesigner.dribbbleUrl && !selectedDesigner.behanceUrl && !selectedDesigner.linkedinUrl && (
-                    <p className="text-sm" style={{ color: theme.text.muted }}>
-                      No additional portfolio links provided
-                    </p>
-                  )}
+                    ) : (
+                      <p className="text-sm" style={{ color: theme.text.muted }}>
+                        No additional portfolio links provided
+                      </p>
+                    )
+                  })()}
                 </div>
               </div>
               
