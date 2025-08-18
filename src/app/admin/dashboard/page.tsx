@@ -45,7 +45,8 @@ interface Designer {
   totalProjects?: number
   updatedAt?: string
   rejectionReason?: string
-  portfolio_images?: string[]
+  tools?: (string | null)[]
+  portfolio_images?: (string | null)[]
   avatar?: string
 }
 
@@ -665,10 +666,10 @@ export default function AdminDashboardPage() {
               <div>
                 <p className="text-sm font-medium mb-2" style={{ color: theme.text.muted }}>Portfolio Samples</p>
                 <div className="grid grid-cols-3 gap-4">
-                  {selectedDesigner.portfolio_images && selectedDesigner.portfolio_images.length > 0 ? (
-                    selectedDesigner.portfolio_images.map((image, index) => (
+                  {selectedDesigner.portfolio_images && Array.isArray(selectedDesigner.portfolio_images) && selectedDesigner.portfolio_images.length > 0 ? (
+                    selectedDesigner.portfolio_images.slice(0, 3).map((image, index) => (
                       <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2" style={{ borderColor: theme.border }}>
-                        {image && image.startsWith('data:image') ? (
+                        {image && (image.startsWith('data:image') || image.startsWith('http')) ? (
                           <img 
                             src={image} 
                             alt={`Portfolio ${index + 1}`}
@@ -702,7 +703,7 @@ export default function AdminDashboardPage() {
                     ))
                   )}
                 </div>
-                {(!selectedDesigner.portfolio_images || selectedDesigner.portfolio_images.length === 0) && (
+                {(!selectedDesigner.portfolio_images || !Array.isArray(selectedDesigner.portfolio_images) || selectedDesigner.portfolio_images.filter(Boolean).length === 0) && (
                   <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
                     Portfolio images will appear here when uploaded by the designer.
                   </p>
