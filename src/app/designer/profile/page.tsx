@@ -7,6 +7,9 @@ import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 import { RejectionFeedbackModal } from '@/components/designer/RejectionFeedbackModal'
 
+// Import location API for dynamic country/city loading
+import { getCountries, getCitiesByCountry, type Country } from '@/lib/api/location-api'
+
 // Import centralized configuration
 import { 
   DESIGNER_FIELDS,
@@ -38,6 +41,12 @@ export default function DesignerProfilePage() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [showRejectionModal, setShowRejectionModal] = useState(false)
   const [autoEditOnRejection, setAutoEditOnRejection] = useState(false)
+  
+  // Location API states (same as application form)
+  const [countries, setCountries] = useState<Country[]>([])
+  const [cities, setCities] = useState<string[]>([])
+  const [loadingCountries, setLoadingCountries] = useState(false)
+  const [loadingCities, setLoadingCities] = useState(false)
 
   // Get fields for profile context
   const profileFields = getFieldsForContext('profile')
@@ -50,6 +59,46 @@ export default function DesignerProfilePage() {
     experience: getFieldsByCategory('experience').filter(f => f.showInProfile),
     preferences: getFieldsByCategory('preferences').filter(f => f.showInProfile)
   }
+
+  // Load countries on mount (same as application form)
+  useEffect(() => {
+    const fetchCountries = async () => {
+      setLoadingCountries(true)
+      try {
+        const countriesList = await getCountries()
+        setCountries(countriesList)
+      } catch (error) {
+        logger.error('Failed to fetch countries:', error)
+      } finally {
+        setLoadingCountries(false)
+      }
+    }
+    
+    fetchCountries()
+  }, [])
+
+  // Load cities when country changes (same as application form)
+  useEffect(() => {
+    if (formData.country) {
+      const fetchCities = async () => {
+        setLoadingCities(true)
+        setCities([]) // Clear previous cities
+        
+        try {
+          const citiesList = await getCitiesByCountry(formData.country)
+          setCities(citiesList)
+        } catch (error) {
+          logger.error('Failed to fetch cities:', error)
+        } finally {
+          setLoadingCities(false)
+        }
+      }
+      
+      fetchCities()
+    } else {
+      setCities([])
+    }
+  }, [formData.country])
 
   // Fetch designer profile on mount
   useEffect(() => {
@@ -294,6 +343,88 @@ export default function DesignerProfilePage() {
         )
       
       case 'select':
+        // Special handling for country and city fields (dynamic data)
+        if (field.key === 'country') {
+          return (
+            <div key={field.key} className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                {field.label}
+                {field.validation?.required && <span style={{ color: theme.error }}> *</span>}
+              </label>
+              <select
+                value={value}
+                onChange={(e) => {
+                  handleFieldChange(field.key, e.target.value)
+                  // Clear city when country changes
+                  if (formData.city) {
+                    handleFieldChange('city', '')
+                  }
+                }}
+                disabled={isDisabled || loadingCountries}
+                className="w-full px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  color: theme.text.primary,
+                  border: `2px solid ${error ? theme.error : theme.border}`,
+                  opacity: isDisabled ? 0.7 : 1
+                }}
+              >
+                <option value="">{loadingCountries ? 'Loading countries...' : 'Select your country'}</option>
+                {countries.map(country => (
+                  <option key={country.country} value={country.country}>
+                    {country.country}
+                  </option>
+                ))}
+              </select>
+              {error && (
+                <p className="mt-1 text-xs" style={{ color: theme.error }}>
+                  {error}
+                </p>
+              )}
+            </div>
+          )
+        }
+        
+        if (field.key === 'city') {
+          return (
+            <div key={field.key} className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>
+                {field.label}
+                {field.validation?.required && <span style={{ color: theme.error }}> *</span>}
+              </label>
+              <select
+                value={value}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                disabled={isDisabled || !formData.country || loadingCities}
+                className="w-full px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  color: theme.text.primary,
+                  border: `2px solid ${error ? theme.error : theme.border}`,
+                  opacity: isDisabled || !formData.country ? 0.7 : 1
+                }}
+              >
+                <option value="">
+                  {!formData.country ? 'Select country first' : 
+                   loadingCities ? 'Loading cities...' : 
+                   'Select your city'}
+                </option>
+                {cities.map(city => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+              {error && (
+                <p className="mt-1 text-xs" style={{ color: theme.error }}>
+                  {error}
+                </p>
+              )}
+            </div>
+          )
+        }
+        
+        // Default select field (for other non-location fields)
         return (
           <div key={field.key} className="mb-6">
             <label className="block text-sm font-medium mb-2" style={{ color: theme.text.secondary }}>

@@ -184,18 +184,6 @@ export const DESIGNER_FIELDS: DesignerField[] = [
     editableAfterApproval: true,
     requiresReapproval: false,
     placeholder: 'Select your country',
-    options: [
-      { value: 'United States', label: 'United States' },
-      { value: 'United Kingdom', label: 'United Kingdom' },
-      { value: 'Canada', label: 'Canada' },
-      { value: 'Australia', label: 'Australia' },
-      { value: 'Germany', label: 'Germany' },
-      { value: 'France', label: 'France' },
-      { value: 'Netherlands', label: 'Netherlands' },
-      { value: 'Saudi Arabia', label: 'Saudi Arabia' },
-      { value: 'United Arab Emirates', label: 'United Arab Emirates' },
-      { value: 'Other', label: 'Other' }
-    ],
     validation: {
       required: true
     }
@@ -203,7 +191,7 @@ export const DESIGNER_FIELDS: DesignerField[] = [
   {
     key: 'city',
     label: 'City',
-    type: 'text',
+    type: 'select',
     category: 'personal',
     showInApplication: true,
     showInProfile: true,
@@ -211,11 +199,9 @@ export const DESIGNER_FIELDS: DesignerField[] = [
     showInAdmin: true,
     editableAfterApproval: true,
     requiresReapproval: false,
-    placeholder: 'New York',
+    placeholder: 'Select your city',
     validation: {
-      required: true,
-      minLength: 2,
-      maxLength: 100
+      required: true
     }
   },
   {
