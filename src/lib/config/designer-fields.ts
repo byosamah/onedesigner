@@ -462,7 +462,8 @@ export function validateField(key: string, value: any): { valid: boolean; error?
     if (validation.maxLength && value.length > validation.maxLength) {
       return { valid: false, error: `${field.label} must be no more than ${validation.maxLength} characters` }
     }
-    if (validation.pattern && !validation.pattern.test(value)) {
+    // Only validate pattern if field has a value or is required
+    if (validation.pattern && value.length > 0 && !validation.pattern.test(value)) {
       return { valid: false, error: `${field.label} format is invalid` }
     }
   }
