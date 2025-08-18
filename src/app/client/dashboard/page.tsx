@@ -104,6 +104,13 @@ export default function ClientDashboard() {
       const sessionData = await sessionResponse.json()
       const matchesData = await matchesResponse.json()
 
+      // Debug logging
+      console.log('Matches received from API:', matchesData.matches?.map(m => ({
+        id: m.id,
+        status: m.status,
+        designerName: m.designer?.firstName
+      })))
+
       setClient(sessionData.client || sessionData.user)
       setMatches(matchesData.matches || [])
 
@@ -143,6 +150,13 @@ export default function ClientDashboard() {
 
   const sendWorkingRequest = async () => {
     if (!selectedMatchForContact) return
+    
+    // Debug logging
+    console.log('Sending working request with:', {
+      matchId: selectedMatchForContact.matchId,
+      designerId: selectedMatchForContact.designerId,
+      designerName: selectedMatchForContact.designerName
+    })
     
     try {
       const response = await fetch(`/api/client/matches/${selectedMatchForContact.matchId}/contact`, {
