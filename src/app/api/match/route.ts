@@ -108,12 +108,16 @@ export async function POST(request: NextRequest) {
           dribbbleUrl: match.designer.dribbble_url,
           behanceUrl: match.designer.behance_url,
           portfolioImages: (() => {
-            // Get portfolio images from tools array field (temporary storage)
+            // Get portfolio images from tools array field (where they're actually stored)
             if (Array.isArray(match.designer.tools) && match.designer.tools.length > 0) {
-              return match.designer.tools;
+              // Filter out null values and ensure we have valid image URLs
+              const validImages = match.designer.tools.filter(img => img && (img.startsWith('http') || img.startsWith('data:image')));
+              if (validImages.length > 0) {
+                return validImages;
+              }
             }
             
-            // If no actual images, generate Picsum placeholders
+            // Only use placeholders if no real images exist (fallback)
             const category = match.designer.title?.includes('Graphic') ? 'abstract' :
                             match.designer.title?.includes('Web') ? 'tech' :
                             match.designer.title?.includes('UI/UX') ? 'app' :
@@ -274,29 +278,27 @@ Provide a JSON response with:
             dribbbleUrl: designer.dribbble_url,
             behanceUrl: designer.behance_url,
             portfolioImages: (() => {
-              // Try to get actual portfolio images first
-              const actualImages = [
-                designer.portfolio_image_1,
-                designer.portfolio_image_2,
-                designer.portfolio_image_3
-              ].filter(Boolean);
-              
-              // If no actual images, generate Picsum placeholders
-              if (actualImages.length === 0) {
-                const category = designer.title?.includes('Graphic') ? 'abstract' :
-                                designer.title?.includes('Web') ? 'tech' :
-                                designer.title?.includes('UI/UX') ? 'app' :
-                                designer.title?.includes('Product') ? 'product' :
-                                designer.title?.includes('Motion') ? 'motion' : 'design';
-                
-                return [
-                  `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
-                  `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
-                  `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
-                ];
+              // Get portfolio images from tools array field (where they're actually stored)
+              if (Array.isArray(designer.tools) && designer.tools.length > 0) {
+                // Filter out null values and ensure we have valid image URLs
+                const validImages = designer.tools.filter(img => img && (img.startsWith('http') || img.startsWith('data:image')));
+                if (validImages.length > 0) {
+                  return validImages;
+                }
               }
               
-              return actualImages;
+              // Only use placeholders if no real images exist (fallback)
+              const category = designer.title?.includes('Graphic') ? 'abstract' :
+                              designer.title?.includes('Web') ? 'tech' :
+                              designer.title?.includes('UI/UX') ? 'app' :
+                              designer.title?.includes('Product') ? 'product' :
+                              designer.title?.includes('Motion') ? 'motion' : 'design';
+              
+              return [
+                `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
+              ];
             })()
           },
           score: analysis.score,
@@ -338,29 +340,27 @@ Provide a JSON response with:
             dribbbleUrl: designer.dribbble_url,
             behanceUrl: designer.behance_url,
             portfolioImages: (() => {
-              // Try to get actual portfolio images first
-              const actualImages = [
-                designer.portfolio_image_1,
-                designer.portfolio_image_2,
-                designer.portfolio_image_3
-              ].filter(Boolean);
-              
-              // If no actual images, generate Picsum placeholders
-              if (actualImages.length === 0) {
-                const category = designer.title?.includes('Graphic') ? 'abstract' :
-                                designer.title?.includes('Web') ? 'tech' :
-                                designer.title?.includes('UI/UX') ? 'app' :
-                                designer.title?.includes('Product') ? 'product' :
-                                designer.title?.includes('Motion') ? 'motion' : 'design';
-                
-                return [
-                  `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
-                  `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
-                  `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
-                ];
+              // Get portfolio images from tools array field (where they're actually stored)
+              if (Array.isArray(designer.tools) && designer.tools.length > 0) {
+                // Filter out null values and ensure we have valid image URLs
+                const validImages = designer.tools.filter(img => img && (img.startsWith('http') || img.startsWith('data:image')));
+                if (validImages.length > 0) {
+                  return validImages;
+                }
               }
               
-              return actualImages;
+              // Only use placeholders if no real images exist (fallback)
+              const category = designer.title?.includes('Graphic') ? 'abstract' :
+                              designer.title?.includes('Web') ? 'tech' :
+                              designer.title?.includes('UI/UX') ? 'app' :
+                              designer.title?.includes('Product') ? 'product' :
+                              designer.title?.includes('Motion') ? 'motion' : 'design';
+              
+              return [
+                `https://picsum.photos/seed/${category}1-${designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}2-${designer.id}/800/600`,
+                `https://picsum.photos/seed/${category}3-${designer.id}/800/600`
+              ];
             })()
           },
           // Generate a more realistic random score between 55-75 for fallback
