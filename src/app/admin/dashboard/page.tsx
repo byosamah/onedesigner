@@ -184,6 +184,7 @@ export default function AdminDashboardPage() {
     if (activeTab === 'pending') return designer.isVerified && !designer.isApproved && !designer.rejectionReason
     if (activeTab === 'approved') return designer.isApproved
     if (activeTab === 'rejected') return !designer.isApproved && designer.rejectionReason
+    if (activeTab === 'resubmitted') return !designer.isApproved && !designer.rejectionReason && designer.editedAfterApproval
     return true
   })
 
@@ -313,6 +314,17 @@ export default function AdminDashboardPage() {
             }}
           >
             Approved ({stats?.approvedDesigners || 0})
+          </button>
+          <button
+            onClick={() => setActiveTab('resubmitted')}
+            className="font-semibold py-2 px-6 rounded-xl transition-all duration-300"
+            style={{
+              backgroundColor: activeTab === 'resubmitted' ? theme.accent : 'transparent',
+              color: activeTab === 'resubmitted' ? '#000' : theme.text.secondary,
+              border: `2px solid ${activeTab === 'resubmitted' ? theme.accent : theme.border}`
+            }}
+          >
+            🔄 Resubmitted ({designers.filter(d => !d.isApproved && !d.rejectionReason && d.editedAfterApproval).length})
           </button>
           <button
             onClick={() => setActiveTab('rejected')}

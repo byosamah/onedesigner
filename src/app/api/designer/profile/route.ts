@@ -17,6 +17,15 @@ export async function PUT(request: NextRequest) {
 
     const supabase = createServiceClient()
 
+    // Get current designer status to check if they were rejected
+    const { data: currentDesigner } = await supabase
+      .from('designers')
+      .select('is_approved, rejection_reason')
+      .eq('id', session.designerId)
+      .single()
+
+    const wasRejected = currentDesigner && !currentDesigner.is_approved && currentDesigner.rejection_reason
+
     // Update basic designer profile fields
     const updateData: any = {
       updated_at: new Date().toISOString(),
@@ -24,6 +33,12 @@ export async function PUT(request: NextRequest) {
       is_approved: false,
       // Mark that they edited after approval
       edited_after_approval: true
+    }
+
+    // If designer was rejected and is now resubmitting, clear the rejection reason
+    if (wasRejected) {
+      updateData.rejection_reason = null
+      logger.info('Designer resubmitting after rejection - clearing rejection reason')
     }
 
     // Profile data is already in snake_case from the frontend

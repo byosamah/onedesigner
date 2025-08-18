@@ -407,7 +407,12 @@ export default function DesignerProfilePage() {
       
       setIsEditing(false)
       
-      if (needsReapproval) {
+      // Check if this was a rejection recovery (designer was rejected and is now resubmitting)
+      const wasRejected = profile?.rejection_reason && !profile?.is_approved
+      
+      if (wasRejected) {
+        setSuccessMessage('Profile resubmitted! We\'ll review your updates within 48 hours.')
+      } else if (needsReapproval) {
         setSuccessMessage('Profile updated! Your changes will be reviewed by our team.')
       } else {
         setSuccessMessage('Profile updated successfully!')
@@ -861,7 +866,9 @@ export default function DesignerProfilePage() {
                   className="px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
                   style={{ backgroundColor: theme.success, color: '#fff' }}
                 >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
+                  {isSaving ? 'Saving...' : 
+                   profile?.rejection_reason && !profile?.is_approved ? 'Resubmit for Review' : 
+                   'Save Changes'}
                 </button>
               </div>
             )}
