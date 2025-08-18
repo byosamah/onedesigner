@@ -233,34 +233,27 @@ export default function DesignerProfilePage() {
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.append('avatar', file)
-
-      const response = await fetch('/api/designer/avatar/upload', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Avatar upload failed')
+      // Convert to base64 for preview (don't save to database yet)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const base64Avatar = e.target?.result as string
+        
+        // Update form data with base64 for preview
+        setFormData(prev => ({ ...prev, avatar_url: base64Avatar }))
+        
+        setIsUploadingAvatar(false)
       }
-
-      const result = await response.json()
       
-      // Update form data and profile with new avatar URL
-      const newAvatarUrl = result.avatarUrl
-      setFormData(prev => ({ ...prev, avatar_url: newAvatarUrl }))
-      setProfile(prev => prev ? { ...prev, avatar_url: newAvatarUrl } : null)
+      reader.onerror = () => {
+        setError('Failed to read avatar image')
+        setIsUploadingAvatar(false)
+      }
       
-      setSuccessMessage('Avatar updated successfully!')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      reader.readAsDataURL(file)
 
     } catch (error) {
-      logger.error('Avatar upload error:', error)
-      setError(error instanceof Error ? error.message : 'Failed to upload avatar')
-    } finally {
+      logger.error('Avatar processing error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to process avatar')
       setIsUploadingAvatar(false)
     }
   }
@@ -281,6 +274,37 @@ export default function DesignerProfilePage() {
 
     setValidationErrors(errors)
     return isValid
+  }
+
+  const uploadPendingAvatar = async (base64Avatar: string): Promise<string> => {
+    try {
+      // Convert base64 to File
+      const response = await fetch(base64Avatar)
+      const blob = await response.blob()
+      const file = new File([blob], 'avatar.jpg', { type: blob.type })
+      
+      // Upload to server
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      const uploadResponse = await fetch('/api/designer/avatar/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload avatar')
+      }
+
+      const result = await uploadResponse.json()
+      return result.avatarUrl
+      
+    } catch (error) {
+      logger.error('Error uploading avatar:', error)
+      setError('Failed to upload avatar')
+      throw error
+    }
   }
 
   const uploadPendingImages = async (images: (string | null)[]): Promise<(string | null)[]> => {
@@ -342,6 +366,12 @@ export default function DesignerProfilePage() {
       // Handle portfolio images - upload any base64 images first, then store in tools array
       const uploadedPortfolioImages = await uploadPendingImages(portfolioImages)
       cleanedData.tools = uploadedPortfolioImages.filter(Boolean)
+      
+      // Handle avatar - upload if it's base64 data
+      if (cleanedData.avatar_url && cleanedData.avatar_url.startsWith('data:image/')) {
+        const uploadedAvatarUrl = await uploadPendingAvatar(cleanedData.avatar_url)
+        cleanedData.avatar_url = uploadedAvatarUrl
+      }
       
       // Check if reapproval is needed
       const needsReapproval = profile?.is_approved && 
