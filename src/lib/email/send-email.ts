@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from '@/lib/constants'
+import { API_ENDPOINTS, EMAIL_URLS } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
 
 interface EmailOptions {
@@ -10,9 +10,6 @@ interface EmailOptions {
 
 export async function sendEmail({ to, subject, html, text }: EmailOptions) {
   try {
-    // Always use personalized sender for all emails
-    const defaultSender = 'Hala from OneDesigner <team@onedesigner.app>'
-    
     // Use Resend API if available
     if (process.env.RESEND_API_KEY) {
       const response = await fetch(API_ENDPOINTS.RESEND, {
@@ -22,7 +19,7 @@ export async function sendEmail({ to, subject, html, text }: EmailOptions) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || defaultSender,
+          from: process.env.EMAIL_FROM || EMAIL_URLS.SENDER.DEFAULT,
           to,
           subject,
           html,

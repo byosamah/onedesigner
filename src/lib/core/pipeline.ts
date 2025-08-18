@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { AUTH_COOKIES } from '@/lib/constants'
+import { AUTH_COOKIES, API_TIMING, RATE_LIMITING } from '@/lib/constants'
 import { ErrorManager } from './error-manager'
 import { logger } from '@/lib/core/logging-service'
 
@@ -57,7 +57,7 @@ export class RequestPipeline {
   constructor(config: PipelineConfig = {}) {
     this.config = {
       skipMiddleware: [],
-      timeout: 30000, // 30 seconds default
+      timeout: API_TIMING.DEFAULT_TIMEOUT_MS,
       enableLogging: true,
       enableMetrics: true,
       ...config
@@ -362,8 +362,8 @@ export const rateLimitMiddleware = (
   } = {}
 ): Middleware => {
   const opts = {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // requests per window
+    windowMs: RATE_LIMITING.WINDOW_15_MIN,
+    max: RATE_LIMITING.API_REQUESTS_PER_MINUTE,
     keyGenerator: (req: AuthenticatedRequest) => req.userId || req.context?.ip || 'anonymous',
     skipSuccessfulRequests: false,
     ...options

@@ -1,3 +1,5 @@
+import { EMAIL_URLS } from '@/lib/constants'
+
 interface OTPEmailProps {
   otp: string
   name: string
@@ -43,7 +45,7 @@ export function otpEmailTemplate({ otp, name, action = 'verify your email' }: OT
         
         <p style="color: #999; font-size: 14px; text-align: center; margin: 0;">
           OneDesigner - AI-powered designer matching<br>
-          <a href="https://onedesigner.app" style="color: #f0ad4e; text-decoration: none;">onedesigner.app</a>
+          <a href="${EMAIL_URLS.FOOTER_LINKS.WEBSITE()}" style="color: #f0ad4e; text-decoration: none;">onedesigner.app</a>
         </p>
       </div>
     </body>
@@ -61,7 +63,7 @@ This code expires in 10 minutes. If you didn't request this code, please ignore 
 
 ---
 OneDesigner - AI-powered designer matching
-https://onedesigner.app
+${EMAIL_URLS.FOOTER_LINKS.WEBSITE()}
   `.trim()
   
   return { subject, html, text }

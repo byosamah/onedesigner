@@ -2,7 +2,10 @@ import { NextRequest } from 'next/server'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
 import { projectRequestService } from '@/lib/database/project-request-service'
-import { createProjectApprovedEmail, createProjectRejectedEmail } from '@/lib/email/templates/project-request'
+import { 
+  createProjectApprovedEmailMarcStyle, 
+  createProjectRejectedEmailMarcStyle 
+} from '@/lib/email/templates/marc-lou-style'
 import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
 
@@ -46,14 +49,14 @@ export async function POST(
       return apiResponse.serverError('Failed to update project request')
     }
 
-    // Send email notification to client using centralized templates
+    // Send email notification to client using Marc Lou style templates
     if (projectRequest.clients?.email && projectRequest.designers) {
-      const emailHtml = action === 'approve' 
-        ? createProjectApprovedEmail({
+      const emailContent = action === 'approve' 
+        ? createProjectApprovedEmailMarcStyle({
             designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
             designerEmail: projectRequest.designers.email
           })
-        : createProjectRejectedEmail({
+        : createProjectRejectedEmailMarcStyle({
             designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
             rejectionReason: rejectionReason,
             dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/dashboard`
@@ -61,10 +64,14 @@ export async function POST(
 
       await emailService.sendEmail({
         to: projectRequest.clients.email,
-        subject: action === 'approve' 
-          ? `✅ Your project request has been approved!`
-          : `Project Request Update from ${projectRequest.designers.first_name}`,
-        html: emailHtml
+        subject: emailContent.subject,
+        html: emailContent.html,
+        text: emailContent.text,
+        tags: {
+          type: 'project-response',
+          response: action,
+          requestId: params.id
+        }
       })
     }
 

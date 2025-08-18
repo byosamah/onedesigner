@@ -9,7 +9,7 @@ import {
   Brief, 
   ClientPreferences 
 } from '@/lib/matching/enhanced-scoring'
-import { sendEmail } from '@/lib/email/send-email'
+import { emailService } from '@/lib/core/email-service'
 import { 
   generateMatchExplanation, 
   generateKeyStrengths,
@@ -314,50 +314,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send email notification to client
-    if (finalMatch && brief.client?.email) {
+    // Send email notification to client about their match (only for high-quality matches)
+    if (finalMatch && brief.client?.email && bestMatch.score >= 70) {
       try {
-        await sendEmail({
+        // Use the centralized EmailService with the match-found template
+        await emailService.sendTemplatedEmail('match-found', {
           to: brief.client.email,
-          subject: 'We found your perfect designer match! 🎯',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #f0ad4e; margin: 0;">OneDesigner</h1>
-              </div>
-              <h2 style="color: #333;">We found the perfect designer for your project!</h2>
-              <p style="color: #666; font-size: 16px;">
-                Our AI has analyzed hundreds of designers and found an exceptional match for your ${brief.project_type} project.
-              </p>
-              <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0;">
-                <h3 style="color: #333; margin-top: 0;">Your Match:</h3>
-                <p style="color: #666; margin: 10px 0;">
-                  <strong>Designer:</strong> ${bestMatch.designer.first_name} ${bestMatch.designer.last_name[0]}.<br>
-                  <strong>Match Score:</strong> ${bestMatch.score}%<br>
-                  <strong>Specialties:</strong> ${bestMatch.designer.skills?.slice(0, 3).join(', ') || 'Various design skills'}
-                </p>
-              </div>
-              <p style="color: #666;">
-                ${bestMatch.personalizedReasons?.[0] || bestMatch.reasons?.[0] || 'This designer has the perfect combination of skills and experience for your project.'}
-              </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}" 
-                   style="background: #f0ad4e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                  View Your Match
-                </a>
-              </div>
-              <p style="color: #999; font-size: 14px; text-align: center;">
-                Unlock this designer's contact details with just 1 credit.
-              </p>
-            </div>
-          `,
-          text: `We found the perfect designer for your ${brief.project_type} project! Match score: ${bestMatch.score}%. View your match at: ${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}`
+          variables: {
+            score: bestMatch.score,
+            designerName: `${bestMatch.designer.first_name} ${bestMatch.designer.last_name[0]}.`,
+            designerTitle: bestMatch.designer.title || 'Designer',
+            experience: `${bestMatch.designer.years_experience || 'Several'} years`,
+            matchUrl: `${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}`
+          },
+          tags: {
+            type: 'match-notification',
+            matchId: finalMatch.id,
+            briefId: briefId
+          }
         })
-        logger.info('Client notification email sent')
+        logger.info('Client match notification email sent via centralized EmailService')
       } catch (emailError) {
-        logger.error('Failed to send client notification:', emailError)
+        logger.error('Failed to send client match notification:', emailError)
       }
     }
+
 
     // Check if match is already unlocked
     const isUnlocked = finalMatch?.status === 'unlocked' || finalMatch?.status === 'accepted'

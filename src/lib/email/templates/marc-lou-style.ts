@@ -394,6 +394,103 @@ export function createDesignerApprovalEmailMarcStyle(data: {
 }
 
 /**
+ * Project approved email for clients - Marc Lou style
+ */
+export function createProjectApprovedEmailMarcStyle(data: {
+  designerName: string
+  designerEmail: string
+}): { subject: string; html: string; text: string } {
+  const template = createMarcLouStyleEmail({
+    title: 'Great news!',
+    preheader: 'Your project request has been approved',
+    content: {
+      greeting: '🎉 Fantastic news!',
+      mainText: `
+        ${data.designerName} is excited to work with you on your project!
+        
+        <div style="background: #ECFDF5; border-left: 4px solid #10B981; padding: 16px; margin: 24px 0; border-radius: 8px;">
+          <strong style="color: #065F46;">Designer Contact:</strong><br>
+          <a href="mailto:${data.designerEmail}" style="color: #059669; font-weight: 600; text-decoration: none;">
+            ${data.designerEmail}
+          </a>
+        </div>
+        
+        <strong>What happens next?</strong><br>
+        Reach out to ${data.designerName} directly to:
+        <ul style="color: #6B7280; margin-top: 8px;">
+          <li>Discuss project details</li>
+          <li>Set up a discovery call</li>
+          <li>Share any additional requirements</li>
+        </ul>
+        
+        <p style="color: #9CA3AF; font-size: 14px; margin-top: 20px;">
+          💡 Tip: The sooner you connect, the faster your project gets started!
+        </p>
+      `,
+      signature: '— Hala from OneDesigner'
+    }
+  })
+
+  return {
+    subject: `✅ ${data.designerName} approved your project request!`,
+    ...template
+  }
+}
+
+/**
+ * Project rejected email for clients - Marc Lou style
+ */
+export function createProjectRejectedEmailMarcStyle(data: {
+  designerName: string
+  rejectionReason?: string
+  dashboardUrl: string
+}): { subject: string; html: string; text: string } {
+  const template = createMarcLouStyleEmail({
+    title: 'Project update',
+    preheader: 'Designer response to your request',
+    content: {
+      greeting: 'Quick update on your project request',
+      mainText: `
+        ${data.designerName} isn't available for your project right now.
+        
+        ${data.rejectionReason ? `
+        <div style="background: #FEF2F2; border-left: 4px solid #EF4444; padding: 16px; margin: 24px 0; border-radius: 8px;">
+          <strong style="color: #991B1B;">Designer's note:</strong><br>
+          <span style="color: #7F1D1D;">${data.rejectionReason}</span>
+        </div>
+        ` : ''}
+        
+        <strong>Don't worry!</strong> We have plenty of other talented designers who'd love to work with you.
+        
+        <p style="margin-top: 16px;">
+          You still have your match credit, so you can:
+        </p>
+        <ul style="color: #6B7280;">
+          <li>Find a new designer match</li>
+          <li>Browse other available designers</li>
+          <li>Adjust your project requirements and try again</li>
+        </ul>
+      `,
+      ctaButton: {
+        text: 'Find Another Designer →',
+        href: data.dashboardUrl
+      },
+      additionalContent: `
+        <p style="color: #9CA3AF; font-size: 14px; margin-top: 24px;">
+          Need help finding the right designer? Reply to this email and we'll assist you personally.
+        </p>
+      `,
+      signature: '— Hala from OneDesigner'
+    }
+  })
+
+  return {
+    subject: `Update on your project request`,
+    ...template
+  }
+}
+
+/**
  * Designer rejection email - Marc Lou style (simplified without token)
  */
 export function createDesignerRejectionEmailMarcStyle(data: {
@@ -489,6 +586,61 @@ export function createOTPEmailMarcStyle(data: {
 
   return {
     subject: `${data.otp} is your OneDesigner code`,
+    ...template
+  }
+}
+
+/**
+ * Reminder email for pending project requests - Marc Lou style
+ */
+export function createProjectRequestReminderMarcStyle(data: {
+  designerName: string
+  daysRemaining: number
+  projectType?: string
+  clientMessage?: string
+  dashboardUrl: string
+}): { subject: string; html: string; text: string } {
+  const urgency = data.daysRemaining <= 1 ? '⏰ Last day!' : data.daysRemaining <= 3 ? '⚡ Time sensitive' : '📌 Reminder'
+  
+  const template = createMarcLouStyleEmail({
+    title: 'Project request reminder',
+    preheader: `${data.daysRemaining} days left to respond`,
+    content: {
+      greeting: `Hey ${data.designerName}! 👋`,
+      mainText: `
+        ${urgency} You have a pending project request that needs your response.
+        
+        <div style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 16px; margin: 24px 0; border-radius: 8px;">
+          <strong style="color: #92400E;">⏱️ ${data.daysRemaining} ${data.daysRemaining === 1 ? 'day' : 'days'} remaining</strong>
+          ${data.projectType ? `<br>Project: ${data.projectType}` : ''}
+        </div>
+        
+        ${data.daysRemaining <= 1 ? 
+          `<strong>This request expires tomorrow!</strong> The client is waiting for your response.` :
+          `The client is eager to hear from you. A quick response helps maintain your 100% response rate.`
+        }
+        
+        ${data.clientMessage ? `
+        <div style="margin-top: 20px; padding: 16px; background: #F9FAFB; border-radius: 8px;">
+          <em style="color: #6B7280;">"${data.clientMessage}"</em>
+        </div>
+        ` : ''}
+      `,
+      ctaButton: {
+        text: data.daysRemaining <= 1 ? 'Respond Now →' : 'View Request',
+        href: data.dashboardUrl
+      },
+      additionalContent: `
+        <p style="color: #9CA3AF; font-size: 14px; margin-top: 24px;">
+          💡 Pro tip: Quick responses lead to better client relationships and more projects!
+        </p>
+      `,
+      signature: '— Hala from OneDesigner'
+    }
+  })
+
+  return {
+    subject: `${urgency} ${data.daysRemaining} ${data.daysRemaining === 1 ? 'day' : 'days'} left to respond to project request`,
     ...template
   }
 }

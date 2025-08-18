@@ -1,4 +1,5 @@
 import { createEmailTemplate } from '../template-base'
+import { EMAIL_URLS } from '@/lib/constants'
 
 /**
  * Create rejection email for designers with option to update application
@@ -57,8 +58,8 @@ export function createDesignerRejectionEmail(data: {
       <p><strong>OneDesigner</strong></p>
       <p>We're committed to building a community of exceptional designers</p>
       <p>
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}">Visit our website</a> | 
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/contact">Need help?</a>
+        <a href="${EMAIL_URLS.FOOTER_LINKS.WEBSITE()}">Visit our website</a> | 
+        <a href="${EMAIL_URLS.FOOTER_LINKS.CONTACT()}">Need help?</a>
       </p>
       <p style="margin-top: 20px; font-size: 12px; color: #999;">
         You're receiving this email because you applied to join OneDesigner.

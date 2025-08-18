@@ -542,16 +542,349 @@ export const DEFAULT_SCHEMA: ConfigSchema = {
     description: 'Logging level'
   },
 
-  // Rate limiting
+  // ==================== BUSINESS TIMING CONFIGURATION ====================
+  
+  // OTP Configuration
+  'otp.expiry.minutes': {
+    type: 'number',
+    default: 10,
+    env: 'OTP_EXPIRY_MINUTES',
+    description: 'OTP expiry time in minutes'
+  },
+  'otp.cooldown.seconds': {
+    type: 'number',
+    default: 60,
+    env: 'OTP_COOLDOWN_SECONDS',
+    description: 'OTP request cooldown in seconds'
+  },
+  'otp.length': {
+    type: 'number',
+    default: 6,
+    description: 'OTP code length'
+  },
+  'otp.maxAttempts.hour': {
+    type: 'number',
+    default: 5,
+    description: 'Max OTP attempts per hour'
+  },
+  'otp.maxGeneration.day': {
+    type: 'number',
+    default: 20,
+    description: 'Max OTP generation per day'
+  },
+
+  // Email Service Configuration
+  'email.rateLimit.perMinute': {
+    type: 'number',
+    default: 60,
+    env: 'EMAIL_RATE_LIMIT_PER_MINUTE',
+    description: 'Email rate limit per minute'
+  },
+  'email.retry.maxRetries': {
+    type: 'number',
+    default: 3,
+    env: 'EMAIL_MAX_RETRIES',
+    description: 'Email service max retries'
+  },
+  'email.retry.delayMs': {
+    type: 'number',
+    default: 5000,
+    env: 'EMAIL_RETRY_DELAY_MS',
+    description: 'Email retry delay in milliseconds'
+  },
+  'email.queue.processInterval': {
+    type: 'number',
+    default: 10000,
+    description: 'Email queue processing interval in milliseconds'
+  },
+  'email.queue.maxSize': {
+    type: 'number',
+    default: 1000,
+    description: 'Email queue maximum size'
+  },
+
+  // API Timeouts
+  'api.timeout.default': {
+    type: 'number',
+    default: 30000,
+    env: 'API_TIMEOUT_DEFAULT_MS',
+    description: 'Default API timeout in milliseconds'
+  },
+  'api.timeout.quick': {
+    type: 'number',
+    default: 5000,
+    description: 'Quick API timeout in milliseconds'
+  },
+  'api.timeout.long': {
+    type: 'number',
+    default: 60000,
+    description: 'Long API timeout in milliseconds'
+  },
+  'api.ai.timeout': {
+    type: 'number',
+    default: 45000,
+    env: 'AI_REQUEST_TIMEOUT_MS',
+    description: 'AI service timeout in milliseconds'
+  },
+  'api.ai.maxRetries': {
+    type: 'number',
+    default: 3,
+    description: 'AI service max retries'
+  },
+  'api.payment.timeout': {
+    type: 'number',
+    default: 45000,
+    description: 'Payment service timeout in milliseconds'
+  },
+
+  // Cache Configuration (enhanced)
+  'cache.ttl.short': {
+    type: 'number',
+    default: 60000, // 1 minute
+    description: 'Short cache TTL in milliseconds'
+  },
+  'cache.ttl.medium': {
+    type: 'number',
+    default: 900000, // 15 minutes
+    description: 'Medium cache TTL in milliseconds'
+  },
+  'cache.ttl.long': {
+    type: 'number',
+    default: 3600000, // 1 hour
+    description: 'Long cache TTL in milliseconds'
+  },
+  'cache.ttl.daily': {
+    type: 'number',
+    default: 86400000, // 24 hours
+    description: 'Daily cache TTL in milliseconds'
+  },
+  'cache.session.ttl': {
+    type: 'number',
+    default: 2592000000, // 30 days
+    description: 'User session cache TTL in milliseconds'
+  },
+  'cache.match.ttl': {
+    type: 'number',
+    default: 7200000, // 2 hours
+    description: 'Match cache TTL in milliseconds'
+  },
+  'cache.embedding.ttl': {
+    type: 'number',
+    default: 86400000, // 24 hours
+    description: 'Embedding cache TTL in milliseconds'
+  },
+  'cache.cleanup.interval': {
+    type: 'number',
+    default: 3600000, // 1 hour
+    description: 'Cache cleanup interval in milliseconds'
+  },
+
+  // Rate Limiting (enhanced)
+  'rateLimit.window.15min': {
+    type: 'number',
+    default: 900000, // 15 minutes
+    description: 'Rate limit window - 15 minutes in milliseconds'
+  },
+  'rateLimit.window.1hour': {
+    type: 'number',
+    default: 3600000, // 1 hour
+    description: 'Rate limit window - 1 hour in milliseconds'
+  },
+  'rateLimit.window.1day': {
+    type: 'number',
+    default: 86400000, // 1 day
+    description: 'Rate limit window - 1 day in milliseconds'
+  },
+  'rateLimit.api.perMinute': {
+    type: 'number',
+    default: 100,
+    description: 'API requests per minute'
+  },
+  'rateLimit.api.perHour': {
+    type: 'number',
+    default: 1000,
+    description: 'API requests per hour'
+  },
+  'rateLimit.login.per15min': {
+    type: 'number',
+    default: 5,
+    description: 'Login attempts per 15 minutes'
+  },
+  'rateLimit.match.perHour': {
+    type: 'number',
+    default: 50,
+    description: 'Match requests per hour'
+  },
+  'rateLimit.profile.perDay': {
+    type: 'number',
+    default: 5,
+    description: 'Profile updates per day'
+  },
+  'rateLimit.admin.multiplier': {
+    type: 'number',
+    default: 10,
+    description: 'Admin rate limit multiplier'
+  },
+
+  // Business Process Timing
+  'business.match.expiryDays': {
+    type: 'number',
+    default: 7,
+    env: 'MATCH_EXPIRY_DAYS',
+    description: 'Match expiry in days'
+  },
+  'business.request.expiryDays': {
+    type: 'number',
+    default: 7,
+    description: 'Designer request expiry in days'
+  },
+  'business.session.client.days': {
+    type: 'number',
+    default: 30,
+    description: 'Client session duration in days'
+  },
+  'business.session.designer.days': {
+    type: 'number',
+    default: 30,
+    description: 'Designer session duration in days'
+  },
+  'business.session.admin.hours': {
+    type: 'number',
+    default: 8,
+    description: 'Admin session duration in hours'
+  },
+  'business.review.applicationDays': {
+    type: 'number',
+    default: 3,
+    description: 'Application review period in days'
+  },
+  'business.cleanup.expiredMatchDays': {
+    type: 'number',
+    default: 30,
+    description: 'Expired match cleanup period in days'
+  },
+  'business.cleanup.inactiveUserDays': {
+    type: 'number',
+    default: 365,
+    description: 'Inactive user cleanup period in days'
+  },
+  'business.cleanup.logRetentionDays': {
+    type: 'number',
+    default: 90,
+    description: 'Log retention period in days'
+  },
+
+  // Performance Monitoring
+  'performance.response.fast': {
+    type: 'number',
+    default: 200,
+    description: 'Fast response time threshold in milliseconds'
+  },
+  'performance.response.acceptable': {
+    type: 'number',
+    default: 1000,
+    description: 'Acceptable response time threshold in milliseconds'
+  },
+  'performance.response.slow': {
+    type: 'number',
+    default: 3000,
+    description: 'Slow response time threshold in milliseconds'
+  },
+  'performance.response.critical': {
+    type: 'number',
+    default: 10000,
+    description: 'Critical response time threshold in milliseconds'
+  },
+  'performance.query.fast': {
+    type: 'number',
+    default: 50,
+    description: 'Fast database query threshold in milliseconds'
+  },
+  'performance.query.slow': {
+    type: 'number',
+    default: 1000,
+    description: 'Slow database query threshold in milliseconds'
+  },
+  'performance.monitoring.healthCheck': {
+    type: 'number',
+    default: 30000,
+    description: 'Health check interval in milliseconds'
+  },
+  'performance.monitoring.metrics': {
+    type: 'number',
+    default: 300000,
+    description: 'Metrics collection interval in milliseconds'
+  },
+
+  // UI/UX Timing
+  'ui.transition.fast': {
+    type: 'number',
+    default: 150,
+    description: 'Fast transition duration in milliseconds'
+  },
+  'ui.transition.normal': {
+    type: 'number',
+    default: 300,
+    description: 'Normal transition duration in milliseconds'
+  },
+  'ui.transition.slow': {
+    type: 'number',
+    default: 500,
+    description: 'Slow transition duration in milliseconds'
+  },
+  'ui.message.success': {
+    type: 'number',
+    default: 3000,
+    description: 'Success message display duration in milliseconds'
+  },
+  'ui.message.error': {
+    type: 'number',
+    default: 5000,
+    description: 'Error message display duration in milliseconds'
+  },
+  'ui.debounce.default': {
+    type: 'number',
+    default: 300,
+    description: 'Default debounce delay in milliseconds'
+  },
+  'ui.loading.minimum': {
+    type: 'number',
+    default: 500,
+    description: 'Minimum loading time to prevent flash in milliseconds'
+  },
+  'ui.loading.timeout': {
+    type: 'number',
+    default: 30000,
+    description: 'Maximum loading timeout in milliseconds'
+  },
+
+  // Development Overrides
+  'dev.timing.otpExpiryMinutes': {
+    type: 'number',
+    default: 30,
+    description: 'Development OTP expiry in minutes (longer for testing)'
+  },
+  'dev.timing.cacheTtlMs': {
+    type: 'number',
+    default: 60000,
+    description: 'Development cache TTL in milliseconds (shorter for testing)'
+  },
+  'dev.timing.rateLimitMultiplier': {
+    type: 'number',
+    default: 0.1,
+    description: 'Development rate limit multiplier (more lenient)'
+  },
+
+  // Legacy Rate Limiting (for backward compatibility)
   'rateLimit.window': {
     type: 'number',
     default: 900000, // 15 minutes
-    description: 'Rate limit window in milliseconds'
+    description: 'Rate limit window in milliseconds (legacy)'
   },
   'rateLimit.max': {
     type: 'number',
     default: 100,
-    description: 'Max requests per window'
+    description: 'Max requests per window (legacy)'
   }
 }
 

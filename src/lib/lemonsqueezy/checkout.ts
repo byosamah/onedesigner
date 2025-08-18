@@ -1,5 +1,6 @@
 import { PRODUCTS, ProductKey } from './client'
 import { logger } from '@/lib/core/logging-service'
+import { API_ENDPOINTS, FULL_URLS } from '@/lib/constants'
 
 interface CheckoutOptions {
   productKey: ProductKey
@@ -23,7 +24,7 @@ export async function createCheckout({
   }
 
   try {
-    const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
+    const response = await fetch(`${API_ENDPOINTS.LEMONSQUEEZY}/checkouts`, {
       method: 'POST',
       headers: {
         'Accept': 'application/vnd.api+json',
@@ -43,9 +44,9 @@ export async function createCheckout({
             product_options: {
               name: product.name,
               description: `Get ${product.credits} designer matches for your projects`,
-              redirect_url: redirectUrl || `${process.env.NEXT_PUBLIC_APP_URL}/match/success`,
+              redirect_url: redirectUrl || `${FULL_URLS.PUBLIC.HOME()}/match/success`,
               receipt_button_text: 'View Your Matches',
-              receipt_link_url: `${process.env.NEXT_PUBLIC_APP_URL}/matches`
+              receipt_link_url: `${FULL_URLS.CLIENT.DASHBOARD()}`
             },
             checkout_data: {
               email
@@ -84,7 +85,7 @@ export async function createCheckout({
 
 export async function getCheckout(checkoutId: string) {
   try {
-    const response = await fetch(`https://api.lemonsqueezy.com/v1/checkouts/${checkoutId}`, {
+    const response = await fetch(`${API_ENDPOINTS.LEMONSQUEEZY}/checkouts/${checkoutId}`, {
       method: 'GET',
       headers: {
         'Accept': 'application/vnd.api+json',

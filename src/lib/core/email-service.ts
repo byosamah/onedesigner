@@ -10,6 +10,7 @@ import { logger } from '@/lib/core/logging-service'
 import { ErrorManager } from '@/lib/core/error-manager'
 import { otpService } from '@/lib/core/otp-service'
 import { Features } from '@/lib/features'
+import { EMAIL_TIMING, timeUtils } from '@/lib/constants'
 import { 
   createWelcomeClientEmailMarcStyle,
   createDesignerApprovalEmailMarcStyle,
@@ -92,15 +93,15 @@ export class EmailService {
     const apiKey = process.env.RESEND_API_KEY || ''
     this.resend = new Resend(apiKey)
 
-    // Default configuration
+    // Default configuration using centralized timing
     this.config = {
       from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
       fromName: 'OneDesigner', // Default sender name
       replyTo: process.env.EMAIL_REPLY_TO,
       apiKey,
-      maxRetries: 3,
-      retryDelay: 5000, // 5 seconds
-      rateLimit: 60, // 60 emails per minute
+      maxRetries: EMAIL_TIMING.MAX_RETRIES,
+      retryDelay: EMAIL_TIMING.RETRY_DELAY_MS,
+      rateLimit: EMAIL_TIMING.RATE_LIMIT_PER_MINUTE,
       queueEnabled: true,
       trackingEnabled: true
     }
@@ -279,9 +280,10 @@ export class EmailService {
       return options.fromName
     }
     
-    // Always use "Hala from OneDesigner" for ALL emails including OTP
-    // This provides a consistent, personal touch
-    return 'Hala from OneDesigner'
+    // Use "OneDesigner" for OTP emails, "Hala from OneDesigner" for all others
+    // OTP emails need to be more official/security-focused
+    const isOTPEmail = templateName === 'otp' || options?.tags?.type === 'otp'
+    return isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'
   }
 
   /**
@@ -548,7 +550,7 @@ export class EmailService {
   private startQueueProcessor(): void {
     setInterval(() => {
       this.processQueue()
-    }, 10000) // Process every 10 seconds
+    }, EMAIL_TIMING.QUEUE_PROCESS_INTERVAL) // Process queue at configured interval
     
     logger.info('Email queue processor started')
   }

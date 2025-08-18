@@ -1,3 +1,6 @@
+// Import URL constants
+import { PRODUCTION_URLS, EXTERNAL_URLS } from './urls'
+
 // Pricing packages configuration
 export const PRICING_PACKAGES = [
   {
@@ -113,11 +116,10 @@ export const AUTH_COOKIES = {
   ADMIN: 'admin-session'
 } as const
 
-// API endpoints
 export const API_ENDPOINTS = {
-  RESEND: 'https://api.resend.com/emails',
-  LEMONSQUEEZY: 'https://api.lemonsqueezy.com/v1',
-  DEEPSEEK: 'https://api.deepseek.com/v1'
+  RESEND: PRODUCTION_URLS.API.RESEND,
+  LEMONSQUEEZY: PRODUCTION_URLS.API.LEMONSQUEEZY,
+  DEEPSEEK: PRODUCTION_URLS.API.DEEPSEEK
 } as const
 
 // OTP configuration
@@ -126,14 +128,16 @@ export const OTP_CONFIG = {
   LENGTH: 6
 } as const
 
-// Placeholder images
+// Placeholder images (now from centralized URLs)
 export const PLACEHOLDER_IMAGES = {
-  DESIGNER_AVATAR: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-  PROJECT_PREVIEW: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'
+  DESIGNER_AVATAR: EXTERNAL_URLS.PLACEHOLDER.UNSPLASH_DESIGNER,
+  PROJECT_PREVIEW: EXTERNAL_URLS.PLACEHOLDER.UNSPLASH_PROJECT
 } as const
 
-// Re-export design categories
+// Re-export design categories, URLs, and business timing
 export * from './design-categories'
+export * from './urls'
+export * from './business-timing'
 
 // Type exports for type safety
 export type PricingPackage = typeof PRICING_PACKAGES[number]

@@ -8,6 +8,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { logger } from '@/lib/core/logging-service'
 import { ErrorManager } from '@/lib/core/error-manager'
+import { OTP_TIMING, timeUtils } from '@/lib/constants'
 import { getBusinessRules } from '@/lib/core/business-rules'
 import { Features } from '@/lib/features'
 
@@ -63,12 +64,12 @@ export class OTPService {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
     this.supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Default configuration
+    // Default configuration using centralized timing
     this.config = {
-      length: 6,
-      expiry: 10, // 10 minutes
-      maxAttempts: 5,
-      cooldownPeriod: 60, // 1 minute between requests
+      length: OTP_TIMING.LENGTH,
+      expiry: OTP_TIMING.EXPIRY_MINUTES,
+      maxAttempts: OTP_TIMING.MAX_ATTEMPTS_PER_HOUR,
+      cooldownPeriod: OTP_TIMING.COOLDOWN_SECONDS,
       alphanumeric: false,
       caseSensitive: false
     }
@@ -93,19 +94,19 @@ export class OTPService {
         const { getOneDesignerConfig } = require('@/lib/config/init')
         
         this.config = {
-          length: getOneDesignerConfig('otp.length', 6),
-          expiry: getOneDesignerConfig('otp.expiry', 10),
-          maxAttempts: getOneDesignerConfig('otp.maxAttempts', 5),
-          cooldownPeriod: getOneDesignerConfig('otp.cooldown', 60),
+          length: getOneDesignerConfig('otp.length', OTP_TIMING.LENGTH),
+          expiry: getOneDesignerConfig('otp.expiry.minutes', OTP_TIMING.EXPIRY_MINUTES),
+          maxAttempts: getOneDesignerConfig('otp.maxAttempts.hour', OTP_TIMING.MAX_ATTEMPTS_PER_HOUR),
+          cooldownPeriod: getOneDesignerConfig('otp.cooldown.seconds', OTP_TIMING.COOLDOWN_SECONDS),
           alphanumeric: getOneDesignerConfig('otp.alphanumeric', false),
           caseSensitive: getOneDesignerConfig('otp.caseSensitive', false)
         }
       } else {
-        // Fallback to environment variables
-        this.config.length = parseInt(process.env.OTP_LENGTH || '6')
-        this.config.expiry = parseInt(process.env.OTP_EXPIRY || '10')
-        this.config.maxAttempts = parseInt(process.env.OTP_MAX_ATTEMPTS || '5')
-        this.config.cooldownPeriod = parseInt(process.env.OTP_COOLDOWN || '60')
+        // Fallback to environment variables with centralized defaults
+        this.config.length = parseInt(process.env.OTP_LENGTH || String(OTP_TIMING.LENGTH))
+        this.config.expiry = parseInt(process.env.OTP_EXPIRY_MINUTES || String(OTP_TIMING.EXPIRY_MINUTES))
+        this.config.maxAttempts = parseInt(process.env.OTP_MAX_ATTEMPTS_HOUR || String(OTP_TIMING.MAX_ATTEMPTS_PER_HOUR))
+        this.config.cooldownPeriod = parseInt(process.env.OTP_COOLDOWN_SECONDS || String(OTP_TIMING.COOLDOWN_SECONDS))
       }
     } catch (error) {
       logger.warn('Failed to load OTP configuration, using defaults', { error })

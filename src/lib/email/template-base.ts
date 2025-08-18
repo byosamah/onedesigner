@@ -3,6 +3,8 @@
  * Provides consistent styling and structure for all emails
  */
 
+import { EMAIL_URLS, FULL_URLS } from '@/lib/constants'
+
 export interface EmailTemplateProps {
   title: string
   preheader?: string
@@ -186,8 +188,8 @@ export function createEmailTemplate(props: EmailTemplateProps): { html: string; 
                 <p><strong>${props.isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'}</strong></p>
                 <p>Connecting great clients with amazing designers</p>
                 <p>
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}">Visit our website</a> | 
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/contact">Contact us</a>
+                    <a href="${EMAIL_URLS.FOOTER_LINKS.WEBSITE()}">Visit our website</a> | 
+                    <a href="${EMAIL_URLS.FOOTER_LINKS.CONTACT()}">Contact us</a>
                 </p>
             `}
         </div>
@@ -212,7 +214,7 @@ ${props.content.additionalSections ? props.content.additionalSections.map(sectio
 ---
 ${props.isOTPEmail ? 'OneDesigner' : 'Hala from OneDesigner'}
 Connecting great clients with amazing designers
-Visit: ${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}
+Visit: ${EMAIL_URLS.FOOTER_LINKS.WEBSITE()}
 `.trim()
 
   return { html, text }

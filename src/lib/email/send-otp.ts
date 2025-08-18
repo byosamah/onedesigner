@@ -1,9 +1,9 @@
-import { API_ENDPOINTS } from '@/lib/constants'
+import { API_ENDPOINTS, EMAIL_URLS } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
 
 export async function sendOTPEmail(email: string, otp: string) {
   logger.info('Attempting to send OTP email to:', email)
-  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || 'Hala from OneDesigner <team@onedesigner.app>')
+  logger.info('Using EMAIL_FROM:', process.env.EMAIL_FROM || EMAIL_URLS.SENDER.DEFAULT)
   logger.info('RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY)
   
   try {
@@ -14,7 +14,7 @@ export async function sendOTPEmail(email: string, otp: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'Hala from OneDesigner <team@onedesigner.app>',
+        from: process.env.EMAIL_FROM || EMAIL_URLS.SENDER.DEFAULT,
         to: email,
         subject: `${otp} is your OneDesigner code`,
         html: `
