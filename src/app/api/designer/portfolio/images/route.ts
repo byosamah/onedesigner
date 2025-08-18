@@ -70,15 +70,25 @@ export async function POST(request: NextRequest) {
       uploadedUrls.push(publicUrl)
     }
 
-    // Update designer record with portfolio images
-    const updateData: any = {}
-    if (uploadedUrls[0]) updateData.portfolio_image_1 = uploadedUrls[0]
-    if (uploadedUrls[1]) updateData.portfolio_image_2 = uploadedUrls[1]
-    if (uploadedUrls[2]) updateData.portfolio_image_3 = uploadedUrls[2]
+    // Update designer record with portfolio images in tools array
+    // Get current designer data to preserve existing tools if any
+    const { data: currentDesigner, error: fetchError } = await supabase
+      .from('designers')
+      .select('tools')
+      .eq('id', designerId)
+      .single()
 
+    if (fetchError) {
+      logger.error('Error fetching current designer data:', fetchError)
+      return apiResponse.serverError('Failed to fetch current data')
+    }
+
+    // Create tools array with uploaded images (filter out nulls)
+    const portfolioImages = uploadedUrls.filter(Boolean)
+    
     const { error: updateError } = await supabase
       .from('designers')
-      .update(updateData)
+      .update({ tools: portfolioImages })
       .eq('id', designerId)
 
     if (updateError) {
@@ -108,10 +118,10 @@ export async function GET(request: NextRequest) {
     const designerId = sessionResult.session.designerId
     const supabase = createServiceClient()
 
-    // Get current portfolio images
+    // Get current portfolio images from tools array
     const { data: designer, error } = await supabase
       .from('designers')
-      .select('portfolio_image_1, portfolio_image_2, portfolio_image_3')
+      .select('tools')
       .eq('id', designerId)
       .single()
 
@@ -121,11 +131,7 @@ export async function GET(request: NextRequest) {
     }
 
     return apiResponse.success({
-      images: [
-        designer.portfolio_image_1,
-        designer.portfolio_image_2,
-        designer.portfolio_image_3
-      ].filter(Boolean)
+      images: Array.isArray(designer.tools) ? designer.tools : []
     })
 
   } catch (error) {
@@ -151,12 +157,31 @@ export async function DELETE(request: NextRequest) {
     }
 
     const supabase = createServiceClient()
-    const columnName = `portfolio_image_${imageIndex}`
 
-    // Remove image from designer record
+    // Get current tools array
+    const { data: designer, error: fetchError } = await supabase
+      .from('designers')
+      .select('tools')
+      .eq('id', designerId)
+      .single()
+
+    if (fetchError) {
+      logger.error('Error fetching current designer data:', fetchError)
+      return apiResponse.serverError('Failed to fetch current data')
+    }
+
+    // Remove image from tools array (convert to 0-based index)
+    const currentTools = Array.isArray(designer.tools) ? [...designer.tools] : []
+    const arrayIndex = imageIndex - 1
+    
+    if (arrayIndex < currentTools.length) {
+      currentTools.splice(arrayIndex, 1)
+    }
+
+    // Update designer record with modified tools array
     const { error: updateError } = await supabase
       .from('designers')
-      .update({ [columnName]: null })
+      .update({ tools: currentTools })
       .eq('id', designerId)
 
     if (updateError) {

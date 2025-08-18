@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { logger } from '@/lib/core/logging-service'
 import { RejectionFeedbackModal } from '@/components/designer/RejectionFeedbackModal'
+import { PortfolioImageUpload } from '@/components/forms/PortfolioImageUpload'
 
 // Import location API for dynamic country/city loading
 import { getCountries, getCitiesByCountry, type Country } from '@/lib/api/location-api'
@@ -47,6 +48,9 @@ export default function DesignerProfilePage() {
   const [cities, setCities] = useState<string[]>([])
   const [loadingCountries, setLoadingCountries] = useState(false)
   const [loadingCities, setLoadingCities] = useState(false)
+
+  // Portfolio images state
+  const [portfolioImages, setPortfolioImages] = useState<(string | null)[]>([null, null, null])
 
   // Get fields for profile context
   const profileFields = getFieldsForContext('profile')
@@ -132,14 +136,21 @@ export default function DesignerProfilePage() {
       logger.info('Designer profile data:', designerData)
       
       // Extract portfolio images from tools array
+      const currentPortfolioImages: (string | null)[] = [null, null, null]
       if (Array.isArray(designerData.tools) && designerData.tools.length > 0) {
         designerData.portfolio_image_1 = designerData.tools[0] || null
         designerData.portfolio_image_2 = designerData.tools[1] || null
         designerData.portfolio_image_3 = designerData.tools[2] || null
+        
+        // Set portfolio images state for the upload component
+        currentPortfolioImages[0] = designerData.tools[0] || null
+        currentPortfolioImages[1] = designerData.tools[1] || null
+        currentPortfolioImages[2] = designerData.tools[2] || null
       }
       
       setProfile(designerData)
       setFormData(designerData)
+      setPortfolioImages(currentPortfolioImages)
       
       // Check if designer was rejected and hasn't seen feedback
       const status = designerData.is_approved === false && designerData.rejection_reason ? 'rejected' : 
@@ -220,13 +231,8 @@ export default function DesignerProfilePage() {
       const cleanedData = cleanDesignerData(formData)
       
       // Handle portfolio images - store in tools array
-      if (formData.portfolio_image_1 || formData.portfolio_image_2 || formData.portfolio_image_3) {
-        cleanedData.tools = [
-          formData.portfolio_image_1,
-          formData.portfolio_image_2,
-          formData.portfolio_image_3
-        ].filter(Boolean)
-      }
+      // Use the portfolio images state which gets updated by the upload component
+      cleanedData.tools = portfolioImages.filter(Boolean)
       
       // Check if reapproval is needed
       const needsReapproval = profile?.is_approved && 
@@ -246,9 +252,20 @@ export default function DesignerProfilePage() {
 
       const updatedData = await response.json()
       
-      // Keep data in snake_case format
-      setProfile(updatedData.designer)
-      setFormData(updatedData.designer)
+      // Keep data in snake_case format and update portfolio images state
+      const updatedDesigner = updatedData.designer
+      setProfile(updatedDesigner)
+      setFormData(updatedDesigner)
+      
+      // Update portfolio images state from the saved tools array
+      const updatedPortfolioImages: (string | null)[] = [null, null, null]
+      if (Array.isArray(updatedDesigner.tools)) {
+        updatedPortfolioImages[0] = updatedDesigner.tools[0] || null
+        updatedPortfolioImages[1] = updatedDesigner.tools[1] || null
+        updatedPortfolioImages[2] = updatedDesigner.tools[2] || null
+      }
+      setPortfolioImages(updatedPortfolioImages)
+      
       setIsEditing(false)
       
       if (needsReapproval) {
@@ -488,7 +505,7 @@ export default function DesignerProfilePage() {
         )
         
       case 'image':
-        // Different rendering for avatar vs portfolio images
+        // Only handle avatar_url - portfolio images are handled by PortfolioImageUpload component
         if (field.key === 'avatar_url') {
           return (
             <div key={field.key} className="mb-6">
@@ -532,53 +549,8 @@ export default function DesignerProfilePage() {
             </div>
           )
         } else {
-          // Portfolio images rendering - no label above since it's in the grid header
-          return (
-            <div key={field.key}>
-              <div className="aspect-video rounded-xl overflow-hidden" 
-                   style={{ backgroundColor: theme.border }}>
-                {value ? (
-                  <img 
-                    src={value} 
-                    alt={field.label}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center border-2 border-dashed"
-                       style={{ borderColor: theme.border }}>
-                    <div className="text-center p-4">
-                      <div className="text-4xl mb-3" style={{ color: theme.text.muted }}>
-                        📸
-                      </div>
-                      <p className="text-xs mb-3" style={{ color: theme.text.muted }}>
-                        {field.helpText || 'No image uploaded yet'}
-                      </p>
-                      <button
-                        type="button"
-                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105"
-                        style={{
-                          backgroundColor: isEditing ? theme.accent : theme.cardBg,
-                          color: isEditing ? '#000' : theme.text.muted,
-                          border: `2px solid ${isEditing ? theme.accent : theme.border}`,
-                          cursor: isEditing ? 'pointer' : 'not-allowed',
-                          opacity: isEditing ? 1 : 0.7
-                        }}
-                        disabled={!isEditing}
-                        onClick={() => {
-                          if (isEditing) {
-                            // TODO: Implement file upload
-                            alert('Portfolio image upload will be implemented soon!')
-                          }
-                        }}
-                      >
-                        {isEditing ? 'Upload Image' : 'Upload Disabled'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
+          // Portfolio images are handled by PortfolioImageUpload component, skip rendering here
+          return null
         }
       
       default:
@@ -791,21 +763,15 @@ export default function DesignerProfilePage() {
                 Portfolio
               </h2>
               <div className="space-y-6">
-                {/* Portfolio images in a grid */}
-                {fieldsByCategory.portfolio
-                  .filter(field => field.key.startsWith('portfolio_image'))
-                  .length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4" style={{ color: theme.text.primary }}>
-                      Portfolio Images
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {fieldsByCategory.portfolio
-                        .filter(field => field.key.startsWith('portfolio_image'))
-                        .map(field => renderField(field))}
-                    </div>
-                  </div>
-                )}
+                {/* Portfolio images using PortfolioImageUpload component */}
+                <div>
+                  <PortfolioImageUpload
+                    isDarkMode={isDarkMode}
+                    images={portfolioImages}
+                    onImagesChange={setPortfolioImages}
+                    disabled={!isEditing}
+                  />
+                </div>
                 
                 {/* Portfolio links in a grid */}
                 {fieldsByCategory.portfolio

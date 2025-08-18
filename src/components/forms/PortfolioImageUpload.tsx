@@ -8,9 +8,10 @@ interface PortfolioImageUploadProps {
   isDarkMode: boolean
   images: (string | null)[]
   onImagesChange: (images: (string | null)[]) => void
+  disabled?: boolean // For profile edit mode control
 }
 
-export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: PortfolioImageUploadProps) {
+export function PortfolioImageUpload({ isDarkMode, images, onImagesChange, disabled = false }: PortfolioImageUploadProps) {
   const theme = getTheme(isDarkMode)
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)]
@@ -104,12 +105,13 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: Por
         {[0, 1, 2].map((index) => (
           <div key={index} className="space-y-3">
             <div 
-              className="aspect-square rounded-2xl border-2 border-dashed transition-colors duration-300 relative overflow-hidden group cursor-pointer"
+              className={`aspect-square rounded-2xl border-2 border-dashed transition-colors duration-300 relative overflow-hidden group ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
               style={{ 
                 borderColor: images[index] ? theme.accent : theme.border,
-                backgroundColor: theme.nestedBg 
+                backgroundColor: theme.nestedBg,
+                opacity: disabled ? 0.7 : 1
               }}
-              onClick={() => !images[index] && fileInputRefs[index].current?.click()}
+              onClick={() => !disabled && !images[index] && fileInputRefs[index].current?.click()}
             >
               {images[index] ? (
                 <div className="relative w-full h-full">
@@ -119,33 +121,37 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: Por
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 space-y-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          fileInputRefs[index].current?.click()
-                        }}
-                        className="block w-full px-4 py-2 rounded-xl font-medium text-sm"
-                        style={{
-                          backgroundColor: theme.accent,
-                          color: '#000'
-                        }}
-                      >
-                        Replace
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleRemoveImage(index)
-                        }}
-                        className="block w-full px-4 py-2 rounded-xl font-medium text-sm"
-                        style={{
-                          backgroundColor: theme.error,
-                          color: '#fff'
-                        }}
-                      >
-                        Remove
-                      </button>
+                    <div className={`transition-opacity duration-300 space-y-2 ${disabled ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+                      {!disabled && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              fileInputRefs[index].current?.click()
+                            }}
+                            className="block w-full px-4 py-2 rounded-xl font-medium text-sm"
+                            style={{
+                              backgroundColor: theme.accent,
+                              color: '#000'
+                            }}
+                          >
+                            Replace
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveImage(index)
+                            }}
+                            className="block w-full px-4 py-2 rounded-xl font-medium text-sm"
+                            style={{
+                              backgroundColor: theme.error,
+                              color: '#fff'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   {uploadingIndex === index && (
@@ -172,14 +178,16 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange }: Por
                         📸
                       </div>
                       <p className="text-sm font-medium mb-1" style={{ color: theme.text.primary }}>
-                        Add Image {index + 1}
+                        {disabled ? `Image ${index + 1} Slot` : `Add Image ${index + 1}`}
                       </p>
                       <p className="text-xs" style={{ color: theme.text.secondary }}>
-                        Click to upload
+                        {disabled ? 'Enable edit mode to upload' : 'Click to upload'}
                       </p>
-                      <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
-                        JPEG, PNG, WebP • Max 20MB
-                      </p>
+                      {!disabled && (
+                        <p className="text-xs mt-2" style={{ color: theme.text.muted }}>
+                          JPEG, PNG, WebP • Max 20MB
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
