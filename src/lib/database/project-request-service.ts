@@ -10,6 +10,9 @@ export interface ProjectRequest {
   status: 'pending' | 'approved' | 'rejected'
   client_email?: string
   brief_details?: any
+  brief_snapshot?: any // New: Complete brief snapshot
+  viewed_at?: string // New: When designer viewed the request
+  response_deadline?: string // New: 72-hour deadline
   approved_at?: string
   rejected_at?: string
   rejection_reason?: string

@@ -3,9 +3,9 @@ import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { validateSession } from '@/lib/auth/session-handlers'
 import { projectRequestService } from '@/lib/database/project-request-service'
 import { 
-  createProjectApprovedEmailMarcStyle, 
-  createProjectRejectedEmailMarcStyle 
-} from '@/lib/email/templates/marc-lou-style'
+  createProjectApprovedEmail, 
+  createProjectRejectedEmail 
+} from '@/lib/email/templates/project-request'
 import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
 
@@ -49,14 +49,14 @@ export async function POST(
       return apiResponse.serverError('Failed to update project request')
     }
 
-    // Send email notification to client using Marc Lou style templates
+    // Send email notification to client using enhanced templates
     if (projectRequest.clients?.email && projectRequest.designers) {
       const emailContent = action === 'approve' 
-        ? createProjectApprovedEmailMarcStyle({
+        ? createProjectApprovedEmail({
             designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
             designerEmail: projectRequest.designers.email
           })
-        : createProjectRejectedEmailMarcStyle({
+        : createProjectRejectedEmail({
             designerName: `${projectRequest.designers.first_name} ${projectRequest.designers.last_name}`,
             rejectionReason: rejectionReason,
             dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/dashboard`

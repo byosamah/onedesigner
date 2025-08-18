@@ -18,7 +18,7 @@ export async function POST(
       return apiResponse.unauthorized('Please log in as a client')
     }
 
-    const { designerId, message } = await request.json()
+    const { designerId } = await request.json()
     
     if (!designerId) {
       return apiResponse.badRequest('Designer ID is required')
@@ -26,10 +26,19 @@ export async function POST(
 
     const supabase = createServiceClientWithoutCookies()
 
-    // Get the match details
+    // Get the match details with complete brief information
     const { data: match, error: matchError } = await supabase
       .from('matches')
-      .select('*, briefs(*)')
+      .select(`
+        *, 
+        briefs(
+          *,
+          clients(
+            email,
+            company_name
+          )
+        )
+      `)
       .eq('id', params.id)
       .eq('client_id', session.clientId)
       .single()
@@ -68,18 +77,65 @@ export async function POST(
     // Check if a request already exists
     const exists = await projectRequestService.checkExisting(params.id, session.clientId, designerId)
     if (exists) {
-      return apiResponse.badRequest('You have already contacted this designer')
+      return apiResponse.badRequest('You have already sent a working request to this designer')
     }
 
-    // Create a project request using centralized service
+    // Auto-generate professional message based on project type
+    const projectType = match.briefs?.project_type || match.briefs?.design_category || 'design'
+    const autoMessage = `Client is interested in working with you on their ${projectType} project.`
+
+    // Create a complete snapshot of the brief for the designer
+    const briefSnapshot = {
+      // Basic project info
+      project_type: match.briefs?.project_type || match.briefs?.design_category,
+      timeline: match.briefs?.timeline || match.briefs?.timeline_type,
+      budget: match.briefs?.budget || match.briefs?.budget_range,
+      
+      // Detailed requirements
+      project_description: match.briefs?.project_description || match.briefs?.requirements,
+      target_audience: match.briefs?.target_audience,
+      project_goal: match.briefs?.project_goal,
+      industry: match.briefs?.industry,
+      
+      // Design preferences
+      styles: match.briefs?.styles || [],
+      style_keywords: match.briefs?.style_keywords || [],
+      competitors: match.briefs?.competitors,
+      inspiration: match.briefs?.inspiration,
+      
+      // Additional details
+      deliverables: match.briefs?.deliverables,
+      brand_guidelines: match.briefs?.brand_guidelines,
+      existing_assets: match.briefs?.existing_assets,
+      specific_requirements: match.briefs?.specific_requirements,
+      
+      // Category-specific fields
+      category_specific_fields: match.briefs?.category_specific_fields || {},
+      
+      // Client info (if available)
+      company_name: match.briefs?.clients?.company_name,
+      
+      // Match context
+      match_score: match.score,
+      match_reasons: match.reasons || [],
+      match_id: match.id
+    }
+
+    // Calculate response deadline (72 hours from now)
+    const responseDeadline = new Date()
+    responseDeadline.setHours(responseDeadline.getHours() + 72)
+
+    // Create a project request using centralized service with enhanced data
     const projectRequest = await projectRequestService.create({
       match_id: params.id,
       client_id: session.clientId,
       designer_id: designerId,
-      message: message || 'I would like to work with you on my project.',
+      message: autoMessage,
       status: 'pending',
       client_email: client.email,
-      brief_details: match.briefs
+      brief_details: match.briefs, // Keep original for backward compatibility
+      brief_snapshot: briefSnapshot, // New comprehensive snapshot
+      response_deadline: responseDeadline.toISOString()
     })
 
     if (!projectRequest) {
@@ -87,13 +143,15 @@ export async function POST(
       // Continue anyway to send the email
     }
 
-    // Send email notification using centralized template
+    // Send email notification using centralized template with enhanced info
     const emailHtml = createProjectRequestEmail({
       designerName: designer.first_name || 'Designer',
-      clientMessage: message || 'I would like to work with you on my project.',
-      projectType: match.briefs?.project_type,
-      timeline: match.briefs?.timeline,
-      budget: match.briefs?.budget,
+      clientMessage: autoMessage,
+      projectType: briefSnapshot.project_type,
+      timeline: briefSnapshot.timeline,
+      budget: briefSnapshot.budget,
+      matchScore: match.score,
+      responseDeadline: responseDeadline.toLocaleString(),
       dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
     })
 

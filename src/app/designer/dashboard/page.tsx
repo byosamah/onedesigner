@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { MatchRequestCard } from '@/components/designer/MatchRequestCard'
+import { WorkingRequestCard } from '@/components/designer/WorkingRequestCard'
 import { logger } from '@/lib/core/logging-service'
 import { RejectionFeedbackModal } from '@/components/designer/RejectionFeedbackModal'
 
@@ -604,158 +605,57 @@ export default function DesignerDashboardPage() {
           </div>
         </div>
 
-        {/* Client Project Requests Section */}
+        {/* Working Requests Section - Priority Display */}
         {projectRequests.length > 0 && (
           <>
             <div className="mb-6">
               <h2 className="text-2xl font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-                💬 Messages from Clients
+                🎯 Working Requests
               </h2>
               <p className="text-sm mt-1" style={{ color: theme.text.secondary }}>
-                Clients who want to work with you
+                Clients who want to work with you on their projects
               </p>
             </div>
             
             <div className="space-y-4 mb-8">
-              {projectRequests
-                .filter(req => req.status === 'pending')
-                .map((request) => (
-                  <div 
-                    key={request.id}
-                    className="rounded-2xl p-6 transition-all duration-300 hover:scale-[1.002] animate-slideUp"
-                    style={{
-                      backgroundColor: theme.cardBg,
-                      border: `2px solid ${theme.accent}40`,
-                      boxShadow: isDarkMode ? 'none' : '0 1px 3px rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.accent + '20' }}>
-                            <span className="text-xl">💌</span>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-lg font-bold" style={{ color: theme.text.primary }}>
-                              New Client Message
-                            </h3>
-                            <p className="text-xs" style={{ color: theme.text.muted }}>
-                              Received {new Date(request.createdAt || Date.now()).toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 rounded-xl mb-4" style={{ backgroundColor: theme.nestedBg, border: `1px solid ${theme.border}` }}>
-                          <p className="text-sm" style={{ color: theme.text.primary, lineHeight: '1.6' }}>
-                            {typeof request.message === 'string' 
-                              ? request.message 
-                              : (request.message?.text || request.message?.content || 'Client wants to work with you on their project.')
-                            }
-                          </p>
-                        </div>
-                        
-                        {request.brief && (
-                          <div className="flex gap-6 mb-4 px-4">
-                            {request.brief.projectType && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>🎨</span>
-                                <span className="text-sm" style={{ color: theme.text.secondary }}>
-                                  {request.brief.projectType}
-                                </span>
-                              </div>
-                            )}
-                            {request.brief.timeline && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>⏱️</span>
-                                <span className="text-sm" style={{ color: theme.text.secondary }}>
-                                  {request.brief.timeline}
-                                </span>
-                              </div>
-                            )}
-                            {request.brief.budget && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>Budget:</span>
-                                <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                                  {request.brief.budget}
-                                </span>
-                              </div>
-                            )}
-                            {request.brief.industry && (
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs" style={{ color: theme.text.muted }}>Industry:</span>
-                                <span className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                                  {request.brief.industry}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-3 mt-4 pt-4" style={{ borderTop: `1px solid ${theme.border}` }}>
-                      <button
-                        onClick={() => handleProjectRequestResponse(request.id, 'reject')}
-                        className="px-6 py-2.5 rounded-xl font-medium transition-all duration-300 hover:opacity-80"
-                        style={{
-                          backgroundColor: theme.nestedBg,
-                          color: theme.text.secondary
-                        }}
-                      >
-                        Not Interested
-                      </button>
-                      <button
-                        onClick={() => handleProjectRequestResponse(request.id, 'approve')}
-                        className="flex-1 font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                        style={{
-                          backgroundColor: theme.accent,
-                          color: '#000'
-                        }}
-                      >
-                        Accept & Get Contact Info
-                      </button>
-                    </div>
-                  </div>
-                ))
-              }
-              
-              {projectRequests
-                .filter(req => req.status === 'approved')
-                .map((request) => (
-                  <div 
-                    key={request.id}
-                    className="rounded-2xl p-5 transition-all duration-300 animate-slideUp"
-                    style={{
-                      backgroundColor: theme.success + '10',
-                      border: `1px solid ${theme.success}40`
-                    }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.success + '20' }}>
-                        <span>✅</span>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium" style={{ color: theme.text.primary }}>
-                          Accepted • Client: <strong>{request.client?.email || 'Contact info available'}</strong>
-                        </p>
-                        <p className="text-xs" style={{ color: theme.text.muted }}>
-                          {request.message && typeof request.message === 'string' 
-                            ? request.message.substring(0, 60) + '...'
-                            : 'Project request accepted'}
-                        </p>
-                      </div>
-                      <p className="text-xs" style={{ color: theme.text.muted }}>
-                        {new Date(request.approvedAt || request.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              }
+              {projectRequests.map((request) => (
+                <WorkingRequestCard
+                  key={request.id}
+                  request={{
+                    id: request.id,
+                    message: typeof request.message === 'string' 
+                      ? request.message 
+                      : (request.message?.text || request.message?.content || 'Client wants to work with you on their project.'),
+                    status: request.status,
+                    created_at: request.createdAt || new Date().toISOString(),
+                    viewed_at: request.viewedAt,
+                    response_deadline: request.responseDeadline,
+                    brief_snapshot: request.briefSnapshot || {
+                      project_type: request.brief?.projectType,
+                      timeline: request.brief?.timeline,
+                      budget: request.brief?.budget,
+                      industry: request.brief?.industry,
+                      match_score: request.matchScore,
+                      match_reasons: request.matchReasons
+                    },
+                    matches: request.match ? {
+                      score: request.match.score || request.matchScore,
+                      reasons: request.match.reasons || request.matchReasons || [],
+                      briefs: {
+                        project_type: request.brief?.projectType,
+                        timeline: request.brief?.timeline,
+                        budget: request.brief?.budget,
+                        industry: request.brief?.industry
+                      }
+                    } : undefined,
+                    clients: request.client ? {
+                      email: request.client.email
+                    } : undefined
+                  }}
+                  isDarkMode={isDarkMode}
+                  onRefresh={fetchDashboardData}
+                />
+              ))}
             </div>
           </>
         )}

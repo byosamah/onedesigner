@@ -4,8 +4,7 @@ import { useState } from 'react'
 import { getTheme } from '@/lib/design-system'
 import { LoadingButton } from '@/components/shared'
 import { PRICING_PACKAGES } from '@/lib/constants'
-import { MessageModal } from '@/components/messaging/MessageModal'
-import SuccessModal from '@/components/modals/SuccessModal'
+import { WorkingRequestModal } from '@/components/modals/WorkingRequestModal'
 import { logger } from '@/lib/core/logging-service'
 
 interface MatchData {
@@ -69,9 +68,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
   const [showImageModal, setShowImageModal] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [purchasingPackage, setPurchasingPackage] = useState<string | null>(null)
-  const [showMessageModal, setShowMessageModal] = useState(false)
-  const [showSuccessModal, setShowSuccessModal] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
+  const [showWorkingRequestModal, setShowWorkingRequestModal] = useState(false)
 
   // Helper function to validate URLs
   const isValidUrl = (url: string | undefined): boolean => {
@@ -633,13 +630,13 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                   const sessionData = await sessionResponse.json()
                   if (!sessionData.client) {
                     // Logged in but not as a client - show error or redirect
-                    alert('Please log in as a client to send messages to designers')
+                    alert('Please log in as a client to send working requests to designers')
                     window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
                     return
                   }
                   
-                  // User is logged in as a client - show message modal
-                  setShowMessageModal(true)
+                  // User is logged in as a client - show working request modal
+                  setShowWorkingRequestModal(true)
                 } catch (error) {
                   logger.error('Error checking session:', error)
                   window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
@@ -651,7 +648,7 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                 color: '#fff'
               }}
             >
-              Start working with {match.designer.firstName} →
+              Send Working Request →
             </button>
           </>
         )}
@@ -835,20 +832,19 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         </div>
       )}
 
-      {/* Message Modal */}
-      <MessageModal
-        isOpen={showMessageModal}
-        onClose={() => setShowMessageModal(false)}
-        onSend={async (message) => {
+      {/* Working Request Modal */}
+      <WorkingRequestModal
+        isOpen={showWorkingRequestModal}
+        onClose={() => setShowWorkingRequestModal(false)}
+        onConfirm={async () => {
           try {
-            const response = await fetch('/api/messages/send', {
+            const response = await fetch(`/api/client/matches/${match.id}/contact`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
               body: JSON.stringify({
-                matchId: match.id,
-                designerId: match.designer.id,
-                message: message
+                designerId: match.designer.id
+                // No message needed - will be auto-generated
               })
             })
 
@@ -857,41 +853,27 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             if (!response.ok) {
               // Check if it's an authentication error
               if (response.status === 401) {
-                alert(data.error || 'Please log in as a client to send messages')
+                alert(data.error || 'Please log in as a client to send working requests')
                 window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
                 return
               }
-              throw new Error(data.error || 'Failed to send message')
+              throw new Error(data.error || 'Failed to send working request')
             }
 
-            // Success - show success modal
-            setShowMessageModal(false)
-            setSuccessMessage('Message sent successfully! The designer will be notified.')
-            setShowSuccessModal(true)
-            
-            // Reload page after modal closes
+            // Success is handled by the modal itself
+            // Optionally reload page after a delay
             setTimeout(() => {
               window.location.reload()
-            }, 3500)
+            }, 2500)
           } catch (error) {
-            logger.error('Error sending message:', error)
-            // Re-throw to let MessageModal handle the error display
-            throw error
+            logger.error('Error sending working request:', error)
+            alert(error instanceof Error ? error.message : 'Failed to send working request')
+            throw error // Re-throw to let WorkingRequestModal handle loading state
           }
         }}
         designerName={match.designer.firstName}
-        projectType={match.designer.primaryCategories?.[0]}
+        projectType={match.designer.title}
         isDarkMode={isDarkMode}
-      />
-
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="www.onedesigner.app says"
-        message={successMessage}
-        isDarkMode={isDarkMode}
-        autoCloseDelay={3000}
       />
     </div>
   )
