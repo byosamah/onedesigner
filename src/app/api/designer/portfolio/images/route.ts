@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update designer record with portfolio images in tools array
-    // Get current designer data to preserve existing tools if any
+    // Get current designer data to preserve existing tools
     const { data: currentDesigner, error: fetchError } = await supabase
       .from('designers')
       .select('tools')
@@ -83,12 +83,28 @@ export async function POST(request: NextRequest) {
       return apiResponse.serverError('Failed to fetch current data')
     }
 
-    // Create tools array with uploaded images (filter out nulls)
-    const portfolioImages = uploadedUrls.filter(Boolean)
+    // Start with existing tools array or empty array
+    const currentTools = Array.isArray(currentDesigner.tools) ? [...currentDesigner.tools] : []
+    
+    // Update only the positions that have new uploaded images
+    for (let i = 0; i < files.length; i++) {
+      if (files[i] && uploadedUrls[i]) {
+        // Ensure array is large enough
+        while (currentTools.length <= i) {
+          currentTools.push(null)
+        }
+        currentTools[i] = uploadedUrls[i]
+      }
+    }
+    
+    // Remove any trailing null values to keep array clean
+    while (currentTools.length > 0 && currentTools[currentTools.length - 1] === null) {
+      currentTools.pop()
+    }
     
     const { error: updateError } = await supabase
       .from('designers')
-      .update({ tools: portfolioImages })
+      .update({ tools: currentTools })
       .eq('id', designerId)
 
     if (updateError) {
@@ -98,7 +114,8 @@ export async function POST(request: NextRequest) {
 
     return apiResponse.success({
       message: 'Portfolio images uploaded successfully',
-      images: uploadedUrls.filter(Boolean)
+      images: currentTools,
+      uploaded: uploadedUrls.filter(Boolean)
     })
 
   } catch (error) {
