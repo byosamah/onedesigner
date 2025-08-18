@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
 import { LoadingSpinner } from '@/components/shared'
-import { ContactDesignerModal, SuccessModal } from '@/lib/components/modals'
+import { WorkingRequestModal } from '@/components/modals/WorkingRequestModal'
+import { SuccessModal } from '@/lib/components/modals'
 import { SUCCESS_MESSAGES } from '@/lib/constants/messages'
 import { logger } from '@/lib/core/logging-service'
 
@@ -140,7 +141,7 @@ export default function ClientDashboard() {
     setShowContactModal(true)
   }
 
-  const sendContactMessage = async (message: string) => {
+  const sendWorkingRequest = async () => {
     if (!selectedMatchForContact) return
     
     try {
@@ -151,14 +152,13 @@ export default function ClientDashboard() {
         },
         credentials: 'include',
         body: JSON.stringify({
-          designerId: selectedMatchForContact.designerId,
-          message: message
+          designerId: selectedMatchForContact.designerId
         })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to contact designer')
+        throw new Error(errorData.message || 'Failed to send working request')
       }
 
       setShowContactModal(false)
@@ -651,7 +651,7 @@ export default function ClientDashboard() {
                           color: '#000'
                         }}
                       >
-                        📧 Contact Designer
+                        Send Working Request →
                       </button>
                     </div>
                   </div>
@@ -671,13 +671,14 @@ export default function ClientDashboard() {
         isDarkMode={isDarkMode}
       />
 
-      {/* Contact Designer Modal */}
+      {/* Working Request Modal */}
       {selectedMatchForContact && (
-        <ContactDesignerModal
+        <WorkingRequestModal
           isOpen={showContactModal}
           onClose={() => setShowContactModal(false)}
+          onConfirm={sendWorkingRequest}
           designerName={selectedMatchForContact.designerName}
-          onSend={sendContactMessage}
+          projectType={matches.find(m => m.id === selectedMatchForContact.matchId)?.brief?.designCategory || 'Design'}
           isDarkMode={isDarkMode}
         />
       )}
