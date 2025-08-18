@@ -34,7 +34,9 @@ export async function PUT(request: NextRequest) {
       'website_url', 'portfolio_url', 'dribbble_url', 'behance_url', 'linkedin_url',
       'project_price_from', 'project_price_to', 'previous_clients',
       'project_preferences', 'working_style', 'communication_style',
-      'remote_experience', 'team_collaboration'
+      'remote_experience', 'team_collaboration',
+      'avatar_url', // Allow avatar updates
+      'tools' // Portfolio images stored in tools array
     ]
     
     editableFields.forEach(field => {

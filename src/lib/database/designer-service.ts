@@ -64,7 +64,7 @@ export class DesignerService extends DatabaseService {
       city: dbData.city || '',
       availability: dbData.availability || 'immediate',
       bio: dbData.bio || '',
-      // Read portfolio images from tools array (portfolio_image columns don't exist yet)
+      // Read portfolio images from tools array
       portfolioImages: Array.isArray(dbData.tools) ? dbData.tools : [],
       isApproved: dbData.is_approved || false
     }
@@ -114,17 +114,9 @@ export class DesignerService extends DatabaseService {
     if (formData.availability !== undefined) dbData.availability = formData.availability
     if (formData.bio !== undefined) dbData.bio = formData.bio
 
-    // Store portfolio images in the 'tools' array column
-    // The portfolio_image_1/2/3 columns don't exist in the database yet
+    // Store portfolio images in tools array (since portfolio_image columns don't exist in DB)
     if (formData.portfolioImages !== undefined && Array.isArray(formData.portfolioImages)) {
-      // Store in tools array which exists in the database
       dbData.tools = formData.portfolioImages.length > 0 ? formData.portfolioImages : []
-      
-      // Only add individual columns if they exist in the database
-      // For now, commenting these out since they don't exist
-      // dbData.portfolio_image_1 = formData.portfolioImages[0] || null
-      // dbData.portfolio_image_2 = formData.portfolioImages[1] || null
-      // dbData.portfolio_image_3 = formData.portfolioImages[2] || null
     }
 
     return dbData

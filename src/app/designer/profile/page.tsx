@@ -37,6 +37,7 @@ export default function DesignerProfilePage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
   const [showRejectionModal, setShowRejectionModal] = useState(false)
+  const [autoEditOnRejection, setAutoEditOnRejection] = useState(false)
 
   // Get fields for profile context
   const profileFields = getFieldsForContext('profile')
@@ -81,6 +82,13 @@ export default function DesignerProfilePage() {
       const designerData = data.designer
       logger.info('Designer profile data:', designerData)
       
+      // Extract portfolio images from tools array
+      if (Array.isArray(designerData.tools) && designerData.tools.length > 0) {
+        designerData.portfolio_image_1 = designerData.tools[0] || null
+        designerData.portfolio_image_2 = designerData.tools[1] || null
+        designerData.portfolio_image_3 = designerData.tools[2] || null
+      }
+      
       setProfile(designerData)
       setFormData(designerData)
       
@@ -92,6 +100,7 @@ export default function DesignerProfilePage() {
           designerData.rejection_reason && 
           !designerData.rejection_seen) {
         setShowRejectionModal(true)
+        setAutoEditOnRejection(true) // Will enable edit mode after modal closes
         markRejectionAsSeen()
       }
       
@@ -161,6 +170,15 @@ export default function DesignerProfilePage() {
       // Data is already in snake_case, no need to transform
       const cleanedData = cleanDesignerData(formData)
       
+      // Handle portfolio images - store in tools array
+      if (formData.portfolio_image_1 || formData.portfolio_image_2 || formData.portfolio_image_3) {
+        cleanedData.tools = [
+          formData.portfolio_image_1,
+          formData.portfolio_image_2,
+          formData.portfolio_image_3
+        ].filter(Boolean)
+      }
+      
       // Check if reapproval is needed
       const needsReapproval = profile?.is_approved && 
         checkReapprovalNeeded(profile, cleanedData)
@@ -203,7 +221,7 @@ export default function DesignerProfilePage() {
   const renderField = (field: DesignerField) => {
     const value = formData[field.key] || ''
     const error = validationErrors[field.key]
-    const isDisabled = !isEditing && profile?.is_approved
+    const isDisabled = !isEditing
     
     switch (field.type) {
       case 'text':
@@ -683,7 +701,14 @@ export default function DesignerProfilePage() {
       {showRejectionModal && profile?.rejection_reason && (
         <RejectionFeedbackModal
           rejectionReason={profile.rejection_reason}
-          onClose={() => setShowRejectionModal(false)}
+          onClose={() => {
+            setShowRejectionModal(false)
+            // Automatically enable edit mode when closing rejection modal
+            if (autoEditOnRejection) {
+              setIsEditing(true)
+              setAutoEditOnRejection(false)
+            }
+          }}
         />
       )}
     </main>
