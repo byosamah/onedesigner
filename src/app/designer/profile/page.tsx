@@ -113,6 +113,16 @@ export default function DesignerProfilePage() {
     fetchDesignerProfile()
   }, [])
 
+  // Reset form data when profile changes (prevents stale form state)
+  useEffect(() => {
+    if (profile) {
+      setFormData(profile)
+      // Reset edit mode when profile is freshly loaded
+      setIsEditing(false)
+      setValidationErrors({})
+    }
+  }, [profile?.id, profile?.updated_at]) // Re-run when profile ID or last update changes
+
   const fetchDesignerProfile = async () => {
     try {
       setIsLoading(true)
@@ -360,6 +370,7 @@ export default function DesignerProfilePage() {
               onChange={(e) => handleFieldChange(field.key, e.target.value)}
               disabled={isDisabled || field.key === 'email'} // Email never editable
               placeholder={field.placeholder}
+              autoComplete="off"
               className="w-full px-4 py-3 rounded-xl transition-all duration-200"
               style={{
                 backgroundColor: theme.cardBg,
@@ -394,6 +405,7 @@ export default function DesignerProfilePage() {
               disabled={isDisabled}
               placeholder={field.placeholder}
               rows={4}
+              autoComplete="off"
               className="w-full px-4 py-3 rounded-xl transition-all duration-200 resize-none"
               style={{
                 backgroundColor: theme.cardBg,
@@ -434,6 +446,7 @@ export default function DesignerProfilePage() {
                   }
                 }}
                 disabled={isDisabled || loadingCountries}
+                autoComplete="off"
                 className="w-full px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
                 style={{
                   backgroundColor: theme.cardBg,
@@ -469,6 +482,7 @@ export default function DesignerProfilePage() {
                 value={value}
                 onChange={(e) => handleFieldChange(field.key, e.target.value)}
                 disabled={isDisabled || !formData.country || loadingCities}
+                autoComplete="off"
                 className="w-full px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
                 style={{
                   backgroundColor: theme.cardBg,
@@ -508,6 +522,7 @@ export default function DesignerProfilePage() {
               value={value}
               onChange={(e) => handleFieldChange(field.key, e.target.value)}
               disabled={isDisabled}
+              autoComplete="off"
               className="w-full px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer"
               style={{
                 backgroundColor: theme.cardBg,
@@ -544,6 +559,7 @@ export default function DesignerProfilePage() {
               onChange={(e) => handleFieldChange(field.key, e.target.value)}
               disabled={isDisabled}
               placeholder={field.placeholder}
+              autoComplete="off"
               className="w-full px-4 py-3 rounded-xl transition-all duration-200"
               style={{
                 backgroundColor: theme.cardBg,
@@ -813,7 +829,7 @@ export default function DesignerProfilePage() {
         )}
 
         {/* Profile Form Sections */}
-        <div className="space-y-8">
+        <div className="space-y-8" key={profile?.id || 'no-profile'}>
           {/* Personal Information */}
           {fieldsByCategory.personal.length > 0 && (
             <div className="p-6 rounded-2xl" style={{ backgroundColor: theme.cardBg }}>
