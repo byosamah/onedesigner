@@ -73,6 +73,15 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
+  // Helper function to validate URLs
+  const isValidUrl = (url: string | undefined): boolean => {
+    return !!(url && 
+             url.trim() !== '' && 
+             !url.includes('null') && 
+             !url.includes('undefined') &&
+             (url.startsWith('http://') || url.startsWith('https://')))
+  }
+
   const handleUnlock = async () => {
     if (!onUnlock) return
 
@@ -353,19 +362,24 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
             Contact & Links
           </h5>
           <div className="space-y-3">
+            {/* Always show email */}
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>Email:</span>
               <span className="text-sm" style={{ color: theme.text.primary }}>
                 {match.designer.email || `${match.designer.firstName.toLowerCase()}.${match.designer.lastName?.toLowerCase()}@example.com`}
               </span>
             </div>
+            
+            {/* Only show phone if it exists */}
             {match.designer.phone && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>Phone:</span>
                 <span className="text-sm" style={{ color: theme.text.primary }}>{match.designer.phone}</span>
               </div>
             )}
-            {match.designer.portfolioUrl && (
+            
+            {/* Only show portfolio URL if it's valid */}
+            {isValidUrl(match.designer.portfolioUrl) && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>Portfolio:</span>
                 <a href={match.designer.portfolioUrl} target="_blank" rel="noopener noreferrer" 
@@ -374,7 +388,9 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                 </a>
               </div>
             )}
-            {match.designer.linkedinUrl && (
+            
+            {/* Only show LinkedIn URL if it's valid */}
+            {isValidUrl(match.designer.linkedinUrl) && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>LinkedIn:</span>
                 <a href={match.designer.linkedinUrl} target="_blank" rel="noopener noreferrer"
@@ -383,10 +399,23 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
                 </a>
               </div>
             )}
-            {match.designer.dribbbleUrl && (
+            
+            {/* Only show Dribbble URL if it's valid */}
+            {isValidUrl(match.designer.dribbbleUrl) && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>Dribbble:</span>
                 <a href={match.designer.dribbbleUrl} target="_blank" rel="noopener noreferrer"
+                   className="text-sm hover:underline" style={{ color: theme.accent }}>
+                  View Work →
+                </a>
+              </div>
+            )}
+            
+            {/* Only show Behance URL if it's valid */}
+            {isValidUrl(match.designer.behanceUrl) && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium" style={{ color: theme.text.secondary }}>Behance:</span>
+                <a href={match.designer.behanceUrl} target="_blank" rel="noopener noreferrer"
                    className="text-sm hover:underline" style={{ color: theme.accent }}>
                   View Work →
                 </a>
