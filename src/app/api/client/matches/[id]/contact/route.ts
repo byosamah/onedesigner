@@ -13,8 +13,21 @@ export async function POST(
 ) {
   try {
     // Validate client session
-    const { valid, session } = await validateSession('CLIENT')
-    if (!valid || !session?.clientId) {
+    const sessionResult = await validateSession('CLIENT')
+    
+    // Debug logging
+    logger.info('Session validation result:', {
+      valid: sessionResult.valid,
+      hasSession: !!sessionResult.session,
+      hasClientId: !!sessionResult.clientId,
+      sessionClientId: sessionResult.session?.clientId,
+      directClientId: sessionResult.clientId
+    })
+    
+    // Try to get clientId from multiple sources
+    const clientId = sessionResult.clientId || sessionResult.session?.clientId || sessionResult.session?.userId
+    
+    if (!sessionResult.valid || !clientId) {
       return apiResponse.unauthorized('Please log in as a client')
     }
 
@@ -40,10 +53,15 @@ export async function POST(
         )
       `)
       .eq('id', params.id)
-      .eq('client_id', session.clientId)
+      .eq('client_id', clientId)
       .single()
 
     if (matchError || !match) {
+      logger.error('Match not found:', {
+        matchId: params.id,
+        clientId: clientId,
+        error: matchError
+      })
       return apiResponse.notFound('Match not found')
     }
 
@@ -56,7 +74,7 @@ export async function POST(
     const { data: client, error: clientError } = await supabase
       .from('clients')
       .select('email, id')
-      .eq('id', session.clientId)
+      .eq('id', clientId)
       .single()
 
     if (clientError || !client) {
@@ -75,7 +93,7 @@ export async function POST(
     }
 
     // Check if a request already exists
-    const exists = await projectRequestService.checkExisting(params.id, session.clientId, designerId)
+    const exists = await projectRequestService.checkExisting(params.id, clientId, designerId)
     if (exists) {
       return apiResponse.badRequest('You have already sent a working request to this designer')
     }
@@ -128,7 +146,7 @@ export async function POST(
     // Create a project request using centralized service with enhanced data
     const projectRequest = await projectRequestService.create({
       match_id: params.id,
-      client_id: session.clientId,
+      client_id: clientId,
       designer_id: designerId,
       message: autoMessage,
       status: 'pending',
@@ -164,7 +182,7 @@ export async function POST(
 
     logger.info('✅ Project request sent:', {
       matchId: params.id,
-      clientId: session.clientId,
+      clientId: clientId,
       designerId: designerId
     })
 
