@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
-import { sendEmail } from '@/lib/email/send-email'
+import { emailService } from '@/lib/core/email-service'
 import { matchAcceptedEmail } from '@/lib/email/templates/match-accepted'
 import { matchDeclinedEmail } from '@/lib/email/templates/match-declined'
 import { logger } from '@/lib/core/logging-service'
@@ -88,7 +88,7 @@ export async function POST(
         .update({ status: 'accepted' })
         .eq('id', designerRequest.match_id)
 
-      // Send acceptance email to client
+      // Send acceptance email to client using centralized EmailService
       if (designerRequest.match?.client?.email) {
         const { subject, html, text } = matchAcceptedEmail({
           clientName: designerRequest.match.client.name || 'there',
@@ -100,10 +100,19 @@ export async function POST(
           dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
         })
 
-        await sendEmail({ to: designerRequest.match.client.email, subject, html, text })
+        await emailService.sendEmail({ 
+          to: designerRequest.match.client.email, 
+          subject, 
+          html, 
+          text,
+          tags: {
+            type: 'match-accepted',
+            matchId: designerRequest.match_id
+          }
+        })
       }
     } else {
-      // Send decline email to client
+      // Send decline email to client using centralized EmailService
       if (designerRequest.match?.client?.email) {
         const { subject, html, text } = matchDeclinedEmail({
           clientName: designerRequest.match.client.name || 'there',
@@ -112,7 +121,16 @@ export async function POST(
           dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
         })
 
-        await sendEmail({ to: designerRequest.match.client.email, subject, html, text })
+        await emailService.sendEmail({ 
+          to: designerRequest.match.client.email, 
+          subject, 
+          html, 
+          text,
+          tags: {
+            type: 'match-declined',
+            matchId: designerRequest.match_id
+          }
+        })
       }
     }
 

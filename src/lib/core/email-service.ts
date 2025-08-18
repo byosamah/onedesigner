@@ -95,7 +95,7 @@ export class EmailService {
 
     // Default configuration using centralized timing
     this.config = {
-      from: process.env.EMAIL_FROM || 'OneDesigner <team@onedesigner.app>',
+      from: process.env.EMAIL_FROM || 'OneDesigner <hello@onedesigner.app>',
       fromName: 'OneDesigner', // Default sender name
       replyTo: process.env.EMAIL_REPLY_TO,
       apiKey,
@@ -291,7 +291,7 @@ export class EmailService {
    */
   private formatFromAddress(templateName?: string, options?: EmailOptions): string {
     const senderName = this.getSenderName(templateName, options)
-    const emailAddress = process.env.EMAIL_FROM_ADDRESS || 'team@onedesigner.app'
+    const emailAddress = process.env.EMAIL_FROM_ADDRESS || 'hello@onedesigner.app'
     return `${senderName} <${emailAddress}>`
   }
 

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
-import { sendEmail } from '@/lib/email/send-email'
+import { emailService } from '@/lib/core/email-service'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
@@ -51,19 +51,13 @@ export async function POST(
     logger.info(`   Email: ${designer.email}`)
     logger.info(`   is_approved: ${designer.is_approved}`)
 
-    // Send approval email using Marc Lou style template
+    // Send approval email using centralized EmailService
     try {
-      const emailTemplate = createDesignerApprovalEmailMarcStyle({
-        designerName: designer.first_name,
-        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/login`
-      })
-      
-      await sendEmail({
-        to: designer.email,
-        subject: emailTemplate.subject,
-        html: emailTemplate.html,
-        text: emailTemplate.text
-      })
+      await emailService.sendDesignerApprovalEmail(
+        designer.email,
+        designer.first_name,
+        true // approved
+      )
     } catch (emailError) {
       logger.error('Failed to send approval email:', emailError)
       // Don't fail the approval if email fails

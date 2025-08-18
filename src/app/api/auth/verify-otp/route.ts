@@ -1,8 +1,7 @@
 import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
-import { sendEmail } from '@/lib/email/send-email'
-import { welcomeClientEmail } from '@/lib/email/templates/welcome-client'
+import { emailService } from '@/lib/core/email-service'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createSession } from '@/lib/auth/session-handlers'
 import { logger } from '@/lib/core/logging-service'
@@ -48,14 +47,14 @@ export async function POST(request: NextRequest) {
       logger.error('Error creating client:', error)
     }
     
-    // Send welcome email for new users
+    // Send welcome email for new users using centralized EmailService
     if (isNewUser && client) {
-      const { subject, html, text } = welcomeClientEmail({
-        clientName: client.name || 'there',
-        dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
-      })
-      
-      await sendEmail({ to: email, subject, html, text })
+      await emailService.sendWelcomeEmail(
+        email,
+        client.name || 'there',
+        'client',
+        `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/client/dashboard`
+      )
     }
 
     // Set session using centralized handler

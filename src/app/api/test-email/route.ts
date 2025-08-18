@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendEmail } from '@/lib/email/send-email'
+import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
 
 export async function GET(request: NextRequest) {

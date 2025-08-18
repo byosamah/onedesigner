@@ -268,46 +268,25 @@ export async function POST(request: NextRequest) {
       if (requestError) {
         logger.error('Error creating designer request:', requestError)
       } else {
-        // Send email notification to designer
+        // Send email notification to designer using centralized EmailService
         try {
-          await sendEmail({
+          // Use the designer-request template with Marc Lou style
+          await emailService.sendTemplatedEmail('designer-request', {
             to: bestMatch.designer.email,
-            subject: 'New project match on OneDesigner! 🎨',
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <h1 style="color: #f0ad4e; margin: 0;">OneDesigner</h1>
-                </div>
-                <h2 style="color: #333;">You've been matched with a new project!</h2>
-                <p style="color: #666; font-size: 16px;">
-                  Great news! You've been selected as the perfect match for a ${brief.project_type} project.
-                </p>
-                <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 20px 0;">
-                  <h3 style="color: #333; margin-top: 0;">Project Details:</h3>
-                  <ul style="color: #666;">
-                    <li><strong>Type:</strong> ${brief.project_type}</li>
-                    <li><strong>Industry:</strong> ${brief.industry}</li>
-                    <li><strong>Timeline:</strong> ${brief.timeline}</li>
-                    <li><strong>Match Score:</strong> ${bestMatch.score}%</li>
-                  </ul>
-                </div>
-                <p style="color: #666;">
-                  The client is excited to work with you! Please respond within 48 hours to maintain your response rate.
-                </p>
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard" 
-                     style="background: #f0ad4e; color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
-                    View Project Details
-                  </a>
-                </div>
-                <p style="color: #999; font-size: 14px; text-align: center;">
-                  This request will expire in 7 days if not responded to.
-                </p>
-              </div>
-            `,
-            text: `You've been matched with a new ${brief.project_type} project on OneDesigner! Match score: ${bestMatch.score}%. Please respond within 48 hours. View details at: ${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+            variables: {
+              projectType: brief.project_type,
+              industry: brief.industry,
+              timeline: brief.timeline,
+              budget: brief.budget || 'Not specified',
+              requestUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+            },
+            tags: {
+              type: 'designer-notification',
+              matchId: finalMatch.id,
+              designerId: bestMatch.designer.id
+            }
           })
-          logger.info('Designer notification email sent')
+          logger.info('Designer notification email sent via centralized EmailService')
         } catch (emailError) {
           logger.error('Failed to send designer notification:', emailError)
         }

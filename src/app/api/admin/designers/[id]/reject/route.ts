@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServiceClient } from '@/lib/supabase/server'
-import { sendEmail } from '@/lib/email/send-email'
+import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
 import { createDesignerRejectionEmailMarcStyle } from '@/lib/email/templates/marc-lou-style'
 
@@ -58,7 +58,7 @@ export async function POST(
       )
     }
 
-    // Send rejection email to designer with Marc Lou style template (no token needed)
+    // Send rejection email to designer using centralized EmailService
     try {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
       const loginUrl = `${baseUrl}/designer/login`
@@ -69,11 +69,15 @@ export async function POST(
         loginUrl
       })
       
-      await sendEmail({
+      await emailService.sendEmail({
         to: designer.email,
         subject: emailTemplate.subject,
         html: emailTemplate.html,
-        text: emailTemplate.text
+        text: emailTemplate.text,
+        tags: {
+          type: 'designer-rejection',
+          designerId: designer.id
+        }
       })
       
       logger.info(`Rejection email sent to designer ${designer.id} - they can login to update their profile`)

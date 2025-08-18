@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
 import { cookies } from 'next/headers'
-import { sendEmail } from '@/lib/email/send-email'
-import { welcomeDesignerEmail } from '@/lib/email/templates/welcome-designer'
+import { emailService } from '@/lib/core/email-service'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
@@ -129,13 +128,13 @@ export async function POST(request: NextRequest) {
       await supabase.from('designer_software_skills').insert(softwareRecords)
     }
 
-    // Send welcome email to new designer
-    const { subject, html, text } = welcomeDesignerEmail({
-      designerName: designer.first_name,
-      dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/dashboard`
-    })
-    
-    await sendEmail({ to: email, subject, html, text })
+    // Send welcome email to new designer using centralized EmailService
+    await emailService.sendWelcomeEmail(
+      email,
+      designer.first_name,
+      'designer',
+      `${process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'}/designer/dashboard`
+    )
 
     // Set session cookie for designer
     const cookieStore = cookies()

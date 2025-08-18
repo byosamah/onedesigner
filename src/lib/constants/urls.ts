@@ -134,7 +134,7 @@ export const DEV_URLS = {
 // Email-specific URLs (for templates)
 export const EMAIL_URLS = {
   SENDER: {
-    DEFAULT: process.env.EMAIL_FROM || 'Hala from OneDesigner <team@onedesigner.app>',
+    DEFAULT: process.env.EMAIL_FROM || 'Hala from OneDesigner <hello@onedesigner.app>',
     SUPPORT: 'OneDesigner Support <support@onedesigner.app>',
     NOREPLY: 'OneDesigner <noreply@onedesigner.app>'
   },
