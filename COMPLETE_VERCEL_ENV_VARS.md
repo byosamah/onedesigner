@@ -24,7 +24,7 @@ Variable Name: DEEPSEEK_API_KEY
 Value: sk-7404080c428443b598ee8c76382afb39
 
 Variable Name: EMAIL_FROM
-Value: magic@onedesigner.app
+Value: hello@onedesigner.app
 
 Variable Name: RESEND_API_KEY
 Value: re_KL6peoSX_KsWzKz8JhALUK3BdttMNS8M8

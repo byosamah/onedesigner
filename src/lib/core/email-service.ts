@@ -94,8 +94,20 @@ export class EmailService {
     this.resend = new Resend(apiKey)
 
     // Default configuration using centralized timing
+    // Extract just the email address if EMAIL_FROM contains full format
+    const emailFromEnv = process.env.EMAIL_FROM || 'hello@onedesigner.app'
+    let defaultFrom = 'hello@onedesigner.app'
+    
+    // If EMAIL_FROM is in "Name <email>" format, extract the email
+    const match = emailFromEnv.match(/<(.+)>/)
+    if (match) {
+      defaultFrom = match[1]
+    } else if (emailFromEnv.includes('@')) {
+      defaultFrom = emailFromEnv
+    }
+    
     this.config = {
-      from: process.env.EMAIL_FROM || 'OneDesigner <hello@onedesigner.app>',
+      from: defaultFrom,
       fromName: 'OneDesigner', // Default sender name
       replyTo: process.env.EMAIL_REPLY_TO,
       apiKey,
@@ -291,7 +303,21 @@ export class EmailService {
    */
   private formatFromAddress(templateName?: string, options?: EmailOptions): string {
     const senderName = this.getSenderName(templateName, options)
-    const emailAddress = process.env.EMAIL_FROM_ADDRESS || 'hello@onedesigner.app'
+    
+    // Get email address from EMAIL_FROM env variable
+    // If EMAIL_FROM contains a full format like "Name <email>", extract just the email
+    const emailFromEnv = process.env.EMAIL_FROM || 'hello@onedesigner.app'
+    let emailAddress = 'hello@onedesigner.app'
+    
+    // Extract email address if it's in "Name <email>" format
+    const emailMatch = emailFromEnv.match(/<(.+)>/)
+    if (emailMatch) {
+      emailAddress = emailMatch[1]
+    } else if (emailFromEnv.includes('@')) {
+      // It's just an email address
+      emailAddress = emailFromEnv
+    }
+    
     return `${senderName} <${emailAddress}>`
   }
 
