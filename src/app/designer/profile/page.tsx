@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/hooks/useTheme'
@@ -51,6 +51,10 @@ export default function DesignerProfilePage() {
 
   // Portfolio images state
   const [portfolioImages, setPortfolioImages] = useState<(string | null)[]>([null, null, null])
+  
+  // Avatar upload state
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const avatarFileInputRef = useRef<HTMLInputElement>(null)
 
   // Get fields for profile context
   const profileFields = getFieldsForContext('profile')
@@ -196,6 +200,58 @@ export default function DesignerProfilePage() {
         delete next[fieldKey]
         return next
       })
+    }
+  }
+
+  const handleAvatarUpload = async (file: File) => {
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+
+    // Validate file size
+    if (file.size > maxSize) {
+      setError('Avatar image must be less than 10MB')
+      return
+    }
+
+    // Validate file type
+    if (!allowedTypes.includes(file.type)) {
+      setError('Avatar must be JPEG, PNG, or WebP format')
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    setError(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      const response = await fetch('/api/designer/avatar/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Avatar upload failed')
+      }
+
+      const result = await response.json()
+      
+      // Update form data and profile with new avatar URL
+      const newAvatarUrl = result.avatarUrl
+      setFormData(prev => ({ ...prev, avatar_url: newAvatarUrl }))
+      setProfile(prev => prev ? { ...prev, avatar_url: newAvatarUrl } : null)
+      
+      setSuccessMessage('Avatar updated successfully!')
+      setTimeout(() => setSuccessMessage(null), 3000)
+
+    } catch (error) {
+      logger.error('Avatar upload error:', error)
+      setError(error instanceof Error ? error.message : 'Failed to upload avatar')
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -513,37 +569,61 @@ export default function DesignerProfilePage() {
                 {field.label}
               </label>
               <div className="flex items-center gap-4">
-                {value ? (
-                  <img 
-                    src={value} 
-                    alt="Profile" 
-                    className="w-24 h-24 rounded-full object-cover"
-                    style={{ border: `2px solid ${theme.border}` }}
-                  />
-                ) : (
-                  <div 
-                    className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
-                    style={{ 
-                      backgroundColor: theme.tagBg, 
-                      color: theme.text.secondary,
-                      border: `2px solid ${theme.border}` 
-                    }}
-                  >
-                    {profile?.first_name?.[0]}{profile?.last_name?.[0]}
-                  </div>
-                )}
+                <div className="relative">
+                  {value ? (
+                    <img 
+                      src={value} 
+                      alt="Profile" 
+                      className="w-24 h-24 rounded-full object-cover"
+                      style={{ border: `2px solid ${theme.border}` }}
+                    />
+                  ) : (
+                    <div 
+                      className="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold"
+                      style={{ 
+                        backgroundColor: theme.tagBg, 
+                        color: theme.text.secondary,
+                        border: `2px solid ${theme.border}` 
+                      }}
+                    >
+                      {profile?.first_name?.[0]}{profile?.last_name?.[0]}
+                    </div>
+                  )}
+                  {isUploadingAvatar && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="animate-spin text-2xl">⚡</div>
+                    </div>
+                  )}
+                </div>
                 {isEditing && (
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg text-sm"
-                    style={{
-                      backgroundColor: theme.cardBg,
-                      color: theme.text.primary,
-                      border: `2px solid ${theme.border}`
-                    }}
-                  >
-                    Change Photo
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => avatarFileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="px-4 py-2 rounded-lg text-sm transition-all duration-200 hover:scale-105"
+                      style={{
+                        backgroundColor: isUploadingAvatar ? theme.border : theme.accent,
+                        color: isUploadingAvatar ? theme.text.muted : '#000',
+                        border: `2px solid ${isUploadingAvatar ? theme.border : theme.accent}`,
+                        cursor: isUploadingAvatar ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {isUploadingAvatar ? 'Uploading...' : 'Change Photo'}
+                    </button>
+                    <input
+                      ref={avatarFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) {
+                          handleAvatarUpload(file)
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </>
                 )}
               </div>
             </div>
