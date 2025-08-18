@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { createCustomOTP } from '@/lib/auth/custom-otp'
-import { sendOTPEmail } from '@/lib/email/send-otp'
+import { emailService } from '@/lib/core/email-service'
 import { apiResponse, handleApiError } from '@/lib/api/responses'
 import { createServiceClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/core/logging-service'
@@ -41,11 +41,11 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Failed to generate verification code. Please try again.')
     }
 
-    // Send OTP email (in dev, this logs to console)
-    const emailSent = await sendOTPEmail(email, otp)
+    // Send OTP email using centralized EmailService with Marc Lou templates
+    const emailResult = await emailService.sendOTPEmail(email, otp, 'designer', isLogin ? 'login' : 'signup')
     
-    if (!emailSent) {
-      logger.info('⚠️ Email sending failed but OTP was created:', otp)
+    if (!emailResult.success) {
+      logger.info('⚠️ Email sending failed but OTP was created:', otp, 'Error:', emailResult.error)
       // In development, we still return success since the OTP is logged
       if (process.env.NODE_ENV === 'development') {
         return apiResponse.success({ success: true })

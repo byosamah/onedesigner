@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendOTPEmail } from '@/lib/email/send-otp'
+import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
 
 export async function GET(request: NextRequest) {
@@ -19,16 +19,19 @@ export async function GET(request: NextRequest) {
   logger.info('EMAIL_FROM:', process.env.EMAIL_FROM)
 
   try {
-    const result = await sendOTPEmail(email, testOTP)
+    // Use centralized EmailService with Marc Lou templates
+    const result = await emailService.sendOTPEmail(email, testOTP, 'client', 'verify')
     
     return NextResponse.json({ 
-      success: result,
-      message: result ? 'OTP email sent' : 'Failed to send OTP email',
+      success: result.success,
+      message: result.success ? 'OTP email sent with Marc Lou template' : 'Failed to send OTP email',
       debug: {
         otp: testOTP,
         email: email,
         hasApiKey: !!process.env.RESEND_API_KEY,
-        emailFrom: process.env.EMAIL_FROM
+        emailFrom: process.env.EMAIL_FROM,
+        messageId: result.messageId,
+        error: result.error
       }
     })
   } catch (error) {
