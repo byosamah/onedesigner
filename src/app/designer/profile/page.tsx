@@ -283,6 +283,49 @@ export default function DesignerProfilePage() {
     return isValid
   }
 
+  const uploadPendingImages = async (images: (string | null)[]): Promise<(string | null)[]> => {
+    const uploadedImages: (string | null)[] = [...images]
+    
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i]
+      
+      // Check if image is base64 data URL (needs to be uploaded)
+      if (image && image.startsWith('data:image/')) {
+        try {
+          // Convert base64 to File
+          const response = await fetch(image)
+          const blob = await response.blob()
+          const file = new File([blob], `portfolio_${i + 1}.jpg`, { type: blob.type })
+          
+          // Upload to server
+          const formData = new FormData()
+          formData.append(`image${i + 1}`, file)
+
+          const uploadResponse = await fetch('/api/designer/portfolio/images', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+          })
+
+          if (!uploadResponse.ok) {
+            throw new Error('Failed to upload portfolio image')
+          }
+
+          const result = await uploadResponse.json()
+          // Use the first uploaded URL (since we're uploading one image at a time)
+          uploadedImages[i] = result.uploaded[0] || result.images[i] // Replace base64 with uploaded URL
+          
+        } catch (error) {
+          logger.error(`Error uploading portfolio image ${i + 1}:`, error)
+          setError(`Failed to upload portfolio image ${i + 1}`)
+          throw error
+        }
+      }
+    }
+    
+    return uploadedImages
+  }
+
   const handleSave = async () => {
     if (!validateForm()) {
       setError('Please fix the validation errors')
@@ -296,9 +339,9 @@ export default function DesignerProfilePage() {
       // Data is already in snake_case, no need to transform
       const cleanedData = cleanDesignerData(formData)
       
-      // Handle portfolio images - store in tools array
-      // Use the portfolio images state which gets updated by the upload component
-      cleanedData.tools = portfolioImages.filter(Boolean)
+      // Handle portfolio images - upload any base64 images first, then store in tools array
+      const uploadedPortfolioImages = await uploadPendingImages(portfolioImages)
+      cleanedData.tools = uploadedPortfolioImages.filter(Boolean)
       
       // Check if reapproval is needed
       const needsReapproval = profile?.is_approved && 
@@ -866,6 +909,7 @@ export default function DesignerProfilePage() {
                     images={portfolioImages}
                     onImagesChange={setPortfolioImages}
                     disabled={!isEditing}
+                    autoSave={false}
                   />
                 </div>
                 

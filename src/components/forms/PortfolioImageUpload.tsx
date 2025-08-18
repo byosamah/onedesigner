@@ -9,9 +9,10 @@ interface PortfolioImageUploadProps {
   images: (string | null)[]
   onImagesChange: (images: (string | null)[]) => void
   disabled?: boolean // For profile edit mode control
+  autoSave?: boolean // Whether to save to database immediately or just update local state
 }
 
-export function PortfolioImageUpload({ isDarkMode, images, onImagesChange, disabled = false }: PortfolioImageUploadProps) {
+export function PortfolioImageUpload({ isDarkMode, images, onImagesChange, disabled = false, autoSave = true }: PortfolioImageUploadProps) {
   const theme = getTheme(isDarkMode)
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
   const fileInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)]
@@ -36,25 +37,39 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange, disab
     setUploadingIndex(index)
 
     try {
-      const formData = new FormData()
-      formData.append(`image${index + 1}`, file)
+      if (autoSave) {
+        // Auto-save mode: Upload to server immediately (original behavior)
+        const formData = new FormData()
+        formData.append(`image${index + 1}`, file)
 
-      const response = await fetch('/api/designer/portfolio/images', {
-        method: 'POST',
-        body: formData,
-      })
+        const response = await fetch('/api/designer/portfolio/images', {
+          method: 'POST',
+          body: formData,
+        })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Upload failed')
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Upload failed')
+        }
+
+        const result = await response.json()
+        
+        // Update images array
+        const newImages = [...images]
+        newImages[index] = result.images[0] // The API returns the uploaded URL
+        onImagesChange(newImages)
+      } else {
+        // Manual save mode: Just convert to base64 and update local state
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          const newImages = [...images]
+          newImages[index] = e.target?.result as string
+          onImagesChange(newImages)
+          setUploadingIndex(null)
+        }
+        reader.readAsDataURL(file)
+        return // Exit early since FileReader is async
       }
-
-      const result = await response.json()
-      
-      // Update images array
-      const newImages = [...images]
-      newImages[index] = result.images[0] // The API returns the uploaded URL
-      onImagesChange(newImages)
 
     } catch (error) {
       logger.error('Upload error:', error)
@@ -65,6 +80,14 @@ export function PortfolioImageUpload({ isDarkMode, images, onImagesChange, disab
   }
 
   const handleRemoveImage = async (index: number) => {
+    if (!autoSave) {
+      // Manual save mode: Just update local state
+      const newImages = [...images]
+      newImages[index] = null
+      onImagesChange(newImages)
+      return
+    }
+
     setUploadingIndex(index)
 
     try {
