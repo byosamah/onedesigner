@@ -577,7 +577,74 @@ After completing the core centralization, we aligned all recent features with th
 - ✅ Project request APIs use service layer
 - ✅ Consistent error handling throughout
 
+### 📬 **Working Request System** (Aug 18, 2025)
+
+After completing centralization, we implemented a streamlined Working Request System that replaces complex messaging with one-click designer contact:
+
+#### **System Overview**
+- **Purpose**: Simplify client-designer communication to a single "Send Working Request" action
+- **Response Time**: 72-hour deadline for designers to respond (accept/decline)
+- **Brief Preservation**: Complete project details captured in JSONB snapshot
+- **Email Notifications**: Automated notifications for all status changes
+
+#### **Key Components**
+- **Modal**: `/src/components/modals/WorkingRequestModal.tsx`
+  - Auto-generates professional messages based on project type
+  - Shows designer name and project context
+  - One-click confirmation to send request
+
+- **Designer Dashboard**: `/src/components/cards/WorkingRequestCard.tsx`
+  - Shows pending requests with countdown timers
+  - Accept/Decline buttons with confirmation
+  - Brief snapshot display for context
+  - Visual indicators for viewed/unviewed status
+
+- **API Endpoints**:
+  - `/api/client/matches/[id]/contact` - Send working request (POST)
+    - Fixed session handling to extract clientId from multiple sources
+    - Creates project_request with 72-hour deadline
+    - Sends email notification to designer
+  - `/api/designer/project-requests/[id]/respond` - Accept/decline request (POST)
+    - Updates request status
+    - Sends notification to client
+    - Reveals contact information on acceptance
+
+#### **Database Schema**
+```sql
+project_requests:
+  - id (UUID)
+  - match_id (UUID, references matches)
+  - client_id (UUID, references clients)
+  - designer_id (UUID, references designers)
+  - message (TEXT)
+  - status (pending/accepted/declined)
+  - client_email (TEXT)
+  - brief_snapshot (JSONB) -- Complete brief details
+  - response_deadline (TIMESTAMP) -- 72 hours from creation
+  - viewed_at (TIMESTAMP) -- When designer first viewed
+  - created_at (TIMESTAMP)
+  - updated_at (TIMESTAMP)
+```
+
+#### **Critical Bug Fixes**
+1. **Session clientId Extraction** (Aug 18, 2025)
+   - **Issue**: API returning 404 because `session.clientId` was undefined
+   - **Root Cause**: Session object wasn't in scope, needed to use extracted clientId variable
+   - **Fix**: Changed all references from `session.clientId` to properly extracted `clientId`
+   - **Files**: `/src/app/api/client/matches/[id]/contact/route.ts` (lines 28, 56, 77, 96, 149, 185)
+
+2. **Client Dashboard UI Update**
+   - **Issue**: Still showing "Contact Designer" button instead of "Send Working Request"
+   - **Fix**: Updated imports, button text, modal component, and function names
+   - **File**: `/src/app/client/dashboard/page.tsx`
+
+#### **Testing**
+- Test scripts in `/test/`:
+  - `test-working-request-flow.js` - Validates complete flow
+  - `test-client-dashboard-match.js` - Verifies match display
+  - `working-request-status.js` - System health check
+
 ---
-**Last Updated**: August 12, 2025
-**Version**: 2.1.0 (Post-Centralization Alignment)
-**Status**: Production Ready with All Features Centralized
+**Last Updated**: August 18, 2025
+**Version**: 2.2.0 (Working Request System Complete)
+**Status**: Production Ready with Streamlined Designer Contact
