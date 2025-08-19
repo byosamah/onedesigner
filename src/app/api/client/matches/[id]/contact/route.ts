@@ -54,43 +54,64 @@ export async function POST(
 
     const supabase = createServiceClientWithoutCookies()
 
-    // First, get the match with designer info to check if it exists
+    // First, get the match - simpler query first
     const { data: match, error: matchError } = await supabase
       .from('matches')
-      .select(`
-        *, 
-        designer_id,
-        briefs(
+      .select('*')
+      .eq('id', params.id)
+      .single()
+      
+    // If match exists, get the brief details separately
+    let briefData = null
+    if (match && match.brief_id) {
+      const { data: brief } = await supabase
+        .from('briefs')
+        .select(`
           *,
-          client_id,
           clients(
             email,
             company_name
           )
-        )
-      `)
-      .eq('id', params.id)
-      .single()
+        `)
+        .eq('id', match.brief_id)
+        .single()
+      briefData = brief
+    }
 
     logger.info('Match query result:', {
       matchId: params.id,
       found: !!match,
       error: matchError?.message,
       matchClientId: match?.client_id,
-      briefClientId: match?.briefs?.client_id
+      briefClientId: briefData?.client_id,
+      matchStatus: match?.status
     })
 
     if (matchError || !match) {
       logger.error('Match not found:', {
         matchId: params.id,
         error: matchError,
-        errorMessage: matchError?.message
+        errorMessage: matchError?.message,
+        errorCode: matchError?.code
       })
+      
+      // Try to see if match exists at all
+      const { data: allMatches } = await supabase
+        .from('matches')
+        .select('id, client_id, status')
+        .eq('id', params.id)
+      
+      logger.error('Debug - Direct match check:', {
+        matchId: params.id,
+        matchExists: allMatches && allMatches.length > 0,
+        matchData: allMatches?.[0]
+      })
+      
       return apiResponse.notFound('Match')
     }
 
     // Check if the match belongs to the client (via the brief's client_id)
-    const matchClientId = match.client_id || match.briefs?.client_id
+    const matchClientId = match.client_id || briefData?.client_id
     
     logger.info('Ownership check:', {
       matchClientId: matchClientId,
@@ -103,7 +124,7 @@ export async function POST(
         matchId: params.id,
         matchClientId: matchClientId,
         sessionClientId: clientId,
-        briefClientId: match.briefs?.client_id,
+        briefClientId: briefData?.client_id,
         matchStatus: match.status
       })
       return apiResponse.notFound('Match')
@@ -150,39 +171,39 @@ export async function POST(
     }
 
     // Auto-generate professional message based on project type
-    const projectType = match.briefs?.project_type || match.briefs?.design_category || 'design'
+    const projectType = briefData?.project_type || briefData?.design_category || 'design'
     const autoMessage = `Client is interested in working with you on their ${projectType} project.`
 
     // Create a complete snapshot of the brief for the designer
     const briefSnapshot = {
       // Basic project info
-      project_type: match.briefs?.project_type || match.briefs?.design_category,
-      timeline: match.briefs?.timeline || match.briefs?.timeline_type,
-      budget: match.briefs?.budget || match.briefs?.budget_range,
+      project_type: briefData?.project_type || briefData?.design_category,
+      timeline: briefData?.timeline || briefData?.timeline_type,
+      budget: briefData?.budget || briefData?.budget_range,
       
       // Detailed requirements
-      project_description: match.briefs?.project_description || match.briefs?.requirements,
-      target_audience: match.briefs?.target_audience,
-      project_goal: match.briefs?.project_goal,
-      industry: match.briefs?.industry,
+      project_description: briefData?.project_description || briefData?.requirements,
+      target_audience: briefData?.target_audience,
+      project_goal: briefData?.project_goal,
+      industry: briefData?.industry,
       
       // Design preferences
-      styles: match.briefs?.styles || [],
-      style_keywords: match.briefs?.style_keywords || [],
-      competitors: match.briefs?.competitors,
-      inspiration: match.briefs?.inspiration,
+      styles: briefData?.styles || [],
+      style_keywords: briefData?.style_keywords || [],
+      competitors: briefData?.competitors,
+      inspiration: briefData?.inspiration,
       
       // Additional details
-      deliverables: match.briefs?.deliverables,
-      brand_guidelines: match.briefs?.brand_guidelines,
-      existing_assets: match.briefs?.existing_assets,
-      specific_requirements: match.briefs?.specific_requirements,
+      deliverables: briefData?.deliverables,
+      brand_guidelines: briefData?.brand_guidelines,
+      existing_assets: briefData?.existing_assets,
+      specific_requirements: briefData?.specific_requirements,
       
       // Category-specific fields
-      category_specific_fields: match.briefs?.category_specific_fields || {},
+      category_specific_fields: briefData?.category_specific_fields || {},
       
       // Client info (if available)
-      company_name: match.briefs?.clients?.company_name,
+      company_name: briefData?.clients?.company_name,
       
       // Match context
       match_score: match.score,
@@ -202,7 +223,7 @@ export async function POST(
       message: autoMessage,
       status: 'pending',
       client_email: client.email,
-      brief_details: match.briefs, // Keep original for backward compatibility
+      brief_details: briefData, // Keep original for backward compatibility
       brief_snapshot: briefSnapshot, // New comprehensive snapshot
       response_deadline: responseDeadline.toISOString()
     })
