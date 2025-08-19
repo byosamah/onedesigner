@@ -209,6 +209,9 @@ export function BriefViewerModal({
                       <InfoCard label="Timeline" value={briefData.timeline} theme={theme} />
                       <InfoCard label="Budget" value={briefData.budget} theme={theme} />
                       <InfoCard label="Industry" value={briefData.industry} theme={theme} />
+                      {briefData.timezone && (
+                        <InfoCard label="Client Timezone" value={briefData.timezone} theme={theme} />
+                      )}
                     </div>
                   </div>
 
@@ -233,7 +236,7 @@ export function BriefViewerModal({
                   )}
 
                   {/* Target & Goals */}
-                  {(briefData.target_audience || briefData.project_goal) && (
+                  {(briefData.target_audience || briefData.project_goal || briefData.brand_personality || briefData.tone_voice) && (
                     <div>
                       <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
                         🎯 Target & Goals
@@ -245,12 +248,18 @@ export function BriefViewerModal({
                         {briefData.project_goal && (
                           <InfoCard label="Project Goal" value={briefData.project_goal} theme={theme} />
                         )}
+                        {briefData.brand_personality && (
+                          <InfoCard label="Brand Personality" value={briefData.brand_personality} theme={theme} />
+                        )}
+                        {briefData.tone_voice && (
+                          <InfoCard label="Tone of Voice" value={briefData.tone_voice} theme={theme} />
+                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Design Preferences */}
-                  {(briefData.styles?.length || briefData.style_keywords?.length) && (
+                  {(briefData.styles?.length || briefData.style_keywords?.length || briefData.color_preferences || briefData.typography_preferences) && (
                     <div>
                       <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
                         🎨 Design Preferences
@@ -299,23 +308,111 @@ export function BriefViewerModal({
                             </div>
                           </div>
                         )}
+                        {briefData.color_preferences && (
+                          <InfoCard label="Color Preferences" value={briefData.color_preferences} theme={theme} />
+                        )}
+                        {briefData.typography_preferences && (
+                          <InfoCard label="Typography Preferences" value={briefData.typography_preferences} theme={theme} />
+                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Additional Details */}
-                  {(briefData.deliverables || briefData.specific_requirements) && (
+                  {(briefData.deliverables || briefData.specific_requirements || briefData.brand_guidelines || briefData.existing_assets || briefData.competitors || briefData.inspiration || briefData.company_name || briefData.website_url) && (
                     <div>
                       <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
                         📦 Additional Details
                       </h3>
                       <div className="space-y-3">
+                        {briefData.company_name && (
+                          <InfoCard label="Company Name" value={briefData.company_name} theme={theme} />
+                        )}
+                        {briefData.website_url && (
+                          <InfoCard label="Website URL" value={briefData.website_url} theme={theme} />
+                        )}
                         {briefData.deliverables && (
                           <InfoCard label="Deliverables" value={briefData.deliverables} theme={theme} />
                         )}
                         {briefData.specific_requirements && (
                           <InfoCard label="Specific Requirements" value={briefData.specific_requirements} theme={theme} />
                         )}
+                        {briefData.brand_guidelines && (
+                          <InfoCard label="Brand Guidelines" value={briefData.brand_guidelines} theme={theme} />
+                        )}
+                        {briefData.existing_assets && (
+                          <InfoCard label="Existing Assets" value={briefData.existing_assets} theme={theme} />
+                        )}
+                        {briefData.competitors && (
+                          <InfoCard label="Competitors/References" value={briefData.competitors} theme={theme} />
+                        )}
+                        {briefData.inspiration && (
+                          <InfoCard label="Inspiration" value={briefData.inspiration} theme={theme} />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Communication Preferences */}
+                  {briefData.communication?.length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
+                        💬 Communication Preferences
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        {briefData.communication.map((method, index) => (
+                          <span 
+                            key={index}
+                            className="px-3 py-1 rounded-full text-sm"
+                            style={{ 
+                              backgroundColor: theme.accent + '20',
+                              color: theme.accent
+                            }}
+                          >
+                            {method}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Technical Requirements */}
+                  {(briefData.technical_requirements || briefData.platform_requirements || briefData.devices_supported || briefData.accessibility_requirements) && (
+                    <div>
+                      <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
+                        ⚙️ Technical Requirements
+                      </h3>
+                      <div className="space-y-3">
+                        {briefData.technical_requirements && (
+                          <InfoCard label="Technical Requirements" value={briefData.technical_requirements} theme={theme} />
+                        )}
+                        {briefData.platform_requirements && (
+                          <InfoCard label="Platform Requirements" value={briefData.platform_requirements} theme={theme} />
+                        )}
+                        {briefData.devices_supported && (
+                          <InfoCard label="Devices Supported" value={briefData.devices_supported} theme={theme} />
+                        )}
+                        {briefData.accessibility_requirements && (
+                          <InfoCard label="Accessibility Requirements" value={briefData.accessibility_requirements} theme={theme} />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Category-Specific Fields */}
+                  {briefData.category_specific_fields && Object.keys(briefData.category_specific_fields).length > 0 && (
+                    <div>
+                      <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
+                        🎯 Project-Specific Details
+                      </h3>
+                      <div className="space-y-3">
+                        {Object.entries(briefData.category_specific_fields).map(([key, value], index) => {
+                          if (!value) return null
+                          const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                          return (
+                            <InfoCard key={index} label={label} value={String(value)} theme={theme} />
+                          )
+                        })}
                       </div>
                     </div>
                   )}
