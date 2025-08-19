@@ -665,6 +665,18 @@ project_requests:
   - `/src/app/api/designer/project-requests/[id]/view/route.ts` - Improved fallback handling
   - `/scripts/fix-brief-snapshots.js` - Migration script for existing data
 
+#### **Designer Dashboard Avatar Fix** (Aug 19, 2025)
+- **Issue**: Designer dashboard showed initials instead of actual avatar, and displayed removed "years experience" field
+- **Root Cause**: Session API wasn't returning avatar_url field, and dashboard still referenced old years_experience field
+- **Fix Applied**:
+  1. Added `avatar: designer.avatar_url` to designer session API response 
+  2. Updated dashboard to display actual profile picture with fallback to initials
+  3. Removed years experience text from dashboard display
+  4. Dashboard now uses same data source as admin panel for consistency
+- **Files Changed**:
+  - `/src/app/api/designer/auth/session/route.ts` - Added avatar field to response
+  - `/src/app/designer/dashboard/page.tsx` - Updated avatar display and removed years experience
+
 - don't over engineering always
 - always make sure that it's eveything centerlized and have the same source of truth
 - emails should be using the our marc lou style always
