@@ -27,10 +27,7 @@ export async function GET(
           score,
           reasons,
           briefs (
-            *,
-            clients (
-              company_name
-            )
+            *
           )
         ),
         clients (
@@ -92,7 +89,7 @@ export async function GET(
       },
       client: {
         email: projectRequest.status === 'approved' ? projectRequest.clients?.email : null,
-        company_name: briefData?.company_name || projectRequest.matches?.briefs?.clients?.company_name
+        company_name: briefData?.company_name || null
       }
     })
 
