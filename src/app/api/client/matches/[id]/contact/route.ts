@@ -43,25 +43,24 @@ export async function POST(
     
     logger.info('Using client ID:', clientId)
 
-    const { designerId } = await request.json()
+    // We don't actually need designerId from the request body
+    // We'll get it from the match itself for security
+    const requestBody = await request.json()
     
     logger.info('Contact request received:', {
       matchId: params.id,
       clientId: clientId,
-      designerId: designerId
+      requestBody: requestBody
     })
-    
-    if (!designerId) {
-      return apiResponse.badRequest('Designer ID is required')
-    }
 
     const supabase = createServiceClientWithoutCookies()
 
-    // First, get the match to check if it exists
+    // First, get the match with designer info to check if it exists
     const { data: match, error: matchError } = await supabase
       .from('matches')
       .select(`
         *, 
+        designer_id,
         briefs(
           *,
           client_id,
@@ -114,6 +113,13 @@ export async function POST(
     // Verify the match is unlocked
     if (match.status !== 'unlocked') {
       return apiResponse.badRequest('You must unlock the designer before contacting them')
+    }
+
+    // Get the designer ID from the match itself (more secure)
+    const designerId = match.designer_id
+    if (!designerId) {
+      logger.error('No designer_id in match:', { matchId: params.id })
+      return apiResponse.serverError('Match data is incomplete')
     }
 
     // Get client details
