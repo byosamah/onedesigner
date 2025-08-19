@@ -15,29 +15,28 @@ export async function POST(
     // Validate client session
     const sessionResult = await validateSession('CLIENT')
     
-    // Enhanced debug logging to understand session structure
-    logger.info('Session validation result:', {
-      valid: sessionResult.valid,
-      hasSession: !!sessionResult.session,
-      hasClientId: !!sessionResult.clientId,
-      sessionClientId: sessionResult.session?.clientId,
-      directClientId: sessionResult.clientId,
-      userId: sessionResult.user?.id,
-      userEmail: sessionResult.user?.email,
-      sessionEmail: sessionResult.session?.email
-    })
+    // If session validation fails, try a direct approach
+    let clientId = sessionResult.clientId || sessionResult.user?.id
+    let clientEmail = sessionResult.user?.email || sessionResult.session?.email
     
-    // Try to get clientId from multiple sources - prioritize user.id from database
-    const clientId = sessionResult.clientId || sessionResult.user?.id || sessionResult.session?.clientId || sessionResult.session?.userId
+    // If we don't have a client ID but have an email, look it up directly
+    if (!clientId && clientEmail) {
+      logger.info('Session missing clientId, looking up by email:', clientEmail)
+      const supabase = createServiceClientWithoutCookies()
+      const { data: clientData } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('email', clientEmail)
+        .single()
+      
+      if (clientData) {
+        clientId = clientData.id
+        logger.info('Found client ID from database:', clientId)
+      }
+    }
     
     if (!sessionResult.valid || !clientId) {
-      logger.error('Authentication failed:', {
-        valid: sessionResult.valid,
-        hasClientId: !!clientId,
-        clientId: clientId,
-        user: sessionResult.user,
-        session: sessionResult.session
-      })
+      logger.error('Authentication failed - no valid session or client ID found')
       return apiResponse.unauthorized('Please log in as a client')
     }
     
