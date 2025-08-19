@@ -363,13 +363,13 @@ export function BriefViewerModal({
                         {briefData.communication.map((method, index) => (
                           <span 
                             key={index}
-                            className="px-3 py-1 rounded-full text-sm"
+                            className="px-3 py-1 rounded-full text-sm font-medium"
                             style={{ 
                               backgroundColor: theme.accent + '20',
                               color: theme.accent
                             }}
                           >
-                            {method}
+                            {method.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
                         ))}
                       </div>
@@ -413,6 +413,33 @@ export function BriefViewerModal({
                             <InfoCard key={index} label={label} value={String(value)} theme={theme} />
                           )
                         })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* All Available Data - Debug Section */}
+                  {process.env.NODE_ENV === 'development' && briefData && (
+                    <div>
+                      <h3 className="font-semibold mb-3" style={{ color: theme.text.primary }}>
+                        🔍 All Available Data (Debug)
+                      </h3>
+                      <div 
+                        className="p-3 rounded-xl text-xs"
+                        style={{ 
+                          backgroundColor: theme.nestedBg,
+                          border: `1px solid ${theme.border}`,
+                          color: theme.text.secondary
+                        }}
+                      >
+                        <p className="mb-2 font-semibold">Available fields in briefData:</p>
+                        <div className="space-y-1">
+                          {Object.entries(briefData).map(([key, value]) => (
+                            <div key={key} className="flex">
+                              <span className="font-mono mr-2">{key}:</span>
+                              <span>{value ? (Array.isArray(value) ? `[${value.length} items]` : typeof value === 'object' ? '[object]' : String(value).substring(0, 50)) : 'null'}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   )}
