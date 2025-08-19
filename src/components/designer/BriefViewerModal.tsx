@@ -70,9 +70,24 @@ export function BriefViewerModal({
       }
 
       const data = await response.json()
+      
+      // Debug logging to understand the data flow
+      console.log('🔍 BriefViewerModal API Response:', {
+        briefExists: !!data.brief,
+        briefKeys: data.brief ? Object.keys(data.brief).length : 0,
+        requestStatus: data.request.status,
+        hoursRemaining: data.request.hours_remaining
+      })
+      
       setBriefData(data.brief)
       setHoursRemaining(data.request.hours_remaining || 0)
       setRequestStatus(data.request.status)
+      
+      // Debug the state after setting
+      console.log('🎯 Modal State After API:', {
+        briefDataSet: !!data.brief,
+        statusSet: data.request.status
+      })
     } catch (error) {
       logger.error('Error fetching brief details:', error)
     } finally {
@@ -144,7 +159,16 @@ export function BriefViewerModal({
                   <div className="animate-spin text-3xl mb-4" style={{ color: theme.accent }}>⚡</div>
                   <p style={{ color: theme.text.secondary }}>Loading brief details...</p>
                 </div>
-              ) : briefData ? (
+              ) : (() => {
+                console.log('🔍 Brief display check:', {
+                  loading,
+                  briefDataExists: !!briefData,
+                  briefDataType: typeof briefData,
+                  briefDataKeys: briefData ? Object.keys(briefData).length : 0,
+                  shouldShowContent: !!briefData
+                })
+                return !!briefData
+              })() ? (
                 <div className="space-y-6">
                   {/* Match Score Badge */}
                   {briefData.match_score && (
@@ -308,7 +332,15 @@ export function BriefViewerModal({
             </div>
             
             {/* Footer Actions */}
-            {requestStatus === 'pending' && !loading && (
+            {(() => {
+              console.log('🎯 Button visibility check:', {
+                requestStatus,
+                isPending: requestStatus === 'pending',
+                loading,
+                shouldShowButtons: requestStatus === 'pending' && !loading
+              })
+              return requestStatus === 'pending' && !loading
+            })() && (
               <div 
                 className="sticky bottom-0 px-6 py-4 border-t rounded-b-3xl flex gap-3"
                 style={{ 
