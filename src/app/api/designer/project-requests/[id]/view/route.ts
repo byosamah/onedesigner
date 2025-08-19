@@ -67,8 +67,12 @@ export async function GET(
     const deadline = new Date(projectRequest.response_deadline)
     const hoursRemaining = Math.max(0, Math.floor((deadline.getTime() - now.getTime()) / (1000 * 60 * 60)))
 
-    // Prepare the response with brief snapshot or fallback to original brief
-    const briefData = projectRequest.brief_snapshot || projectRequest.matches?.briefs || projectRequest.brief_details
+    // Prepare the response with brief snapshot as primary source
+    // Brief snapshot is the single source of truth for the project details
+    const briefData = projectRequest.brief_snapshot || 
+                     projectRequest.matches?.briefs || 
+                     projectRequest.brief_details || 
+                     {}
 
     return apiResponse.success({
       request: {

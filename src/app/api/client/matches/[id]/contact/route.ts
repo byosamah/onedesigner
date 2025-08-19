@@ -196,35 +196,40 @@ export async function POST(
     const autoMessage = `Client is interested in working with you on their ${projectType} project.`
 
     // Create a complete snapshot of the brief for the designer
+    // Use actual field names from the briefs table
     const briefSnapshot = {
-      // Basic project info
-      project_type: briefData?.project_type || briefData?.design_category,
-      timeline: briefData?.timeline || briefData?.timeline_type,
-      budget: briefData?.budget || briefData?.budget_range,
+      // Basic project info (using correct field names)
+      project_type: briefData?.project_type || 'Design Project',
+      timeline: briefData?.timeline || 'Not specified',
+      budget: briefData?.budget || 'Not specified',
       
-      // Detailed requirements
-      project_description: briefData?.project_description || briefData?.requirements,
-      target_audience: briefData?.target_audience,
-      project_goal: briefData?.project_goal,
-      industry: briefData?.industry,
+      // Detailed requirements (requirements is the actual field name)
+      project_description: briefData?.requirements || briefData?.project_description || briefData?.industry || '',
+      target_audience: briefData?.target_audience || '',
+      project_goal: briefData?.project_goal || '',
+      industry: briefData?.industry || '',
       
       // Design preferences
       styles: briefData?.styles || [],
       style_keywords: briefData?.style_keywords || [],
-      competitors: briefData?.competitors,
-      inspiration: briefData?.inspiration,
+      competitors: briefData?.competitors || '',
+      inspiration: briefData?.inspiration || '',
       
       // Additional details
-      deliverables: briefData?.deliverables,
-      brand_guidelines: briefData?.brand_guidelines,
-      existing_assets: briefData?.existing_assets,
-      specific_requirements: briefData?.specific_requirements,
+      deliverables: briefData?.deliverables || '',
+      brand_guidelines: briefData?.brand_guidelines || '',
+      existing_assets: briefData?.existing_assets || '',
+      specific_requirements: briefData?.specific_requirements || '',
+      
+      // Communication preferences
+      communication: briefData?.communication || [],
+      timezone: briefData?.timezone || '',
       
       // Category-specific fields
       category_specific_fields: briefData?.category_specific_fields || {},
       
       // Client info (if available)
-      company_name: briefData?.clients?.company_name,
+      company_name: briefData?.clients?.company_name || '',
       
       // Match context
       match_score: match.score,
