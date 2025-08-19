@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
         lastName: designer.last_name,
         email: designer.email,
         title: designer.title,
+        avatar: designer.avatar_url, // Add avatar from same source as admin
         isApproved: designer.is_approved,
         isVerified: designer.is_verified,
         editedAfterApproval: designer.edited_after_approval || false,
@@ -84,7 +85,6 @@ export async function GET(request: NextRequest) {
         rejectionReason: designer.rejection_reason,
         // Use fallback for rejection_seen if column doesn't exist
         rejectionSeen: designer.rejection_seen ?? false,
-        yearsExperience: designer.years_experience,
         bio: designer.bio,
         city: designer.city,
         country: designer.country,

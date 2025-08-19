@@ -52,6 +52,7 @@ interface DesignerProfile {
   lastName: string
   email: string
   title: string
+  avatar?: string
   isApproved: boolean
   isVerified: boolean
   editedAfterApproval?: boolean
@@ -60,7 +61,6 @@ interface DesignerProfile {
   rejectionSeen?: boolean
   designPhilosophy: string
   primaryCategories: string[]
-  yearsExperience: number | string
 }
 
 export default function DesignerDashboardPage() {
@@ -444,18 +444,27 @@ export default function DesignerDashboardPage() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div 
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
-                  style={{ backgroundColor: theme.accent, color: '#000' }}
-                >
-                  {designer.firstName?.[0] || 'D'}{designer.lastName?.[0] || 'U'}
-                </div>
+                {designer.avatar ? (
+                  <img
+                    src={designer.avatar}
+                    alt={`${designer.firstName} ${designer.lastName}`}
+                    className="w-14 h-14 rounded-full object-cover border-2"
+                    style={{ borderColor: theme.border }}
+                  />
+                ) : (
+                  <div 
+                    className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold"
+                    style={{ backgroundColor: theme.accent, color: '#000' }}
+                  >
+                    {designer.firstName?.[0] || 'D'}{designer.lastName?.[0] || 'U'}
+                  </div>
+                )}
                 <div>
                   <h3 className="text-lg font-bold mb-1 transition-colors duration-300" style={{ color: theme.text.primary }}>
                     {designer.firstName || 'Designer'} {designer.lastName || 'User'}
                   </h3>
                   <p className="text-sm transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                    {designer.title || 'Designer'} • {designer.yearsExperience || 0} years experience
+                    {designer.title || 'Designer'}
                   </p>
                 </div>
               </div>
