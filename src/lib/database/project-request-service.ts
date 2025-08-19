@@ -74,6 +74,9 @@ class ProjectRequestService {
         .from('project_requests')
         .select(`
           *,
+          brief_snapshot,
+          response_deadline,
+          viewed_at,
           matches (
             id,
             score,
