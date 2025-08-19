@@ -28,10 +28,21 @@ export async function POST(
     const clientId = sessionResult.clientId || sessionResult.session?.clientId || sessionResult.session?.userId
     
     if (!sessionResult.valid || !clientId) {
+      logger.error('Authentication failed:', {
+        valid: sessionResult.valid,
+        hasClientId: !!clientId,
+        sessionResult: JSON.stringify(sessionResult)
+      })
       return apiResponse.unauthorized('Please log in as a client')
     }
 
     const { designerId } = await request.json()
+    
+    logger.info('Contact request received:', {
+      matchId: params.id,
+      clientId: clientId,
+      designerId: designerId
+    })
     
     if (!designerId) {
       return apiResponse.badRequest('Designer ID is required')
@@ -56,22 +67,39 @@ export async function POST(
       .eq('id', params.id)
       .single()
 
+    logger.info('Match query result:', {
+      matchId: params.id,
+      found: !!match,
+      error: matchError?.message,
+      matchClientId: match?.client_id,
+      briefClientId: match?.briefs?.client_id
+    })
+
     if (matchError || !match) {
       logger.error('Match not found:', {
         matchId: params.id,
-        error: matchError
+        error: matchError,
+        errorMessage: matchError?.message
       })
       return apiResponse.notFound('Match not found')
     }
 
     // Check if the match belongs to the client (via the brief's client_id)
     const matchClientId = match.client_id || match.briefs?.client_id
+    
+    logger.info('Ownership check:', {
+      matchClientId: matchClientId,
+      sessionClientId: clientId,
+      isMatch: matchClientId === clientId
+    })
+    
     if (matchClientId !== clientId) {
       logger.error('Match ownership mismatch:', {
         matchId: params.id,
         matchClientId: matchClientId,
         sessionClientId: clientId,
-        briefClientId: match.briefs?.client_id
+        briefClientId: match.briefs?.client_id,
+        matchStatus: match.status
       })
       return apiResponse.notFound('Match not found')
     }

@@ -839,6 +839,13 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
         onClose={() => setShowWorkingRequestModal(false)}
         onConfirm={async () => {
           try {
+            // Debug log the match data
+            console.log('Sending working request for match:', {
+              matchId: match.id,
+              designerId: match.designer.id,
+              designerName: match.designer.firstName
+            })
+            
             const response = await fetch(`/api/client/matches/${match.id}/contact`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -849,16 +856,32 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
               })
             })
 
-            const data = await response.json()
+            // Log response status
+            console.log('Response status:', response.status)
+            
+            let data
+            try {
+              data = await response.json()
+              console.log('Response data:', data)
+            } catch (parseError) {
+              console.error('Failed to parse response:', parseError)
+              throw new Error('Invalid response from server')
+            }
             
             if (!response.ok) {
               // Check if it's an authentication error
               if (response.status === 401) {
-                alert(data.error || 'Please log in as a client to send working requests')
-                window.location.href = `/client/login?redirect=/match/${match.brief_id || match.id}`
+                const errorMessage = data.error || data.message || 'Please log in as a client to send working requests'
+                alert(errorMessage)
+                // Use a fallback for redirect if brief_id doesn't exist
+                window.location.href = `/client/login?redirect=/client/dashboard`
                 return
               }
-              throw new Error(data.error || 'Failed to send working request')
+              
+              // Extract error message from various possible fields
+              const errorMessage = data.error || data.message || data.details || 'Failed to send working request'
+              console.error('API error:', errorMessage)
+              throw new Error(errorMessage)
             }
 
             // Success is handled by the modal itself
@@ -867,8 +890,14 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
               window.location.reload()
             }, 2500)
           } catch (error) {
-            logger.error('Error sending working request:', error)
-            alert(error instanceof Error ? error.message : 'Failed to send working request')
+            // Better error logging
+            console.error('Error sending working request:', {
+              message: error instanceof Error ? error.message : 'Unknown error',
+              error: error
+            })
+            
+            const errorMessage = error instanceof Error ? error.message : 'Failed to send working request'
+            alert(errorMessage)
             throw error // Re-throw to let WorkingRequestModal handle loading state
           }
         }}
