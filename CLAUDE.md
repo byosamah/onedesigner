@@ -648,3 +648,6 @@ project_requests:
 **Last Updated**: August 18, 2025
 **Version**: 2.2.0 (Working Request System Complete)
 **Status**: Production Ready with Streamlined Designer Contact
+- don't over engineering always
+- always make sure that it's eveything centerlized and have the same source of truth
+- emails should be using the our marc lou style always

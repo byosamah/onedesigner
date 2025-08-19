@@ -39,13 +39,14 @@ export async function POST(
 
     const supabase = createServiceClientWithoutCookies()
 
-    // Get the match details with complete brief information
+    // First, get the match to check if it exists
     const { data: match, error: matchError } = await supabase
       .from('matches')
       .select(`
         *, 
         briefs(
           *,
+          client_id,
           clients(
             email,
             company_name
@@ -53,14 +54,24 @@ export async function POST(
         )
       `)
       .eq('id', params.id)
-      .eq('client_id', clientId)
       .single()
 
     if (matchError || !match) {
       logger.error('Match not found:', {
         matchId: params.id,
-        clientId: clientId,
         error: matchError
+      })
+      return apiResponse.notFound('Match not found')
+    }
+
+    // Check if the match belongs to the client (via the brief's client_id)
+    const matchClientId = match.client_id || match.briefs?.client_id
+    if (matchClientId !== clientId) {
+      logger.error('Match ownership mismatch:', {
+        matchId: params.id,
+        matchClientId: matchClientId,
+        sessionClientId: clientId,
+        briefClientId: match.briefs?.client_id
       })
       return apiResponse.notFound('Match not found')
     }

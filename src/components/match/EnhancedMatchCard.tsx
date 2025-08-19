@@ -38,6 +38,7 @@ interface MatchData {
     availability?: string
     portfolioImages?: string[]
     profilePicture?: string
+    avatarUrl?: string
     styles?: string[]
     industries?: string[]
     email?: string
@@ -161,9 +162,9 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
       {/* Designer Header */}
       <div className="flex items-start gap-6 mb-6">
         <div className="flex-shrink-0">
-          {match.designer.profilePicture ? (
+          {(match.designer.avatarUrl || match.designer.profilePicture) ? (
             <img 
-              src={match.designer.profilePicture}
+              src={match.designer.avatarUrl || match.designer.profilePicture}
               alt={`${match.designer.firstName} ${match.designer.lastInitial}.`}
               className={`w-20 h-20 rounded-full object-cover border-2 transition-all duration-300 ${
                 !isUnlocked ? 'blur-sm' : ''

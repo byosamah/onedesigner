@@ -445,33 +445,57 @@ export default function ClientDashboard() {
                 }}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
-                        {match.status === 'unlocked' 
-                          ? `${match.designer.firstName} ${match.designer.lastName}` 
-                          : `Designer ${match.designer.firstName}***`
-                        }
-                      </h3>
-                      {match.status === 'unlocked' && (
-                        <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
-                          ✅ Unlocked
-                        </span>
-                      )}
-                      {match.status === 'pending' && (
-                        <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
-                          🔒 Locked
+                  <div className="flex items-center gap-4 flex-1">
+                    {/* Profile Picture */}
+                    <div 
+                      className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+                      style={{ 
+                        backgroundColor: match.designer.avatarUrl ? 'transparent' : theme.nestedBg,
+                        border: `2px solid ${theme.accent}`
+                      }}
+                    >
+                      {match.designer.avatarUrl ? (
+                        <img 
+                          src={match.designer.avatarUrl}
+                          alt={`${match.designer.firstName} ${match.designer.lastName}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-lg font-semibold" style={{ color: theme.text.secondary }}>
+                          {match.designer.firstName?.[0]?.toUpperCase()}{match.designer.lastName?.[0]?.toUpperCase() || ''}
                         </span>
                       )}
                     </div>
                     
-                    <p className="text-sm mb-2 transition-colors duration-300" style={{ color: theme.text.secondary }}>
-                      {match.designer.title} • {match.designer.city}, {match.designer.country} • {match.designer.yearsExperience} years exp
-                    </p>
+                    {/* Designer Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-bold transition-colors duration-300" style={{ color: theme.text.primary }}>
+                          {match.status === 'unlocked' 
+                            ? `${match.designer.firstName} ${match.designer.lastName}` 
+                            : `Designer ${match.designer.firstName}***`
+                          }
+                        </h3>
+                        {match.status === 'unlocked' && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.success + '20', color: theme.success }}>
+                            ✅ Unlocked
+                          </span>
+                        )}
+                        {match.status === 'pending' && (
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: theme.accent + '20', color: theme.accent }}>
+                            🔒 Locked
+                          </span>
+                        )}
+                      </div>
                     
-                    <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: theme.text.muted }}>
-                      <span>Match Score: <strong style={{ color: theme.accent }}>{match.score}%</strong></span>
-                      <span>{new Date(match.created_at).toLocaleDateString()}</span>
+                      <p className="text-sm mb-2 transition-colors duration-300" style={{ color: theme.text.secondary }}>
+                        {match.designer.title} • {match.designer.city}, {match.designer.country} • {match.designer.yearsExperience} years exp
+                      </p>
+                      
+                      <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: theme.text.muted }}>
+                        <span>Match Score: <strong style={{ color: theme.accent }}>{match.score}%</strong></span>
+                        <span>{new Date(match.created_at).toLocaleDateString()}</span>
+                      </div>
                     </div>
                   </div>
                   
