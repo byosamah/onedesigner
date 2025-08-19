@@ -15,26 +15,33 @@ export async function POST(
     // Validate client session
     const sessionResult = await validateSession('CLIENT')
     
-    // Debug logging
+    // Enhanced debug logging to understand session structure
     logger.info('Session validation result:', {
       valid: sessionResult.valid,
       hasSession: !!sessionResult.session,
       hasClientId: !!sessionResult.clientId,
       sessionClientId: sessionResult.session?.clientId,
-      directClientId: sessionResult.clientId
+      directClientId: sessionResult.clientId,
+      userId: sessionResult.user?.id,
+      userEmail: sessionResult.user?.email,
+      sessionEmail: sessionResult.session?.email
     })
     
-    // Try to get clientId from multiple sources
-    const clientId = sessionResult.clientId || sessionResult.session?.clientId || sessionResult.session?.userId
+    // Try to get clientId from multiple sources - prioritize user.id from database
+    const clientId = sessionResult.clientId || sessionResult.user?.id || sessionResult.session?.clientId || sessionResult.session?.userId
     
     if (!sessionResult.valid || !clientId) {
       logger.error('Authentication failed:', {
         valid: sessionResult.valid,
         hasClientId: !!clientId,
-        sessionResult: JSON.stringify(sessionResult)
+        clientId: clientId,
+        user: sessionResult.user,
+        session: sessionResult.session
       })
       return apiResponse.unauthorized('Please log in as a client')
     }
+    
+    logger.info('Using client ID:', clientId)
 
     const { designerId } = await request.json()
     
