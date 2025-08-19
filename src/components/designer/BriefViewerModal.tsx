@@ -71,25 +71,35 @@ export function BriefViewerModal({
 
       const data = await response.json()
       
+      // Extract brief data from the correct location in the response
+      // API returns data in data.brief, but we need to handle all possible sources
+      const briefData = data.brief || data.request?.brief_snapshot || data.match?.briefs || {}
+      
       // Debug logging to understand the data flow
       console.log('🔍 BriefViewerModal API Response:', {
-        briefExists: !!data.brief,
-        briefKeys: data.brief ? Object.keys(data.brief).length : 0,
-        requestStatus: data.request.status,
-        hoursRemaining: data.request.hours_remaining
+        briefExists: !!briefData,
+        briefKeys: briefData ? Object.keys(briefData).length : 0,
+        requestStatus: data.request?.status,
+        hoursRemaining: data.request?.hours_remaining,
+        fullResponseStructure: Object.keys(data)
       })
       
-      setBriefData(data.brief)
-      setHoursRemaining(data.request.hours_remaining || 0)
-      setRequestStatus(data.request.status)
+      // Set the extracted brief data and ensure status is properly set
+      setBriefData(briefData && Object.keys(briefData).length > 0 ? briefData : null)
+      setHoursRemaining(data.request?.hours_remaining || 0)
+      setRequestStatus(data.request?.status || 'pending')
       
       // Debug the state after setting
       console.log('🎯 Modal State After API:', {
-        briefDataSet: !!data.brief,
-        statusSet: data.request.status
+        briefDataSet: !!briefData && Object.keys(briefData).length > 0,
+        statusSet: data.request?.status || 'pending',
+        extractedBriefKeys: briefData ? Object.keys(briefData) : []
       })
     } catch (error) {
       logger.error('Error fetching brief details:', error)
+      // Set fallback state on error
+      setBriefData(null)
+      setRequestStatus('error')
     } finally {
       setLoading(false)
     }
@@ -139,6 +149,11 @@ export function BriefViewerModal({
                   {requestStatus === 'pending' && hoursRemaining > 0 && (
                     <p className="text-sm mt-1" style={{ color: getDeadlineColor() }}>
                       ⏱️ {hoursRemaining} hours remaining to respond
+                    </p>
+                  )}
+                  {requestStatus === 'approved' && (
+                    <p className="text-sm mt-1" style={{ color: theme.success }}>
+                      ✅ You've accepted this project
                     </p>
                   )}
                 </div>
@@ -336,9 +351,11 @@ export function BriefViewerModal({
               console.log('🎯 Button visibility check:', {
                 requestStatus,
                 isPending: requestStatus === 'pending',
+                isApproved: requestStatus === 'approved',
                 loading,
                 shouldShowButtons: requestStatus === 'pending' && !loading
               })
+              // Only show action buttons if the request is still pending
               return requestStatus === 'pending' && !loading
             })() && (
               <div 
