@@ -54,6 +54,11 @@ interface EnhancedMatch {
     budget: string
     description: string
   }
+  workingRequest?: {
+    status: 'pending' | 'accepted' | 'declined' | 'approved'
+    createdAt: string
+    responseDeadline: string
+  }
 }
 
 interface ClientProfile {
@@ -679,18 +684,39 @@ export default function ClientDashboard() {
                     
                     <div className="flex items-center justify-between">
                       <div className="text-sm" style={{ color: theme.text.secondary }}>
-                        Ready to start your project with {match.designer.firstName}?
+                        {/* Show different messages based on working request status */}
+                        {(match.workingRequest?.status === 'accepted' || match.workingRequest?.status === 'approved') ? (
+                          <span className="flex items-center gap-2">
+                            <span className="text-green-500">✓</span>
+                            Designer accepted your request - Check your email for contact details
+                          </span>
+                        ) : match.workingRequest?.status === 'declined' ? (
+                          <span className="flex items-center gap-2">
+                            <span className="text-red-500">✗</span>
+                            Designer declined your request - You can find a new match
+                          </span>
+                        ) : match.workingRequest?.status === 'pending' ? (
+                          <span className="flex items-center gap-2">
+                            <span className="text-yellow-500">⏰</span>
+                            Working request sent - Waiting for designer response
+                          </span>
+                        ) : (
+                          `Ready to start your project with ${match.designer.firstName}?`
+                        )}
                       </div>
-                      <button
-                        onClick={() => handleContactDesigner(match.id, match.designer.id, match.designer.firstName)}
-                        className="font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                        style={{
-                          backgroundColor: theme.accent,
-                          color: '#000'
-                        }}
-                      >
-                        Send Working Request →
-                      </button>
+                      {/* Only show button if no working request exists or was declined */}
+                      {(!match.workingRequest || match.workingRequest.status === 'declined') && (
+                        <button
+                          onClick={() => handleContactDesigner(match.id, match.designer.id, match.designer.firstName)}
+                          className="font-semibold py-2 px-6 rounded-xl transition-all duration-300 hover:scale-[1.02]"
+                          style={{
+                            backgroundColor: theme.accent,
+                            color: '#000'
+                          }}
+                        >
+                          {match.workingRequest?.status === 'declined' ? 'Send New Request →' : 'Send Working Request →'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

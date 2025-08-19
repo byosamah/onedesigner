@@ -48,10 +48,11 @@ export async function GET(request: NextRequest) {
       return apiResponse.serverError('Failed to fetch matches', error)
     }
 
-    // Fetch designers and briefs separately
+    // Fetch designers, briefs, and working request status separately
     if (matches && matches.length > 0) {
       const designerIds = [...new Set(matches.map(m => m.designer_id))]
       const briefIds = [...new Set(matches.map(m => m.brief_id))]
+      const matchIds = matches.map(m => m.id)
       
       const { data: designers } = await supabase
         .from('designers')
@@ -63,13 +64,26 @@ export async function GET(request: NextRequest) {
         .select('id, project_type, company_name, budget')
         .in('id', briefIds)
       
-      // Map designers and briefs to matches
+      // Fetch working request status for each match
+      const { data: projectRequests } = await supabase
+        .from('project_requests')
+        .select('match_id, status, created_at, response_deadline')
+        .in('match_id', matchIds)
+        .eq('client_id', clientId)
+      
+      // Map designers, briefs, and working request status to matches
       const processedMatches = matches.map(match => {
         const designer = designers?.find(d => d.id === match.designer_id)
         const brief = briefs?.find(b => b.id === match.brief_id)
+        const workingRequest = projectRequests?.find(pr => pr.match_id === match.id)
         
         return {
           ...match,
+          workingRequest: workingRequest ? {
+            status: workingRequest.status,
+            createdAt: workingRequest.created_at,
+            responseDeadline: workingRequest.response_deadline
+          } : null,
           designer: designer ? {
             id: designer.id,
             firstName: designer.first_name,

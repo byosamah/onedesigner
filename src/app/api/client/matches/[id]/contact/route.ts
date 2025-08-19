@@ -164,10 +164,31 @@ export async function POST(
       return apiResponse.notFound('Designer')
     }
 
-    // Check if a request already exists
-    const exists = await projectRequestService.checkExisting(params.id, clientId, designerId)
-    if (exists) {
-      return apiResponse.badRequest('You have already sent a working request to this designer')
+    // Check if a request already exists and its status
+    const { data: existingRequest } = await supabase
+      .from('project_requests')
+      .select('status')
+      .eq('match_id', params.id)
+      .eq('client_id', clientId)
+      .eq('designer_id', designerId)
+      .single()
+    
+    if (existingRequest) {
+      if (existingRequest.status === 'accepted' || existingRequest.status === 'approved') {
+        return apiResponse.badRequest('This designer has already accepted your request')
+      } else if (existingRequest.status === 'pending') {
+        return apiResponse.badRequest('You already have a pending request with this designer')
+      } else if (existingRequest.status === 'declined') {
+        // Allow resending if previous request was declined
+        // Delete the old declined request
+        await supabase
+          .from('project_requests')
+          .delete()
+          .eq('match_id', params.id)
+          .eq('client_id', clientId)
+          .eq('designer_id', designerId)
+          .eq('status', 'declined')
+      }
     }
 
     // Auto-generate professional message based on project type
