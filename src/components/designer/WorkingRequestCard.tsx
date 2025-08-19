@@ -126,6 +126,7 @@ export function WorkingRequestCard({ request, isDarkMode, onRefresh }: WorkingRe
   const getStatusBadge = () => {
     switch (request.status) {
       case 'approved':
+      case 'accepted':
         return (
           <span className="px-2 py-1 rounded-full text-xs font-semibold" 
                 style={{ backgroundColor: theme.success + '20', color: theme.success }}>
@@ -133,6 +134,7 @@ export function WorkingRequestCard({ request, isDarkMode, onRefresh }: WorkingRe
           </span>
         )
       case 'rejected':
+      case 'declined':
         return (
           <span className="px-2 py-1 rounded-full text-xs font-semibold"
                 style={{ backgroundColor: theme.error + '20', color: theme.error }}>
@@ -276,20 +278,50 @@ export function WorkingRequestCard({ request, isDarkMode, onRefresh }: WorkingRe
                 Decline
               </button>
             </>
-          ) : request.status === 'approved' && request.clients?.email ? (
-            <div className="flex-1 p-3 rounded-xl" 
-                 style={{ backgroundColor: theme.success + '10' }}>
-              <p className="text-sm" style={{ color: theme.text.secondary }}>
-                Client Email: <a href={`mailto:${request.clients.email}`} 
-                                style={{ color: theme.accent }}>
-                  {request.clients.email}
-                </a>
-              </p>
+          ) : (request.status === 'approved' || request.status === 'accepted') ? (
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowBriefModal(true)}
+                className="px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]"
+                style={{
+                  backgroundColor: theme.accent,
+                  color: '#000'
+                }}
+              >
+                View Brief
+              </button>
+              <div className="flex-1 p-3 rounded-xl" 
+                   style={{ backgroundColor: theme.success + '10' }}>
+                <p className="text-sm" style={{ color: theme.text.secondary }}>
+                  {request.clients?.email ? (
+                    <>
+                      Client Email: <a href={`mailto:${request.clients.email}`} 
+                                      style={{ color: theme.accent, fontWeight: 'bold' }}>
+                        {request.clients.email}
+                      </a>
+                    </>
+                  ) : (
+                    'Contact details will be available soon'
+                  )}
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="flex-1 p-3 rounded-xl text-center text-sm"
-                 style={{ backgroundColor: theme.nestedBg, color: theme.text.muted }}>
-              {request.status === 'rejected' ? 'You declined this request' : 'Request completed'}
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setShowBriefModal(true)}
+                className="px-4 py-2 rounded-xl font-semibold transition-all duration-300 hover:scale-[1.02]"
+                style={{
+                  backgroundColor: theme.accent,
+                  color: '#000'
+                }}
+              >
+                View Brief
+              </button>
+              <div className="flex-1 p-3 rounded-xl text-center text-sm"
+                   style={{ backgroundColor: theme.nestedBg, color: theme.text.muted }}>
+                You declined this request
+              </div>
             </div>
           )}
         </div>

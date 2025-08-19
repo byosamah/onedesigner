@@ -627,30 +627,30 @@ export default function DesignerDashboardPage() {
                       ? request.message 
                       : (request.message?.text || request.message?.content || 'Client wants to work with you on their project.'),
                     status: request.status,
-                    created_at: request.createdAt || new Date().toISOString(),
-                    viewed_at: request.viewedAt,
-                    response_deadline: request.responseDeadline,
-                    brief_snapshot: request.briefSnapshot || {
-                      project_type: request.brief?.projectType,
-                      timeline: request.brief?.timeline,
-                      budget: request.brief?.budget,
-                      industry: request.brief?.industry,
-                      match_score: request.matchScore,
-                      match_reasons: request.matchReasons
+                    created_at: request.created_at || request.createdAt || new Date().toISOString(),
+                    viewed_at: request.viewed_at || request.viewedAt,
+                    response_deadline: request.response_deadline || request.responseDeadline,
+                    brief_snapshot: request.brief_snapshot || request.briefSnapshot || {
+                      project_type: request.brief?.projectType || request.matches?.briefs?.project_type,
+                      timeline: request.brief?.timeline || request.matches?.briefs?.timeline,
+                      budget: request.brief?.budget || request.matches?.briefs?.budget,
+                      industry: request.brief?.industry || request.matches?.briefs?.industry,
+                      match_score: request.matchScore || request.matches?.score,
+                      match_reasons: request.matchReasons || request.matches?.reasons
                     },
-                    matches: request.match ? {
+                    matches: request.matches || (request.match ? {
                       score: request.match.score || request.matchScore,
                       reasons: request.match.reasons || request.matchReasons || [],
-                      briefs: {
+                      briefs: request.matches?.briefs || {
                         project_type: request.brief?.projectType,
                         timeline: request.brief?.timeline,
                         budget: request.brief?.budget,
                         industry: request.brief?.industry
                       }
-                    } : undefined,
-                    clients: request.client ? {
+                    } : undefined),
+                    clients: request.clients || (request.client ? {
                       email: request.client.email
-                    } : undefined
+                    } : undefined)
                   }}
                   isDarkMode={isDarkMode}
                   onRefresh={fetchDashboardData}
