@@ -197,39 +197,114 @@ export async function POST(
 
     // Create a complete snapshot of the brief for the designer
     // Use actual field names from the briefs table
+    // Parse comprehensive brief data from requirements field
+    let comprehensiveData = {}
+    try {
+      // Try to parse the comprehensive data from the requirements field (new format)
+      if (briefData?.requirements && briefData.requirements.trim().startsWith('{')) {
+        comprehensiveData = JSON.parse(briefData.requirements)
+      }
+    } catch (error) {
+      logger.info('Requirements field is not JSON, treating as plain text description')
+    }
+
+    // Create comprehensive brief snapshot using ALL available data
     const briefSnapshot = {
       // Basic project info (using correct field names)
-      project_type: briefData?.project_type || 'Design Project',
-      timeline: briefData?.timeline || 'Not specified',
-      budget: briefData?.budget || 'Not specified',
+      project_type: briefData?.project_type || comprehensiveData.design_category || 'Design Project',
+      timeline: briefData?.timeline || comprehensiveData.timeline_type || 'Not specified',
+      budget: briefData?.budget || comprehensiveData.budget_range || 'Not specified',
       
-      // Detailed requirements (requirements is the actual field name)
-      project_description: briefData?.requirements || briefData?.project_description || briefData?.industry || '',
-      target_audience: briefData?.target_audience || '',
-      project_goal: briefData?.project_goal || '',
-      industry: briefData?.industry || '',
+      // Project description - prioritize parsed data
+      project_description: comprehensiveData.project_description || 
+                           (briefData?.requirements && !briefData.requirements.trim().startsWith('{') 
+                            ? briefData.requirements 
+                            : briefData?.industry || ''),
       
-      // Design preferences
-      styles: briefData?.styles || [],
-      style_keywords: briefData?.style_keywords || [],
-      competitors: briefData?.competitors || '',
-      inspiration: briefData?.inspiration || '',
+      // Target & Goals - comprehensive data
+      target_audience: comprehensiveData.target_audience || '',
+      project_goal: comprehensiveData.project_goal || '',
+      brand_personality: comprehensiveData.brand_personality || [],
+      tone_voice: comprehensiveData.tone_voice || '',
       
-      // Additional details
-      deliverables: briefData?.deliverables || '',
-      brand_guidelines: briefData?.brand_guidelines || '',
-      existing_assets: briefData?.existing_assets || '',
-      specific_requirements: briefData?.specific_requirements || '',
+      // Industry & Company
+      industry: briefData?.industry || comprehensiveData.industry_sector || '',
+      company_name: briefData?.clients?.company_name || comprehensiveData.company_name || '',
       
-      // Communication preferences
-      communication: briefData?.communication || [],
+      // Design Preferences - comprehensive
+      styles: briefData?.styles || comprehensiveData.design_style_keywords || [],
+      style_keywords: comprehensiveData.style_keywords || [],
+      color_preferences: comprehensiveData.color_preferences || '',
+      typography_preferences: comprehensiveData.typography_preferences || '',
+      competitors: comprehensiveData.competitors || '',
+      inspiration: briefData?.inspiration || comprehensiveData.design_examples?.join(', ') || '',
+      
+      // Deliverables & Requirements
+      deliverables: comprehensiveData.deliverables?.join(', ') || '',
+      specific_requirements: comprehensiveData.specific_requirements || 
+                            comprehensiveData.avoid_colors_styles || '',
+      technical_requirements: comprehensiveData.technical_requirements?.join(', ') || '',
+      accessibility_requirements: comprehensiveData.accessibility_requirements?.join(', ') || '',
+      
+      // Brand & Asset Info
+      brand_guidelines: comprehensiveData.has_brand_guidelines ? 'Yes' : 'No',
+      existing_assets: comprehensiveData.existing_brand_elements || 
+                      comprehensiveData.brand_assets_status || '',
+      
+      // Communication & Working Preferences
+      communication: briefData?.communication || comprehensiveData.communication_channels || [],
       timezone: briefData?.timezone || '',
+      involvement_level: comprehensiveData.involvement_level || '',
+      update_frequency: comprehensiveData.update_frequency || '',
+      feedback_style: comprehensiveData.feedback_style || '',
+      change_flexibility: comprehensiveData.change_flexibility || '',
       
-      // Category-specific fields
-      category_specific_fields: briefData?.category_specific_fields || {},
+      // Category-specific fields - All comprehensive data
+      category_specific_fields: {
+        // Branding fields
+        brand_identity_type: comprehensiveData.brand_identity_type,
+        brand_deliverables: comprehensiveData.brand_deliverables,
+        logo_style_preference: comprehensiveData.logo_style_preference,
+        logo_usage: comprehensiveData.logo_usage,
+        
+        // Web/Mobile fields
+        digital_product_type: comprehensiveData.digital_product_type,
+        number_of_screens: comprehensiveData.number_of_screens,
+        key_features: comprehensiveData.key_features,
+        user_research_needed: comprehensiveData.user_research_needed,
+        development_status: comprehensiveData.development_status,
+        design_deliverables: comprehensiveData.design_deliverables,
+        
+        // Social Media fields
+        social_platforms: comprehensiveData.social_platforms,
+        social_content_types: comprehensiveData.social_content_types,
+        social_quantity: comprehensiveData.social_quantity,
+        social_frequency: comprehensiveData.social_frequency,
+        
+        // Motion Graphics fields
+        motion_type: comprehensiveData.motion_type,
+        video_length: comprehensiveData.video_length,
+        animation_style: comprehensiveData.animation_style,
+        motion_needs: comprehensiveData.motion_needs,
+        
+        // Photography/Video fields
+        visual_content_type: comprehensiveData.visual_content_type,
+        asset_quantity: comprehensiveData.asset_quantity,
+        production_requirements: comprehensiveData.production_requirements,
+        usage_rights: comprehensiveData.usage_rights,
+        delivery_formats: comprehensiveData.delivery_formats,
+        
+        // Presentations fields
+        presentation_type: comprehensiveData.presentation_type,
+        slide_count: comprehensiveData.slide_count,
+        presentation_requirements: comprehensiveData.presentation_requirements,
+        content_status: comprehensiveData.content_status,
+        software_preference: comprehensiveData.software_preference
+      },
       
-      // Client info (if available)
-      company_name: briefData?.clients?.company_name || '',
+      // Metadata
+      form_version: comprehensiveData.form_version || '1.0-legacy',
+      submission_timestamp: comprehensiveData.submission_timestamp || briefData?.created_at,
       
       // Match context
       match_score: match.score,

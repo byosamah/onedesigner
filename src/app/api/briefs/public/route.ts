@@ -126,25 +126,113 @@ export async function POST(request: NextRequest) {
       clientId = tempClientId
     }
 
-    // Create brief record - ONLY using columns that actually exist in database
-    // Based on actual schema from migrations/001_initial_schema.sql
+    // Create comprehensive brief data structure
+    // Store ALL client responses in the requirements field as JSON
+    const comprehensiveData = {
+      // Basic project info (for backward compatibility)
+      project_description: briefData.project_description || '',
+      
+      // Project basics
+      design_category: briefData.design_category,
+      timeline_type: briefData.timeline_type,
+      budget_range: briefData.budget_range,
+      
+      // Project details
+      deliverables: briefData.deliverables,
+      target_audience: briefData.target_audience,
+      project_goal: briefData.project_goal,
+      design_style_keywords: briefData.design_style_keywords,
+      design_examples: briefData.design_examples,
+      avoid_colors_styles: briefData.avoid_colors_styles,
+      
+      // Working preferences 
+      involvement_level: briefData.involvement_level,
+      communication_preference: briefData.communication_preference,
+      previous_designer_experience: briefData.previous_designer_experience,
+      has_brand_guidelines: briefData.has_brand_guidelines,
+      update_frequency: briefData.update_frequency,
+      communication_channels: briefData.communication_channels,
+      project_management_tools: briefData.project_management_tools,
+      feedback_style: briefData.feedback_style,
+      change_flexibility: briefData.change_flexibility,
+      
+      // Category-specific fields - Branding
+      brand_identity_type: briefData.brand_identity_type,
+      brand_deliverables: briefData.brand_deliverables,
+      industry_sector: briefData.industry_sector,
+      brand_values: briefData.brand_values,
+      target_market: briefData.target_market,
+      brand_personality: briefData.brand_personality,
+      logo_style_preference: briefData.logo_style_preference,
+      color_preferences: briefData.color_preferences,
+      brand_assets_status: briefData.brand_assets_status,
+      existing_brand_elements: briefData.existing_brand_elements,
+      logo_usage: briefData.logo_usage,
+      
+      // Category-specific fields - Web/Mobile
+      digital_product_type: briefData.digital_product_type,
+      number_of_screens: briefData.number_of_screens,
+      key_features: briefData.key_features,
+      design_inspiration: briefData.design_inspiration,
+      technical_requirements: briefData.technical_requirements,
+      accessibility_requirements: briefData.accessibility_requirements,
+      content_strategy: briefData.content_strategy,
+      integration_needs: briefData.integration_needs,
+      user_research_needed: briefData.user_research_needed,
+      development_status: briefData.development_status,
+      design_deliverables: briefData.design_deliverables,
+      
+      // Category-specific fields - Social Media
+      social_platforms: briefData.social_platforms,
+      social_content_types: briefData.social_content_types,
+      social_quantity: briefData.social_quantity,
+      social_post_count: briefData.social_post_count,
+      social_brand_guidelines: briefData.social_brand_guidelines,
+      social_frequency: briefData.social_frequency,
+      
+      // Category-specific fields - Motion Graphics
+      motion_type: briefData.motion_type,
+      video_length: briefData.video_length,
+      animation_style: briefData.animation_style,
+      motion_needs: briefData.motion_needs,
+      motion_usage: briefData.motion_usage,
+      
+      // Category-specific fields - Photography/Video
+      visual_content_type: briefData.visual_content_type,
+      asset_quantity: briefData.asset_quantity,
+      production_requirements: briefData.production_requirements,
+      usage_rights: briefData.usage_rights,
+      delivery_formats: briefData.delivery_formats,
+      
+      // Category-specific fields - Presentations
+      presentation_type: briefData.presentation_type,
+      slide_count: briefData.slide_count,
+      presentation_requirements: briefData.presentation_requirements,
+      content_status: briefData.content_status,
+      software_preference: briefData.software_preference,
+      
+      // Metadata
+      submission_timestamp: new Date().toISOString(),
+      form_version: '2.0-enhanced'
+    }
+
     const briefInsert: any = {
       client_id: clientId,
       
-      // Map enhanced form fields to existing database columns
+      // Basic fields for backward compatibility and basic matching
       project_type: briefData.design_category || 'web-mobile',
       industry: briefData.target_audience || briefData.industry_sector || 'General',
       timeline: briefData.timeline_type || 'standard',
       budget: briefData.budget_range || 'mid',
       styles: briefData.design_style_keywords || [],
       inspiration: briefData.design_examples?.join(', ') || '',
-      requirements: briefData.project_description || '',
-      timezone: 'UTC', // Default timezone
+      
+      // COMPREHENSIVE DATA - Store ALL client responses as JSON in requirements field
+      requirements: JSON.stringify(comprehensiveData),
+      
+      timezone: 'UTC',
       communication: briefData.communication_channels || ['email'],
       status: 'active'
-      
-      // NOTE: enhanced_data column doesn't exist, so we can't store extra data
-      // All enhanced form data is mapped to existing columns above
     }
 
     // Remove undefined fields to avoid database issues
