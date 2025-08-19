@@ -81,7 +81,7 @@ export async function POST(
         error: matchError,
         errorMessage: matchError?.message
       })
-      return apiResponse.notFound('Match not found')
+      return apiResponse.notFound('Match')
     }
 
     // Check if the match belongs to the client (via the brief's client_id)
@@ -101,7 +101,7 @@ export async function POST(
         briefClientId: match.briefs?.client_id,
         matchStatus: match.status
       })
-      return apiResponse.notFound('Match not found')
+      return apiResponse.notFound('Match')
     }
 
     // Verify the match is unlocked
@@ -117,7 +117,7 @@ export async function POST(
       .single()
 
     if (clientError || !client) {
-      return apiResponse.notFound('Client not found')
+      return apiResponse.notFound('Client')
     }
 
     // Get designer details
@@ -128,7 +128,7 @@ export async function POST(
       .single()
 
     if (designerError || !designer) {
-      return apiResponse.notFound('Designer not found')
+      return apiResponse.notFound('Designer')
     }
 
     // Check if a request already exists
