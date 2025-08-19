@@ -648,6 +648,23 @@ project_requests:
 **Last Updated**: August 18, 2025
 **Version**: 2.2.0 (Working Request System Complete)
 **Status**: Production Ready with Streamlined Designer Contact
+
+#### **Brief Display Bug Fix** (Aug 19, 2025)
+- **Issue**: BriefViewerModal showed "No brief details available" for accepted requests
+- **Root Cause**: Field name mismatches when creating brief_snapshot
+  - Briefs table uses `project_type`, `timeline`, `budget` directly
+  - Code was trying to fallback to non-existent fields like `design_category`, `timeline_type`, `budget_range`
+  - The `requirements` field was not mapped to `project_description`
+- **Fix Applied**:
+  1. Updated `/api/client/matches/[id]/contact` to use correct field names
+  2. Added proper fallback values for all brief fields
+  3. Created migration script to fix existing project_requests
+  4. Brief modal now displays all project details correctly
+- **Files Changed**:
+  - `/src/app/api/client/matches/[id]/contact/route.ts` - Fixed brief_snapshot creation
+  - `/src/app/api/designer/project-requests/[id]/view/route.ts` - Improved fallback handling
+  - `/scripts/fix-brief-snapshots.js` - Migration script for existing data
+
 - don't over engineering always
 - always make sure that it's eveything centerlized and have the same source of truth
 - emails should be using the our marc lou style always
