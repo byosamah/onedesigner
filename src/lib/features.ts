@@ -1,5 +1,6 @@
 import { getOneDesignerConfig, isConfigInitialized } from '@/lib/config/init'
-import { logger } from '@/lib/core/logging-service'
+// Import app initialization to ensure config is loaded
+import '@/lib/init'
 
 /**
  * Feature flags for gradual centralization rollout
@@ -154,7 +155,7 @@ export function toggleFeature(feature: keyof typeof Features, enabled: boolean):
   if (process.env.NODE_ENV === 'development') {
     (Features as any)[feature] = enabled
   } else {
-    logger.warn('Feature toggling is only available in development mode')
+    console.warn('Feature toggling is only available in development mode')
   }
 }
 
@@ -174,12 +175,12 @@ export function getFeatureStatuses(): Record<string, boolean> {
  * Log feature status (for debugging)
  */
 export function logFeatureStatus(): void {
-  logger.info('🚀 Feature Flags Status:')
-  logger.info('========================')
+  console.log('🚀 Feature Flags Status:')
+  console.log('========================')
   Object.entries(Features).forEach(([key, value]) => {
     if (typeof value === 'boolean') {
-      logger.info(`${key}: ${value ? '✅ Enabled' : '❌ Disabled'}`)
+      console.log(`${key}: ${value ? '✅ Enabled' : '❌ Disabled'}`)
     }
   })
-  logger.info('========================')
+  console.log('========================')
 }

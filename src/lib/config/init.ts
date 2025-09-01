@@ -91,12 +91,54 @@ export const ONEDESIGNER_CONFIG_SCHEMA: ConfigSchema = {
     description: 'OTP expiry time in seconds'
   },
 
-  // Business Rules
+  // Feature Flags with correct env mapping
+  'features.dataService': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_NEW_DATA_SERVICE',
+    description: 'Enable centralized DataService'
+  },
+  'features.errorManager': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_ERROR_MANAGER',
+    description: 'Enable centralized ErrorManager'
+  },
+  'features.requestPipeline': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_REQUEST_PIPELINE',
+    description: 'Enable request pipeline middleware'
+  },
+  'features.configManager': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_CONFIG_MANAGER',
+    description: 'Enable centralized ConfigManager'
+  },
   'features.businessRules': {
     type: 'boolean',
     default: false,
     env: 'USE_BUSINESS_RULES',
     description: 'Enable centralized business rules'
+  },
+  'features.centralizedLogging': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_CENTRALIZED_LOGGING',
+    description: 'Enable centralized LoggingService'
+  },
+  'features.otpService': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_OTP_SERVICE',
+    description: 'Enable centralized OTPService'
+  },
+  'features.emailService': {
+    type: 'boolean',
+    default: false,
+    env: 'USE_EMAIL_SERVICE',
+    description: 'Enable centralized EmailService'
   },
   'business.designer.approval.required': {
     type: 'boolean',
