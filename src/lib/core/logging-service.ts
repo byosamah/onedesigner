@@ -352,10 +352,8 @@ export class LoggingService {
    * Output to console with formatting
    */
   private outputToConsole(entry: LogEntry): void {
-    // Store original console.log to avoid circular dependency
-    const originalLog = (global as any).__originalConsole?.log || 
-                       (console as any).__proto__.log ||
-                       (() => {})
+    // Since console override is disabled, use standard console.log
+    const originalLog = console.log
 
     const colors = {
       debug: '\x1b[36m', // Cyan
@@ -389,8 +387,8 @@ export class LoggingService {
       }
     }
 
-    // Use the original console.log to avoid recursion
-    originalLog.call(console, output)
+    // Use console.log directly since override is disabled
+    originalLog(output)
   }
 
   /**
@@ -480,9 +478,11 @@ export const log = {
   clearContext: () => logger.clearContext()
 }
 
+// DISABLED: Console override causes infinite recursion
+// TODO: Implement safer console interception mechanism in future
 // Backward compatibility: Replace console methods in development
 // Check environment variable directly to avoid circular dependency with Features
-if (process.env.NODE_ENV === 'development' && process.env.USE_CENTRALIZED_LOGGING === 'true') {
+if (false && process.env.NODE_ENV === 'development' && process.env.USE_CENTRALIZED_LOGGING === 'true') {
   // Store original console methods globally before overriding
   (global as any).__originalConsole = {
     log: console.log.bind(console),
@@ -493,7 +493,7 @@ if (process.env.NODE_ENV === 'development' && process.env.USE_CENTRALIZED_LOGGIN
 
   // Override console methods to use logger
   console.log = (...args: any[]) => {
-    const message = args.map(arg => 
+    const message = args.map(arg =>
       typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
     ).join(' ')
     logger.info(message)

@@ -13,6 +13,12 @@ export async function POST(request: NextRequest) {
       return apiResponse.error('Email is required')
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return apiResponse.error('Please enter a valid email address')
+    }
+
     logger.info('🎨 Processing designer OTP request for:', email, 'isLogin:', isLogin)
     
     // If this is a login request, check if the designer exists

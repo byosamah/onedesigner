@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     // Try to create a designer request record (optional - don't fail if it doesn't work)
     try {
       const { data: designerRequest } = await supabase
-        \.from\(['"`]project_requests['"`]\)
+        .from('project_requests')
         .insert({
           match_id: matchId,
           designer_id: designerId,

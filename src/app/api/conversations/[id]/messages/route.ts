@@ -31,7 +31,7 @@ export async function POST(
 
     // Verify conversation belongs to this client
     const { data: conversation, error: convError } = await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .select('id, designer_id, status')
       .eq('id', conversationId)
       .eq('client_id', clientId)
@@ -44,7 +44,7 @@ export async function POST(
 
     // Create the message
     const { data: newMessage, error: messageError } = await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .insert({
         conversation_id: conversationId,
         sender_id: clientId,
@@ -62,7 +62,7 @@ export async function POST(
     // If conversation was pending, update status to active
     if (conversation.status === 'pending') {
       await supabase
-        \.from\(['"`]project_requests['"`]\)
+        .from('project_requests')
         .update({ status: 'active' })
         .eq('id', conversationId)
     }

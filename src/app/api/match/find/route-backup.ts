@@ -331,7 +331,7 @@ export async function POST(request: NextRequest) {
 
     // Create designer request
     const { error: requestError } = await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .insert({
         match_id: match.id,
         designer_id: bestMatch.designer.id,

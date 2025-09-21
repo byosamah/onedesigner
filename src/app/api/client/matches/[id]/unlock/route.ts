@@ -292,11 +292,13 @@ export async function POST(
 
     // Record the unlock
     const { error: unlockError } = await supabase
-      \.from\(['"`]client_designers['"`]\)
+      .from('client_designers')
       .insert({
         match_id: params.id,
         client_id: clientId,
+        designer_id: match.designer_id, // Add missing designer_id
         amount: 0, // Using credit, not direct payment
+        unlocked_at: new Date().toISOString()
       })
 
     if (unlockError) {

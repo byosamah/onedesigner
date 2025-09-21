@@ -248,7 +248,7 @@ Provide a JSON response with:
     // Record the unlock if auto-unlocked
     if (autoUnlock) {
       const { error: unlockError } = await supabase
-        \.from\(['"`]client_designers['"`]\)
+        .from('client_designers')
         .insert({
           match_id: matchRecord.id,
           client_id: brief.client_id,

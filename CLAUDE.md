@@ -6,7 +6,7 @@ This main CLAUDE.md serves as the central hub for OneDesigner's complete technic
 
 ### **Component Documentation References**
 - **🏗️ Core Services**: [`/src/lib/core/CLAUDE.md`](./src/lib/core/CLAUDE.md) - 8-phase centralized architecture
-- **🌐 API Routes**: [`/src/app/api/CLAUDE.md`](./src/app/api/CLAUDE.md) - Complete API documentation 
+- **🌐 API Routes**: [`/src/app/api/CLAUDE.md`](./src/app/api/CLAUDE.md) - Complete API documentation
 - **⚛️ Components**: [`/src/components/CLAUDE.md`](./src/components/CLAUDE.md) - React component architecture
 - **⚙️ Configuration**: [`/src/config/CLAUDE.md`](./src/config/CLAUDE.md) - Configuration system
 - **🤖 AI System**: [`/src/lib/ai/CLAUDE.md`](./src/lib/ai/CLAUDE.md) - AI matching system
@@ -143,7 +143,7 @@ All Feature Flags ACTIVE in Production:
 ### 1. Payment Integration (LemonSqueezy)
 - **Issue Fixed**: Credits weren't reflecting after payment
 - **Solution**: Fixed webhook to extract custom data from `meta.custom_data` instead of order attributes
-- **Key Files**: 
+- **Key Files**:
   - `/src/app/api/webhooks/lemonsqueezy/route.ts`
   - Custom data structure: `{ credits: number, match_id: string }`
 
@@ -158,7 +158,7 @@ All Feature Flags ACTIVE in Production:
 
 ### 3. Speed Optimization (3-Phase Progressive Matching)
 - **Phase 1**: Instant match (<50ms) - Local scoring + embeddings
-- **Phase 2**: Refined match (~500ms) - Quick AI scoring  
+- **Phase 2**: Refined match (~500ms) - Quick AI scoring
 - **Phase 3**: Final match (~2s) - Deep AI analysis
 - **Database Tables**:
   - `designer_embeddings` - Pre-computed vector embeddings
@@ -201,7 +201,37 @@ All Feature Flags ACTIVE in Production:
   - Brief form: Category-specific fields for all design types
 - **Main Export**: `/src/config/index.ts`
 
-### 7. MCP Integrations
+### 7. Spec-Driven Development Framework
+
+#### GitHub Spec Kit Integration [NEW]
+- **Installation**: Complete Spec Kit setup with Claude AI assistant configuration
+- **Constitution**: Comprehensive governing principles at `.specify/memory/constitution.md`
+- **Specifications**: 5 core feature specs covering all major system components
+- **Templates**: Standardized templates for specifications, plans, and tasks
+- **Scripts**: Development workflow automation via `.specify/scripts/`
+
+#### Available Spec Kit Commands
+- **/constitution** - Reference or modify project governing principles
+- **/specify** - Create new feature specifications following constitutional guidelines
+- **/plan** - Generate implementation plans from approved specifications
+- **/tasks** - Break down plans into actionable development tasks
+- **/implement** - Execute implementation following spec-driven approach
+
+#### Specification Structure
+```
+.specify/
+├── memory/constitution.md              # OneDesigner governing principles
+├── specs/
+│   ├── ai-matching/                   # AI matching system specifications
+│   ├── admin-features/                # Designer approval workflow specs
+│   ├── core-system/                   # Centralized architecture specs
+│   ├── payment-system/                # Credit and payment specifications
+│   └── user-flows/                    # Authentication flow specifications
+├── scripts/bash/                      # Development workflow scripts
+└── templates/                         # Standardized spec templates
+```
+
+### 8. MCP Integrations
 
 #### Supabase MCP
 - **Configuration**: `~/.config/claude/claude_desktop_config.json`
@@ -232,7 +262,7 @@ All Feature Flags ACTIVE in Production:
 ### Match Creation Rules
 1. Each match must have unique designer per client
 2. Check `client_designers` table to avoid duplicates
-3. Create `designer_requests` with 7-day expiration
+3. Create `project_requests` with 7-day expiration
 4. Match status progression: `pending` → `unlocked` → `completed`
 
 ### Payment & Credits
@@ -346,13 +376,12 @@ npm run dev
 # Test specific flows
 ./test/test-ai-matching-flow.sh     # AI matching system
 ./test/test-auth-security.sh        # Authentication security
-```
 
-### Database Migrations
-1. Run migrations in order (001-008)
-2. Use `007_speed_optimization_tables_fixed.sql` (not the original)
-3. Use `008_track_profile_edits.sql` for designer edit tracking
-4. Required for speed optimization and profile tracking
+# Cypress E2E Testing [NEW]
+npm run cypress:open               # Interactive testing
+npm run cypress:record             # Record tests to dashboard
+npm run cypress:headless           # CI/CD testing
+```
 
 ### Deployment Process
 1. **Make changes and commit**:
@@ -391,6 +420,8 @@ npm run dev
 - [ ] All logos display atom icon
 - [ ] Correlation IDs track across requests
 - [ ] Error classification works properly
+- [ ] **Cypress E2E tests pass** [NEW]
+- [ ] **CodeRabbit quality checks pass** [NEW]
 
 ## Common Issues & Solutions
 
@@ -425,6 +456,14 @@ typescript: { ignoreBuildErrors: true }
 **Cause**: Checking wrong property (`sessionResult.success` vs `sessionResult.valid`)
 **Solution**: Use consistent session validation with `sessionResult.valid`
 
+### Issue: Supabase queries failing with missing .from() method [NEW]
+**Cause**: Commented-out `.from()` method calls in blog routes
+**Solution**: Fixed all blog route queries to use proper Supabase syntax
+
+### Issue: Table name inconsistencies [NEW]
+**Cause**: Mixed references between `project_requests` and `designer_requests` tables
+**Solution**: Updated all foreign key references to use consistent `project_requests` table
+
 ## Important Notes
 
 1. **NEVER create duplicate designers** - Always check `client_designers` table
@@ -437,10 +476,49 @@ typescript: { ignoreBuildErrors: true }
 8. **ALWAYS use centralized services** - All 8 phases are active and should be used
 9. **ALWAYS track correlation IDs** - For request tracing across services
 10. **ALWAYS respect rate limits** - OTP (60s), Email (60/min)
+11. **ALWAYS run CodeRabbit reviews** - Use `coderabbit review` for quality checks [NEW]
+12. **ALWAYS maintain clean git history** - Remove .backup files and follow naming conventions [NEW]
 
 ## Recent Changes Log
 
-### Latest Session (Aug 11, 2025) - Complete Centralization Architecture Phases 6-8
+### Latest Session (Sep 21, 2025) - Spec Kit Integration & Quality Infrastructure ✅
+- **GitHub Spec Kit Integration** [NEW]:
+  - Installed Spec Kit for spec-driven development workflow
+  - Created comprehensive OneDesigner Constitution with non-negotiable principles
+  - Developed 5 core feature specifications covering AI matching, designer approval, payment system, authentication flow, and centralized architecture
+  - Established structured specification framework with templates for plans, tasks, and implementations
+  - Added Spec Kit scripts for development workflow automation
+
+- **CodeRabbit Integration**:
+  - Set up CodeRabbit CLI for automated code reviews
+  - Fixed critical Supabase queries missing `.from()` method calls
+  - Resolved table name inconsistencies (project_requests vs designer_requests)
+  - Cleaned up 20+ backup files from version control
+  - Added comprehensive README documentation replacing Supabase CLI docs
+
+- **Cypress Testing Infrastructure** [NEW]:
+  - Complete Cypress E2E testing setup with TypeScript support
+  - Implemented database reset and seed tasks for reliable testing
+  - Added test commands for interactive and headless modes
+  - Created sample test flows for basic and designer-client interactions
+  - Added security and configuration documentation
+
+- **Project Cleanup & Organization**:
+  - Removed legacy files and outdated migrations (92 files deleted)
+  - Added MIT License for open source compliance
+  - Updated .gitignore to prevent backup file commits
+  - Consolidated documentation and removed duplicate files
+  - Added performance monitoring utilities and dashboard hooks
+  - Created new utility libraries for session helpers and dual logging
+
+- **Quality Improvements**:
+  - Fixed escaped `.from()` patterns in API routes
+  - Updated foreign key constraint references for consistency
+  - Improved error handling in database operations
+  - Enhanced documentation structure with better organization
+  - Added TypeScript definitions for dashboard and performance monitoring
+
+### Previous Session (Aug 11, 2025) - Complete Centralization Architecture Phases 6-8
 - **Implemented Phase 6: LoggingService**:
   - Created `/src/lib/core/logging-service.ts` (496 lines)
   - Replaces 625 console.log statements across codebase
@@ -462,22 +540,6 @@ typescript: { ignoreBuildErrors: true }
   - Rate limiting (60 emails/minute)
   - Consistent branding across all emails
 
-- **Fixed Compilation Errors**:
-  - Fixed malformed import statements in EnhancedClientBrief.tsx
-  - Fixed session validation in message sending API
-  - Fixed circular dependency in LoggingService
-
-- **Fixed Designer Authentication Flow**:
-  - Updated OTP verification to return designer status
-  - Proper routing based on status (approved/pending/new)
-  - Created application-pending and success pages
-
-- **System Analysis Completed**:
-  - Identified 93 files with direct database access
-  - Found 19 remaining console.log statements
-  - Located 104 try-catch blocks across 58 files
-  - All ready for gradual migration to centralized services
-
 ### Previous Session (Aug 10, 2025) - Find New Match Feature & AI Scoring Fixes
 - Fixed critical unlock bug (status not being passed properly)
 - Implemented "Find New Match" feature with auto-unlock
@@ -485,25 +547,6 @@ typescript: { ignoreBuildErrors: true }
 - Updated navigation bar layout with better UX
 - Fixed purchase page authentication redirect
 - Successfully deployed to production
-
-### Previous Session (Aug 10, 2025) - Centralized Configuration & Auth-First Flow
-- Fixed designer authentication-first flow with all required fields
-- Fixed client authentication-first flow with proper signup
-- Implemented centralized configuration system in `/src/config/`
-- Updated AI provider to use configuration
-- Cleaned database of test data
-
-## Todo for Next Session
-- [ ] Migrate remaining 93 files from direct database access to DataService
-- [ ] Replace remaining 19 console.log statements with LoggingService
-- [ ] Update 58 API routes to use ErrorManager for all try-catch blocks
-- [ ] Test complete centralization in production environment
-- [ ] Create migration guide for legacy code patterns
-- [ ] Add monitoring dashboard for all 8 phases
-- [ ] Implement automatic rollback on error threshold
-- [ ] Add metrics collection for performance monitoring
-- [ ] Create developer documentation for centralized services
-- [ ] Set up automated tests for all centralized services
 
 ## File Structure
 ```
@@ -524,243 +567,73 @@ typescript: { ignoreBuildErrors: true }
       pipeline.ts          # Phase 3: Middleware
       config-manager.ts    # Phase 4: Config
       business-rules.ts    # Phase 5: Business Logic
-      logging-service.ts   # Phase 6: Logging [NEW]
-      otp-service.ts      # Phase 7: OTP [NEW]
-      email-service.ts    # Phase 8: Email [NEW]
+      logging-service.ts   # Phase 6: Logging
+      otp-service.ts      # Phase 7: OTP
+      email-service.ts    # Phase 8: Email
     /features.ts      # Feature flags
     /design-system/   # Theme system
     /ai/              # AI providers
+    /hooks/           # Custom React hooks [NEW]
+      useDashboardData.ts  # Dashboard data management
+    /types/           # TypeScript type definitions [NEW]
+      dashboard.types.ts   # Dashboard interface definitions
+    /utils/           # Utility functions [NEW]
+      dual-logger.ts       # Dual logging utility
+      performance.ts       # Performance monitoring
+      session-helpers.ts   # Session management utilities
+/.specify/           # Spec Kit framework [NEW]
+  /memory/
+    constitution.md         # Project governing principles
+  /specs/
+    /ai-matching/          # AI matching specifications
+    /admin-features/       # Admin workflow specifications
+    /core-system/          # Architecture specifications
+    /payment-system/       # Payment system specifications
+    /user-flows/           # User flow specifications
+  /scripts/bash/           # Development workflow scripts
+  /templates/              # Spec templates
+/.claude/            # Claude commands and agents [NEW]
+  /commands/               # Spec Kit slash commands
+  /agents/                 # Specialized agent definitions
 /test/               # Comprehensive test suites
+/cypress/            # E2E testing infrastructure [NEW]
+  /e2e/              # End-to-end test scenarios
+  /fixtures/         # Test data
+  /support/          # Test utilities and commands
+/scripts/            # Utility scripts and cleanup tools
+  CLEANUP_COMPLETE.md      # Project cleanup documentation
+  DATABASE_CLEANUP_ANALYSIS.md  # Database optimization analysis
 /public/
   icon.svg           # Atom logo favicon
+LICENSE              # MIT License [NEW]
 ```
 
-## 🎉 **CENTRALIZATION COMPLETE!**
+## 🎉 **CENTRALIZATION & SPEC-DRIVEN DEVELOPMENT COMPLETE!**
 
-The OneDesigner centralization architecture is now **100% COMPLETE** with all 8 phases active and working together seamlessly! This represents a major transformation from scattered codebase to a well-architected, maintainable, and scalable system ready for continued growth and enhancement. 🚀
+The OneDesigner platform has achieved **100% architectural centralization** with all 8 phases active, plus a **complete spec-driven development framework** through GitHub Spec Kit integration. This represents a major evolution from scattered codebase to a well-architected, maintainable, and scalable system with constitutional governance and structured development workflows. 🚀
 
-### 📦 **Post-Centralization Updates** (Aug 12, 2025)
+### **Development Framework Achievements**
+- ✅ **Spec-Driven Development**: Complete GitHub Spec Kit integration with constitutional governance
+- ✅ **Quality Infrastructure**: Cypress E2E testing + CodeRabbit automated reviews
+- ✅ **Centralized Architecture**: All 8 phases active with feature flag controls
+- ✅ **Documentation System**: Comprehensive technical documentation across all components
+- ✅ **Testing Framework**: Unit, integration, and E2E testing with CI/CD pipeline
+- ✅ **Code Quality**: TypeScript, ESLint, Prettier, and automated review processes
 
-After completing the core centralization, we aligned all recent features with the centralized architecture:
-
-#### **Project Request System Centralization**
-- **Service Layer**: `/src/lib/database/project-request-service.ts`
-  - Centralized database operations for project requests
-  - Methods: `create()`, `getByDesigner()`, `getById()`, `approve()`, `reject()`, `checkExisting()`
-  - Integrated with LoggingService for error tracking
-
-- **Email Templates**: `/src/lib/email/templates/project-request.ts`
-  - `createProjectRequestEmail()` - New project notifications for designers
-  - `createProjectApprovedEmail()` - Approval notifications for clients  
-  - `createProjectRejectedEmail()` - Rejection notifications for clients
-  - Uses baseEmailTemplate for consistent styling
-
-- **API Updates**:
-  - `/api/client/matches/[id]/contact` - Uses ProjectRequestService + centralized templates
-  - `/api/designer/project-requests` - Uses ProjectRequestService for fetching
-  - `/api/designer/project-requests/[id]/respond` - Uses centralized service for approve/reject
-
-#### **Modal Components Centralization**
-- **Components**: `/src/lib/components/modals/`
-  - `ContactDesignerModal` - Centralized contact designer UI
-  - `SuccessModal` - Reusable success notification modal
-  - Auto-hide functionality with configurable delays
-  - Consistent theming with design system
-
-- **Constants**: `/src/lib/constants/messages.ts`
-  - `CONTACT_MESSAGES` - Suggested messages and defaults
-  - `SUCCESS_MESSAGES` - Standardized success notifications
-  - `ERROR_MESSAGES` - Common error messages
-
-#### **Admin Dashboard Improvements**
-- Fixed designer profile modal to show all information correctly
-- Added avatar display with initials fallback
-- Portfolio images section (placeholder)
-- Complete application information display
-
-#### **Client-Designer Contact Flow**
-- Removed "Conversations" feature from client dashboard
-- Implemented email-based contact system
-- Designer approval reveals client email
-- Beautiful modal UI with suggested messages
-
-### **Migration Status**
-- ✅ All new features use centralized services
-- ✅ Email templates fully centralized
-- ✅ Modal components centralized
-- ✅ Project request APIs use service layer
-- ✅ Consistent error handling throughout
-
-### 📬 **Working Request System** (Aug 18, 2025)
-
-After completing centralization, we implemented a streamlined Working Request System that replaces complex messaging with one-click designer contact:
-
-#### **System Overview**
-- **Purpose**: Simplify client-designer communication to a single "Send Working Request" action
-- **Response Time**: 72-hour deadline for designers to respond (accept/decline)
-- **Brief Preservation**: Complete project details captured in JSONB snapshot
-- **Email Notifications**: Automated notifications for all status changes
-
-#### **Key Components**
-- **Modal**: `/src/components/modals/WorkingRequestModal.tsx`
-  - Auto-generates professional messages based on project type
-  - Shows designer name and project context
-  - One-click confirmation to send request
-
-- **Designer Dashboard**: `/src/components/cards/WorkingRequestCard.tsx`
-  - Shows pending requests with countdown timers
-  - Accept/Decline buttons with confirmation
-  - Brief snapshot display for context
-  - Visual indicators for viewed/unviewed status
-
-- **API Endpoints**:
-  - `/api/client/matches/[id]/contact` - Send working request (POST)
-    - Fixed session handling to extract clientId from multiple sources
-    - Creates project_request with 72-hour deadline
-    - Sends email notification to designer
-  - `/api/designer/project-requests/[id]/respond` - Accept/decline request (POST)
-    - Updates request status
-    - Sends notification to client
-    - Reveals contact information on acceptance
-
-#### **Database Schema**
-```sql
-project_requests:
-  - id (UUID)
-  - match_id (UUID, references matches)
-  - client_id (UUID, references clients)
-  - designer_id (UUID, references designers)
-  - message (TEXT)
-  - status (pending/accepted/declined)
-  - client_email (TEXT)
-  - brief_snapshot (JSONB) -- Complete brief details
-  - response_deadline (TIMESTAMP) -- 72 hours from creation
-  - viewed_at (TIMESTAMP) -- When designer first viewed
-  - created_at (TIMESTAMP)
-  - updated_at (TIMESTAMP)
-```
-
-#### **Critical Bug Fixes**
-1. **Session clientId Extraction** (Aug 18, 2025)
-   - **Issue**: API returning 404 because `session.clientId` was undefined
-   - **Root Cause**: Session object wasn't in scope, needed to use extracted clientId variable
-   - **Fix**: Changed all references from `session.clientId` to properly extracted `clientId`
-   - **Files**: `/src/app/api/client/matches/[id]/contact/route.ts` (lines 28, 56, 77, 96, 149, 185)
-
-2. **Client Dashboard UI Update**
-   - **Issue**: Still showing "Contact Designer" button instead of "Send Working Request"
-   - **Fix**: Updated imports, button text, modal component, and function names
-   - **File**: `/src/app/client/dashboard/page.tsx`
-
-#### **Testing**
-- Test scripts in `/test/`:
-  - `test-working-request-flow.js` - Validates complete flow
-  - `test-client-dashboard-match.js` - Verifies match display
-  - `working-request-status.js` - System health check
-
-## 🎯 **COMPREHENSIVE SYSTEM INTEGRATION GUIDE**
-
-### **How All Components Work Together**
-
-OneDesigner's architecture demonstrates perfect integration between all major components:
-
-1. **Request Flow**: Client requests → RequestPipeline (middleware) → API Routes → Core Services
-2. **Data Flow**: Components → API → DataService → Database → Caching → Response  
-3. **AI Flow**: Brief + Designers → AI System → DeepSeek → Scoring → Match Results
-4. **Communication Flow**: Actions → EmailService → Templates → Resend → Delivery
-5. **Configuration Flow**: All services → ConfigManager → Environment/Files → Runtime Config
-6. **Error Flow**: Any failure → ErrorManager → Classification → LoggingService → Response
-
-### **Development Workflow with Documentation**
-
-When working on OneDesigner, follow this documentation-driven approach:
-
-1. **Start with Main CLAUDE.md** - Understand overall architecture
-2. **Reference Component CLAUDE.md** - Get detailed implementation info
-3. **Check API CLAUDE.md** - Understand endpoints and data flow  
-4. **Review Database CLAUDE.md** - Verify schema and relationships
-5. **Use Configuration CLAUDE.md** - Understand settings and customization
-6. **Reference AI CLAUDE.md** - Understand matching algorithms
-
-### **Documentation Usage Examples**
-
-```typescript
-// When implementing a new API endpoint, reference:
-// 1. /src/app/api/CLAUDE.md for patterns
-// 2. /src/lib/core/CLAUDE.md for services
-// 3. /supabase/CLAUDE.md for database operations
-
-export const POST = withPipeline(
-  async (req: AuthenticatedRequest) => {
-    // Following patterns from API CLAUDE.md
-    const data = await DataService.getInstance().createMatch(req.validated.body)
-    return apiResponse.success(data)
-  },
-  [authMiddleware('client')] // Pipeline patterns from Core CLAUDE.md
-)
-```
-
-### **Maintenance & Updates**
-
-**Documentation Maintenance**: 
-- Update component CLAUDE.md files when implementing changes
-- Keep main CLAUDE.md synchronized with architectural changes
-- Reference documentation in code reviews and pull requests
-
-**System Health Monitoring**:
-- All 8 phases provide health status via `/api/health`
-- Component documentation includes testing and validation sections
-- Performance metrics tracked across all documented services
-
-### **Quick Reference for Common Tasks**
-
-| Task | Primary Documentation | Secondary References |
-|------|----------------------|---------------------|
-| Add new API endpoint | `/src/app/api/CLAUDE.md` | `/src/lib/core/CLAUDE.md` |
-| Modify AI matching | `/src/lib/ai/CLAUDE.md` | `/src/config/CLAUDE.md` |
-| Update UI components | `/src/components/CLAUDE.md` | Design system docs |
-| Database changes | `/supabase/CLAUDE.md` | Migration files |
-| Configuration updates | `/src/config/CLAUDE.md` | Core services docs |
-| Debug issues | Core services CLAUDE.md | API and Database docs |
+### **Next-Generation Development Workflow**
+1. **Specification First**: Use `/specify` to create constitutional-compliant specifications
+2. **Implementation Planning**: Use `/plan` to generate structured implementation plans
+3. **Task Breakdown**: Use `/tasks` to create actionable development tasks
+4. **Quality Assurance**: Automated CodeRabbit reviews and Cypress E2E testing
+5. **Centralized Services**: All business logic flows through the 8-phase architecture
+6. **Constitutional Compliance**: All changes must align with established governing principles
 
 ---
 
-**📋 DOCUMENTATION SYSTEM COMPLETE** ✅
+**📋 SPEC-DRIVEN DEVELOPMENT SYSTEM COMPLETE** ✅
 
-**Last Updated**: September 1, 2025  
-**Version**: 3.0.0 (Complete Documentation System)  
-**Status**: Production Ready with Comprehensive Documentation
+**Last Updated**: September 21, 2025
+**Version**: 4.0.0 (Spec Kit Integration & Constitutional Governance)
+**Status**: Production Ready with Spec-Driven Development Framework
 
-**All major components now have detailed CLAUDE.md files providing complete technical documentation, usage examples, and architectural decisions. This creates a self-documenting system that enables rapid development and maintenance.**
-
-#### **Brief Display Bug Fix** (Aug 19, 2025)
-- **Issue**: BriefViewerModal showed "No brief details available" for accepted requests
-- **Root Cause**: Field name mismatches when creating brief_snapshot
-  - Briefs table uses `project_type`, `timeline`, `budget` directly
-  - Code was trying to fallback to non-existent fields like `design_category`, `timeline_type`, `budget_range`
-  - The `requirements` field was not mapped to `project_description`
-- **Fix Applied**:
-  1. Updated `/api/client/matches/[id]/contact` to use correct field names
-  2. Added proper fallback values for all brief fields
-  3. Created migration script to fix existing project_requests
-  4. Brief modal now displays all project details correctly
-- **Files Changed**:
-  - `/src/app/api/client/matches/[id]/contact/route.ts` - Fixed brief_snapshot creation
-  - `/src/app/api/designer/project-requests/[id]/view/route.ts` - Improved fallback handling
-  - `/scripts/fix-brief-snapshots.js` - Migration script for existing data
-
-#### **Designer Dashboard Avatar Fix** (Aug 19, 2025)
-- **Issue**: Designer dashboard showed initials instead of actual avatar, and displayed removed "years experience" field
-- **Root Cause**: Session API wasn't returning avatar_url field, and dashboard still referenced old years_experience field
-- **Fix Applied**:
-  1. Added `avatar: designer.avatar_url` to designer session API response 
-  2. Updated dashboard to display actual profile picture with fallback to initials
-  3. Removed years experience text from dashboard display
-  4. Dashboard now uses same data source as admin panel for consistency
-- **Files Changed**:
-  - `/src/app/api/designer/auth/session/route.ts` - Added avatar field to response
-  - `/src/app/designer/dashboard/page.tsx` - Updated avatar display and removed years experience
-
-- don't over engineering always
-- always make sure that it's eveything centerlized and have the same source of truth
-- emails should be using the our marc lou style always
+**OneDesigner now operates under a complete spec-driven development framework with constitutional governance, ensuring all future development maintains architectural integrity while enabling rapid, high-quality feature development through structured specifications and automated quality controls.**

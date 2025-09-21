@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     // Update match analytics
     const { error: analyticsError } = await supabase
-      \.from\(['"`]audit_logs['"`]\)
+      .from('audit_logs')
       .update({
         match_accepted: feedback.accepted,
         client_feedback: feedback.comments,
@@ -250,7 +250,7 @@ export async function GET(request: NextRequest) {
     
     // Get aggregate analytics
     const { data: analytics, error } = await supabase
-      \.from\(['"`]audit_logs['"`]\)
+      .from('audit_logs')
       .select(`
         match_score,
         ai_confidence,

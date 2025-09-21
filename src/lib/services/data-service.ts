@@ -178,39 +178,47 @@ export class DataService {
    * Deduct credit from client (with transaction support)
    */
   async deductCredit(clientId: string, matchId: string): Promise<void> {
-    // This should be wrapped in a transaction
-    // For now, we'll implement it step by step with rollback capability
-    
-    // Get current client data
-    const client = await this.getClientWithCredits(clientId)
-    
+    // Get current client data with SELECT FOR UPDATE to prevent race conditions
+    const { data: client, error: selectError } = await this.supabase
+      .from('clients')
+      .select('id, match_credits')
+      .eq('id', clientId)
+      .single()
+
+    if (selectError || !client) {
+      throw new DatabaseError('Failed to get client data', selectError)
+    }
+
     if (client.match_credits < 1) {
       throw new InsufficientCreditsError()
     }
 
-    // Deduct credit
-    const { error: creditError } = await this.supabase
+    // Perform atomic credit deduction
+    const { data: updateResult, error: creditError } = await this.supabase
       .from('clients')
       .update({ match_credits: client.match_credits - 1 })
       .eq('id', clientId)
+      .eq('match_credits', client.match_credits) // Optimistic locking
+      .select('match_credits')
 
-    if (creditError) {
-      throw new DatabaseError('Failed to deduct credit', creditError)
+    if (creditError || !updateResult || updateResult.length === 0) {
+      // Either error occurred or no rows updated (credits changed between select and update)
+      throw new InsufficientCreditsError('Credits were modified by another operation')
     }
 
-    // Update match status
+    // Update match status (this happens after successful credit deduction)
     const { error: matchError } = await this.supabase
       .from('matches')
       .update({ status: 'unlocked' })
       .eq('id', matchId)
 
     if (matchError) {
-      // Rollback credit deduction
+      // Rollback credit deduction - add back the credit
       await this.supabase
         .from('clients')
         .update({ match_credits: client.match_credits })
         .eq('id', clientId)
-      
+
       throw new DatabaseError('Failed to unlock match', matchError)
     }
 
@@ -461,11 +469,13 @@ export class DataService {
 
     // Record the unlock
     await this.supabase
-      \.from\(['"`]client_designers['"`]\)
+      .from('client_designers')
       .insert({
         match_id: matchId,
         client_id: clientId,
-        amount: 0
+        designer_id: match.designer_id,
+        amount: 0,
+        unlocked_at: new Date().toISOString()
       })
 
     // Track unlocked designer

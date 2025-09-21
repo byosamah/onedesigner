@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
           title: '', // Professional title - will be filled in application form
           city: '', // Location - will be filled in application form
           country: '', // Location - will be filled in application form
-          years_experience: '', // Experience - will be filled in application form
+          years_experience: 0, // Experience - will be filled in application form
           is_verified: true,
           is_approved: false,
           created_at: new Date().toISOString()

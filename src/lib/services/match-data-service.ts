@@ -92,7 +92,7 @@ export class MatchDataService extends DataService {
     expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiration
 
     const { error } = await this['supabase']
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .insert({
         match_id: matchId,
         designer_id: designerId,

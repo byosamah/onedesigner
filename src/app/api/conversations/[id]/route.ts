@@ -21,7 +21,7 @@ export async function GET(
 
     // Get conversation with messages
     const { data: conversation, error: convError } = await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .select(`
         *,
         designer:designers(
@@ -52,7 +52,7 @@ export async function GET(
 
     // Mark messages as read
     await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('conversation_id', conversationId)
       .eq('sender_type', 'designer')
@@ -60,7 +60,7 @@ export async function GET(
 
     // Reset unread count for client
     await supabase
-      \.from\(['"`]project_requests['"`]\)
+      .from('project_requests')
       .update({ client_unread_count: 0 })
       .eq('id', conversationId)
 
