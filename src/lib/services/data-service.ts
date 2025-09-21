@@ -461,7 +461,7 @@ export class DataService {
 
     // Record the unlock
     await this.supabase
-      .from('match_unlocks')
+      \.from\(['"`]client_designers['"`]\)
       .insert({
         match_id: matchId,
         client_id: clientId,

@@ -31,6 +31,7 @@ yarn-error.log*
 .env.local
 .env.development
 .env.production
+.env.cypress.local
 
 # vercel
 .vercel
@@ -50,3 +51,11 @@ next-env.d.ts
 # temp files
 *.tmp
 *.temp
+*.backup
+
+# cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+cypress/fixtures/example.json
+.cypress/

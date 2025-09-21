@@ -58,7 +58,7 @@ export async function POST(
     if (response === 'accept') {
       // Try to create a designer request (will fail silently if table doesn't exist)
       const { error: requestError } = await supabase
-        .from('designer_requests')
+        \.from\(['"`]project_requests['"`]\)
         .insert({
           match_id: matchId,
           designer_id: designerId,

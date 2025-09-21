@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     // Get designer requests with related data
     const { data: requests, error } = await supabase
-      .from('designer_requests')
+      .from('project_requests')
       .select(`
         id,
         status,
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         viewed_at,
         responded_at,
         expires_at,
-        match:matches!designer_requests_match_id_fkey (
+        match:matches!project_requests_match_id_fkey (
           id,
           score,
           personalized_reasons,
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
 
     if (pendingIds.length > 0) {
       await supabase
-        .from('designer_requests')
+        .from('project_requests')
         .update({ viewed_at: new Date().toISOString() })
         .in('id', pendingIds)
     }

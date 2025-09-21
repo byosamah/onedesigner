@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { createServiceClient } from '@/lib/supabase/server'
 import { verifyCustomOTP } from '@/lib/auth/custom-otp'
+import { isAdminEmail } from '@/lib/admin/config'
 import { logger } from '@/lib/core/logging-service'
 
 export async function POST(request: NextRequest) {
@@ -25,34 +25,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServiceClient()
-
-    // Get admin details
-    const { data: admin, error } = await supabase
-      .from('admin_users')
-      .select('*')
-      .eq('email', email)
-      .single()
-
-    if (error || !admin || !admin.is_active) {
+    // Verify admin email is authorized
+    if (!isAdminEmail(email)) {
       return NextResponse.json(
         { error: 'Not authorized' },
         { status: 403 }
       )
     }
 
-    // Update last login
-    await supabase
-      .from('admin_users')
-      .update({ last_login: new Date().toISOString() })
-      .eq('id', admin.id)
-
-    // Set admin session cookie
+    // Set admin session cookie with hardcoded admin data
     const cookieStore = cookies()
     cookieStore.set('admin-session', JSON.stringify({
-      email: admin.email,
-      adminId: admin.id,
-      role: admin.role,
+      email: email,
+      adminId: 'admin', // Static ID for hardcoded admin
+      role: 'admin',
       authenticatedAt: new Date().toISOString()
     }), {
       httpOnly: true,
@@ -61,13 +47,13 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24, // 24 hours for admin sessions
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       admin: {
-        id: admin.id,
-        email: admin.email,
-        name: admin.name,
-        role: admin.role
+        id: 'admin',
+        email: email,
+        name: 'Admin',
+        role: 'admin'
       }
     })
   } catch (error) {

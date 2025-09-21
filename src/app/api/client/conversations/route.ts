@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     // First check if conversations table exists
     const { data: testConversations, error: testError } = await supabase
-      .from('conversations')
+      \.from\(['"`]project_requests['"`]\)
       .select('*')
       .limit(1)
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Get all conversations for this client
     const { data: conversations, error: convError } = await supabase
-      .from('conversations')
+      \.from\(['"`]project_requests['"`]\)
       .select(`
         *,
         designer:designers(

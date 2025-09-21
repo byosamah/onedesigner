@@ -1,6 +1,40 @@
 import { getOneDesignerConfig, isConfigInitialized } from '@/lib/config/init'
 // Import app initialization to ensure config is loaded
 import '@/lib/init'
+// Import dual logger for backward-compatible logging
+import { dualLogger } from '@/lib/utils/dual-logger'
+
+/**
+ * Type definitions for feature flags
+ * Provides type safety while maintaining backward compatibility
+ */
+export interface FeatureFlags {
+  USE_NEW_DATA_SERVICE: boolean
+  USE_AUTH_MIDDLEWARE: boolean
+  USE_BUSINESS_RULES: boolean
+  USE_ERROR_MANAGER: boolean
+  USE_REQUEST_PIPELINE: boolean
+  USE_CONFIG_MANAGER: boolean
+  ENABLE_QUERY_CACHE: boolean
+  ENABLE_TRANSACTIONS: boolean
+  ENABLE_MONITORING: boolean
+  ENABLE_DETAILED_LOGGING: boolean
+  USE_CENTRALIZED_LOGGING: boolean
+  USE_OTP_SERVICE: boolean
+  USE_EMAIL_SERVICE: boolean
+  ROLLBACK_TIMEOUT: number
+  ROLLBACK_ERROR_THRESHOLD: number
+}
+
+/**
+ * Service status type for health checks
+ */
+export type ServiceStatus = 'active' | 'inactive'
+
+/**
+ * Feature status record type
+ */
+export type FeatureStatusRecord = Record<string, boolean | number>
 
 /**
  * Feature flags for gradual centralization rollout
@@ -155,7 +189,7 @@ export function toggleFeature(feature: keyof typeof Features, enabled: boolean):
   if (process.env.NODE_ENV === 'development') {
     (Features as any)[feature] = enabled
   } else {
-    console.warn('Feature toggling is only available in development mode')
+    dualLogger.warn('Feature toggling is only available in development mode')
   }
 }
 
@@ -175,12 +209,12 @@ export function getFeatureStatuses(): Record<string, boolean> {
  * Log feature status (for debugging)
  */
 export function logFeatureStatus(): void {
-  console.log('🚀 Feature Flags Status:')
-  console.log('========================')
+  dualLogger.log('🚀 Feature Flags Status:')
+  dualLogger.log('========================')
   Object.entries(Features).forEach(([key, value]) => {
     if (typeof value === 'boolean') {
-      console.log(`${key}: ${value ? '✅ Enabled' : '❌ Disabled'}`)
+      dualLogger.log(`${key}: ${value ? '✅ Enabled' : '❌ Disabled'}`)
     }
   })
-  console.log('========================')
+  dualLogger.log('========================')
 }

@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
       expiresAt.setDate(expiresAt.getDate() + 7)
       
       const { error: requestError } = await supabase
-        .from('designer_requests')
+        \.from\(['"`]project_requests['"`]\)
         .insert({
           match_id: finalMatch.id,
           designer_id: bestMatch.designer.id,
@@ -325,7 +325,7 @@ export async function POST(request: NextRequest) {
     // Create match analytics record
     if (finalMatch?.id) {
       await supabase
-        .from('match_analytics')
+        \.from\(['"`]audit_logs['"`]\)
         .insert({
           match_id: finalMatch.id,
           client_id: brief.client_id,

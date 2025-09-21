@@ -15,32 +15,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = createServiceClient()
-
-    // Check if admin exists - bypass RLS by using service role
-    const { data: admin, error } = await supabase
-      .from('admin_users')
-      .select('email, is_active')
-      .eq('email', email)
-      .maybeSingle()
-
-    // Check if email is in admin list
+    // Check if email is in hardcoded admin list
     if (!isAdminEmail(email)) {
-      // If not in hardcoded list, check database
-      if (error || !admin) {
-        logger.error('Not an authorized admin email:', email)
-        return NextResponse.json(
-          { error: 'Not authorized. This email is not registered as an admin.' },
-          { status: 403 }
-        )
-      }
-      
-      if (admin && !admin.is_active) {
-        return NextResponse.json(
-          { error: 'Account is deactivated' },
-          { status: 403 }
-        )
-      }
+      logger.error('Not an authorized admin email:', email)
+      return NextResponse.json(
+        { error: 'Not authorized. This email is not registered as an admin.' },
+        { status: 403 }
+      )
     }
 
     // Send OTP with admin user type

@@ -120,6 +120,24 @@ export default function DesignerProfilePage() {
       // Reset edit mode when profile is freshly loaded
       setIsEditing(false)
       setValidationErrors({})
+
+      // If profile has a country, trigger city loading
+      if (profile.country) {
+        logger.info('Profile has country, loading cities for:', profile.country)
+        const fetchCities = async () => {
+          setLoadingCities(true)
+          try {
+            const citiesList = await getCitiesByCountry(profile.country)
+            setCities(citiesList)
+            logger.info(`Loaded ${citiesList.length} cities for ${profile.country}`)
+          } catch (error) {
+            logger.error('Failed to fetch cities for profile country:', error)
+          } finally {
+            setLoadingCities(false)
+          }
+        }
+        fetchCities()
+      }
     }
   }, [profile?.id, profile?.updated_at]) // Re-run when profile ID or last update changes
 
@@ -143,11 +161,19 @@ export default function DesignerProfilePage() {
 
       const data = await response.json()
       logger.info('Profile API response:', data)
-      
+
       // Don't transform to camelCase - keep snake_case for form fields
       // The fields use snake_case keys (first_name, not firstName)
       const designerData = data.designer
-      logger.info('Designer profile data:', designerData)
+      logger.info('Designer profile data:', {
+        ...designerData,
+        country: designerData.country,
+        city: designerData.city,
+        availability: designerData.availability,
+        hasCountry: !!designerData.country,
+        hasCity: !!designerData.city,
+        hasAvailability: !!designerData.availability
+      })
       
       // Extract portfolio images from tools array
       const currentPortfolioImages: (string | null)[] = [null, null, null]
@@ -308,46 +334,47 @@ export default function DesignerProfilePage() {
   }
 
   const uploadPendingImages = async (images: (string | null)[]): Promise<(string | null)[]> => {
-    const uploadedImages: (string | null)[] = [...images]
-    
-    for (let i = 0; i < images.length; i++) {
-      const image = images[i]
-      
-      // Check if image is base64 data URL (needs to be uploaded)
-      if (image && image.startsWith('data:image/')) {
-        try {
-          // Convert base64 to File
-          const response = await fetch(image)
-          const blob = await response.blob()
-          const file = new File([blob], `portfolio_${i + 1}.jpg`, { type: blob.type })
-          
-          // Upload to server
-          const formData = new FormData()
-          formData.append(`image${i + 1}`, file)
-
-          const uploadResponse = await fetch('/api/designer/portfolio/images', {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-          })
-
-          if (!uploadResponse.ok) {
-            throw new Error('Failed to upload portfolio image')
-          }
-
-          const result = await uploadResponse.json()
-          // Use the first uploaded URL (since we're uploading one image at a time)
-          uploadedImages[i] = result.uploaded[0] || result.images[i] // Replace base64 with uploaded URL
-          
-        } catch (error) {
-          logger.error(`Error uploading portfolio image ${i + 1}:`, error)
-          setError(`Failed to upload portfolio image ${i + 1}`)
-          throw error
-        }
+    // Prepare all upload promises
+    const uploadPromises = images.map(async (image, i) => {
+      // If not a base64 image, return as-is
+      if (!image || !image.startsWith('data:image/')) {
+        return image
       }
-    }
-    
-    return uploadedImages
+
+      try {
+        // Convert base64 to File
+        const response = await fetch(image)
+        const blob = await response.blob()
+        const file = new File([blob], `portfolio_${i + 1}.jpg`, { type: blob.type })
+
+        // Upload to server
+        const formData = new FormData()
+        formData.append(`image${i + 1}`, file)
+
+        const uploadResponse = await fetch('/api/designer/portfolio/images', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        })
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload portfolio image ${i + 1}`)
+        }
+
+        const result = await uploadResponse.json()
+        // Use the first uploaded URL (since we're uploading one image at a time)
+        return result.uploaded[0] || result.images[i] // Return uploaded URL
+
+      } catch (error) {
+        logger.error(`Error uploading portfolio image ${i + 1}:`, error)
+        // Don't throw - return null for failed uploads to allow others to succeed
+        return null
+      }
+    })
+
+    // Upload all images in parallel
+    const results = await Promise.all(uploadPromises)
+    return results
   }
 
   const handleSave = async () => {
@@ -362,15 +389,30 @@ export default function DesignerProfilePage() {
       
       // Data is already in snake_case, no need to transform
       const cleanedData = cleanDesignerData(formData)
-      
-      // Handle portfolio images - upload any base64 images first, then store in tools array
-      const uploadedPortfolioImages = await uploadPendingImages(portfolioImages)
-      cleanedData.tools = uploadedPortfolioImages.filter(Boolean)
-      
-      // Handle avatar - upload if it's base64 data
+
+      // Upload avatar and portfolio images in parallel for better performance
+      const uploadPromises: Promise<any>[] = []
+
+      // Prepare portfolio image upload
+      const portfolioUploadPromise = uploadPendingImages(portfolioImages)
+      uploadPromises.push(portfolioUploadPromise)
+
+      // Prepare avatar upload if needed
+      let avatarUploadPromise: Promise<string> | null = null
       if (cleanedData.avatar_url && cleanedData.avatar_url.startsWith('data:image/')) {
-        const uploadedAvatarUrl = await uploadPendingAvatar(cleanedData.avatar_url)
-        cleanedData.avatar_url = uploadedAvatarUrl
+        avatarUploadPromise = uploadPendingAvatar(cleanedData.avatar_url)
+        uploadPromises.push(avatarUploadPromise)
+      }
+
+      // Execute all uploads in parallel
+      const uploadResults = await Promise.all(uploadPromises)
+
+      // Apply results
+      const uploadedPortfolioImages = uploadResults[0] as (string | null)[]
+      cleanedData.tools = uploadedPortfolioImages.filter(Boolean)
+
+      if (avatarUploadPromise) {
+        cleanedData.avatar_url = uploadResults[uploadResults.length - 1] as string
       }
       
       // Check if reapproval is needed
@@ -860,7 +902,17 @@ export default function DesignerProfilePage() {
                 <button
                   onClick={() => {
                     setIsEditing(false)
-                    setFormData(profile || {})
+                    // Only reset form data if user wants to discard changes
+                    if (confirm('Discard unsaved changes?')) {
+                      setFormData(profile || {})
+                      setPortfolioImages([
+                        profile?.tools?.[0] || null,
+                        profile?.tools?.[1] || null,
+                        profile?.tools?.[2] || null
+                      ])
+                    } else {
+                      return // Keep editing
+                    }
                     setValidationErrors({})
                   }}
                   className="px-6 py-2 rounded-xl font-medium transition-all duration-200"
@@ -875,11 +927,18 @@ export default function DesignerProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105"
-                  style={{ backgroundColor: theme.success, color: '#fff' }}
+                  className="px-6 py-2 rounded-xl font-medium transition-all duration-200 hover:scale-105 flex items-center gap-2"
+                  style={{
+                    backgroundColor: isSaving ? theme.border : theme.success,
+                    color: isSaving ? theme.text.secondary : '#fff',
+                    cursor: isSaving ? 'not-allowed' : 'pointer'
+                  }}
                 >
-                  {isSaving ? 'Saving...' : 
-                   profile?.rejection_reason && !profile?.is_approved ? 'Resubmit for Review' : 
+                  {isSaving && (
+                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                  )}
+                  {isSaving ? 'Saving...' :
+                   profile?.rejection_reason && !profile?.is_approved ? 'Resubmit for Review' :
                    'Save Changes'}
                 </button>
               </div>

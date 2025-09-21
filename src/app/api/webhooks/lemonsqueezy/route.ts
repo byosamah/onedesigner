@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
             }
 
             await supabase
-              .from('match_unlocks')
+              \.from\(['"`]client_designers['"`]\)
               .insert({
                 match_id: customData.match_id,
                 client_id: customData.client_id,

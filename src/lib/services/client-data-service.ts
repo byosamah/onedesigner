@@ -80,9 +80,9 @@ export class ClientDataService extends DataService {
       m.status === 'unlocked' || m.status === 'accepted'
     ).length || 0
 
-    // Get total spent (from match_unlocks)
+    // Get total spent (from payments table)
     const { data: unlocks, error: unlockError } = await this['supabase']
-      .from('match_unlocks')
+      .from('payments')
       .select('amount')
       .eq('client_id', clientId)
 
@@ -198,16 +198,16 @@ export class ClientDataService extends DataService {
   }
 
   /**
-   * Get client's conversation count
+   * Get client's project request count (replaces conversation count)
    */
-  async getConversationCount(clientId: string): Promise<number> {
+  async getProjectRequestCount(clientId: string): Promise<number> {
     const { count, error } = await this['supabase']
-      .from('conversations')
+      .from('project_requests')
       .select('*', { count: 'exact', head: true })
       .eq('client_id', clientId)
 
     if (error) {
-      throw new DatabaseError('Failed to count conversations', error)
+      throw new DatabaseError('Failed to count project requests', error)
     }
 
     return count || 0
@@ -228,13 +228,13 @@ export class ClientDataService extends DataService {
     // Add credits
     const updatedClient = await this.addCredits(clientId, credits)
 
-    // Record the purchase
+    // Record the purchase in payments table
     const { error } = await this['supabase']
-      .from('credit_purchases')
+      .from('payments')
       .insert({
         client_id: clientId,
-        credits,
         amount: paymentDetails.amount,
+        credits,
         currency: paymentDetails.currency,
         order_id: paymentDetails.orderId,
         created_at: new Date().toISOString()
@@ -253,7 +253,7 @@ export class ClientDataService extends DataService {
    */
   async getRecentActivity(clientId: string, limit = 10): Promise<any[]> {
     const { data, error } = await this['supabase']
-      .from('activity_log')
+      .from('audit_logs')
       .select('*')
       .eq('client_id', clientId)
       .order('created_at', { ascending: false })

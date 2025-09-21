@@ -292,7 +292,7 @@ export async function POST(
 
     // Record the unlock
     const { error: unlockError } = await supabase
-      .from('match_unlocks')
+      \.from\(['"`]client_designers['"`]\)
       .insert({
         match_id: params.id,
         client_id: clientId,

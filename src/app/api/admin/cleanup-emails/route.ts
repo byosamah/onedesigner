@@ -31,13 +31,13 @@ export async function DELETE(request: NextRequest) {
     if (designerIds.length > 0) {
       // Delete related records first (foreign key constraints)
       
-      // Delete designer_requests
+      // Delete project_requests (replaces designer_requests)
       const { error: requestError } = await supabase
-        .from('designer_requests')
+        .from('project_requests')
         .delete()
         .in('designer_id', designerIds)
-      
-      if (requestError) logger.error('Error deleting designer_requests:', requestError)
+
+      if (requestError) logger.error('Error deleting project_requests:', requestError)
 
       // Delete client_designers
       const { error: clientDesignersError } = await supabase
@@ -63,13 +63,7 @@ export async function DELETE(request: NextRequest) {
       
       if (embeddingsError) logger.error('Error deleting designer_embeddings:', embeddingsError)
 
-      // Delete match_analytics
-      const { error: analyticsError } = await supabase
-        .from('match_analytics')
-        .delete()
-        .in('designer_id', designerIds)
-      
-      if (analyticsError) logger.error('Error deleting match_analytics:', analyticsError)
+      // Note: match_analytics removed - analytics moved to centralized system
 
       // Finally delete designers
       const { error: designerError } = await supabase
@@ -91,12 +85,12 @@ export async function DELETE(request: NextRequest) {
     
     if (clientError) logger.error('Error deleting clients:', clientError)
 
-    // Remove OTP records
+    // Remove OTP records (using centralized auth_tokens)
     const { error: otpError } = await supabase
-      .from('custom_otps')
+      .from('auth_tokens')
       .delete()
       .in('email', emailsToRemove)
-    
+
     if (otpError) logger.error('Error deleting OTPs:', otpError)
 
     return NextResponse.json({ 

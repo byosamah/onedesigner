@@ -6,6 +6,8 @@ import { projectRequestService } from '@/lib/database/project-request-service'
 import { createProjectRequestEmail } from '@/lib/email/templates/project-request'
 import { emailService } from '@/lib/core/email-service'
 import { logger } from '@/lib/core/logging-service'
+import { extractClientIdFromSession } from '@/lib/utils/session-helpers'
+import { dualLogger } from '@/lib/utils/dual-logger'
 
 export async function POST(
   request: NextRequest,
@@ -14,32 +16,16 @@ export async function POST(
   try {
     // Validate client session
     const sessionResult = await validateSession('CLIENT')
-    
-    // If session validation fails, try a direct approach
-    let clientId = sessionResult.clientId || sessionResult.user?.id
-    let clientEmail = sessionResult.user?.email || sessionResult.session?.email
-    
-    // If we don't have a client ID but have an email, look it up directly
-    if (!clientId && clientEmail) {
-      logger.info('Session missing clientId, looking up by email:', clientEmail)
-      const supabase = createServiceClientWithoutCookies()
-      const { data: clientData } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('email', clientEmail)
-        .single()
-      
-      if (clientData) {
-        clientId = clientData.id
-        logger.info('Found client ID from database:', clientId)
-      }
-    }
-    
+
+    // Use helper function for cleaner client ID extraction
+    // This maintains exact same behavior as before
+    const { clientId, clientEmail } = await extractClientIdFromSession(sessionResult)
+
     if (!sessionResult.valid || !clientId) {
       logger.error('Authentication failed - no valid session or client ID found')
       return apiResponse.unauthorized('Please log in as a client')
     }
-    
+
     logger.info('Using client ID:', clientId)
 
     // We don't actually need designerId from the request body

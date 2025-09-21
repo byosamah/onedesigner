@@ -38,10 +38,10 @@ export async function POST(
 
     // Verify the request belongs to this designer
     const { data: designerRequest, error: fetchError } = await supabase
-      .from('designer_requests')
+      .from('project_requests')
       .select(`
         *, 
-        match:matches!designer_requests_match_id_fkey(
+        match:matches!project_requests_match_id_fkey(
           *,
           client:clients(*),
           brief:briefs(*)
@@ -68,7 +68,7 @@ export async function POST(
 
     // Update designer request
     const { error: updateError } = await supabase
-      .from('designer_requests')
+      .from('project_requests')
       .update({
         status: response === 'accept' ? 'accepted' : 'declined',
         response,

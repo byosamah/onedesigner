@@ -150,7 +150,7 @@ export class DesignerDataService extends DataService {
 
     // Calculate response rate (simplified)
     const { data: requests } = await this['supabase']
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .select('responded')
       .eq('designer_id', designerId)
 
@@ -173,7 +173,7 @@ export class DesignerDataService extends DataService {
    */
   async getMatchRequests(designerId: string, status?: 'pending' | 'accepted' | 'rejected'): Promise<any[]> {
     let query = this['supabase']
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .select(`
         *,
         match:matches(
@@ -209,7 +209,7 @@ export class DesignerDataService extends DataService {
   ): Promise<void> {
     // Verify the request belongs to this designer
     const { data: request, error: fetchError } = await this['supabase']
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .select('*')
       .eq('id', requestId)
       .eq('designer_id', designerId)
@@ -221,7 +221,7 @@ export class DesignerDataService extends DataService {
 
     // Update request status
     const { error: updateError } = await this['supabase']
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .update({
         status: accept ? 'accepted' : 'rejected',
         responded: true,

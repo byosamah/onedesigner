@@ -323,7 +323,7 @@ async function createMatchRecord(supabase: any, brief: any, matchData: any) {
     expiresAt.setDate(expiresAt.getDate() + 7)
     
     await supabase
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .insert({
         match_id: match.id,
         designer_id: matchData.designer.id,
@@ -335,7 +335,7 @@ async function createMatchRecord(supabase: any, brief: any, matchData: any) {
   // Create match analytics record
   if (match?.id) {
     await supabase
-      .from('match_analytics')
+      \.from\(['"`]audit_logs['"`]\)
       .insert({
         match_id: match.id,
         client_id: brief.client_id,

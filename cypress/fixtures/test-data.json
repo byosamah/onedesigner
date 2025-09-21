@@ -1,0 +1,141 @@
+{
+  "designers": [
+    {
+      "id": "test-designer-1",
+      "firstName": "Sarah",
+      "lastName": "Johnson",
+      "email": "sarah.johnson@test.com",
+      "portfolio": "https://sarahjohnson.design",
+      "bio": "Award-winning designer with 8 years of experience in branding and UI/UX design",
+      "skills": ["Branding", "UI Design", "Logo Design", "Web Design"],
+      "hourlyRate": 120,
+      "isApproved": true,
+      "isVerified": true,
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+    },
+    {
+      "id": "test-designer-2",
+      "firstName": "Michael",
+      "lastName": "Chen",
+      "email": "michael.chen@test.com",
+      "portfolio": "https://michaelchen.io",
+      "bio": "Specialist in minimalist design and tech startups",
+      "skills": ["UI Design", "Mobile Design", "Prototyping", "Design Systems"],
+      "hourlyRate": 95,
+      "isApproved": true,
+      "isVerified": true,
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Michael"
+    },
+    {
+      "id": "test-designer-3",
+      "firstName": "Emma",
+      "lastName": "Williams",
+      "email": "emma.williams@test.com",
+      "portfolio": "https://emmawilliams.com",
+      "bio": "Creative director focused on brand identity and marketing design",
+      "skills": ["Branding", "Marketing Design", "Print Design", "Package Design"],
+      "hourlyRate": 150,
+      "isApproved": false,
+      "isVerified": true,
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma"
+    }
+  ],
+  "clients": [
+    {
+      "id": "test-client-1",
+      "email": "john.doe@company.com",
+      "firstName": "John",
+      "lastName": "Doe",
+      "company": "TechStartup Inc",
+      "matchCredits": 5
+    },
+    {
+      "id": "test-client-2",
+      "email": "jane.smith@agency.com",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "company": "Creative Agency",
+      "matchCredits": 0
+    }
+  ],
+  "briefs": [
+    {
+      "id": "test-brief-1",
+      "clientId": "test-client-1",
+      "projectType": "logo-design",
+      "industry": "Technology",
+      "budget": "$5,000 - $10,000",
+      "timeline": "2-4 weeks",
+      "description": "We need a modern, minimalist logo for our AI-powered analytics platform",
+      "styles": ["Modern", "Minimalist", "Tech"],
+      "requirements": {
+        "deliverables": ["Logo files", "Brand guidelines", "Business cards"],
+        "revisions": 3,
+        "colorPreferences": ["Blue", "White", "Gray"]
+      }
+    },
+    {
+      "id": "test-brief-2",
+      "clientId": "test-client-2",
+      "projectType": "web-design",
+      "industry": "E-commerce",
+      "budget": "$10,000 - $25,000",
+      "timeline": "4-8 weeks",
+      "description": "Complete redesign of our e-commerce platform with focus on conversion optimization",
+      "styles": ["Clean", "Professional", "User-friendly"],
+      "requirements": {
+        "pages": 15,
+        "responsive": true,
+        "animations": true
+      }
+    }
+  ],
+  "matches": [
+    {
+      "id": "test-match-1",
+      "clientId": "test-client-1",
+      "designerId": "test-designer-1",
+      "briefId": "test-brief-1",
+      "score": 78,
+      "reasons": [
+        "Strong portfolio in logo design",
+        "Experience with tech startups",
+        "Budget matches designer rate"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectRequests": [
+    {
+      "id": "test-request-1",
+      "matchId": "test-match-1",
+      "clientId": "test-client-1",
+      "designerId": "test-designer-1",
+      "message": "Hi Sarah, we're impressed with your portfolio and would love to work with you on our logo project.",
+      "status": "pending",
+      "responseDeadline": "2025-09-21T00:00:00Z"
+    }
+  ],
+  "packages": [
+    {
+      "name": "starter",
+      "credits": 3,
+      "price": 5
+    },
+    {
+      "name": "growth",
+      "credits": 10,
+      "price": 15
+    },
+    {
+      "name": "scale",
+      "credits": 25,
+      "price": 30
+    }
+  ],
+  "otpCodes": {
+    "test-client@example.com": "123456",
+    "test-designer@example.com": "654321",
+    "osamah96@gmail.com": "111111"
+  }
+}

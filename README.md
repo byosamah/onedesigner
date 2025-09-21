@@ -1,210 +1,216 @@
-# OneDesigner Platform
+# OneDesigner
 
-**AI-Powered Designer-Client Matching Platform**
+## AI-Powered Designer-Client Matching Platform
 
-OneDesigner connects clients with pre-vetted designers using advanced AI-powered matching algorithms. The platform analyzes project requirements and designer profiles to find perfect creative matches with 15+ compatibility factors.
+OneDesigner revolutionizes how clients discover and connect with pre-vetted designers through intelligent AI-powered matching. The platform analyzes project briefs and designer profiles to create perfect creative partnerships.
 
-🔗 **Live Platform**: [onedesigner.app](https://onedesigner.app)
+## 🚀 Features
 
-## ✨ Key Features
+### For Clients
+- **Smart Matching**: AI analyzes your project brief to find the perfect designers
+- **Progressive Matching**: Instant results that get better with time (3-phase matching)
+- **Credit System**: Flexible pricing with packages to fit any budget
+- **Working Requests**: Simplified one-click designer contact system
+- **Quality Assurance**: All designers are pre-vetted and admin-approved
 
-### 🎯 AI-Powered Matching System
-- **DeepSeek AI Integration** - Advanced matching with realistic scoring (50-80% typical range)
-- **Category-Specific Questions** - Detailed briefs for 6 design categories
-- **Progressive Enhancement** - 3-phase matching (instant → refined → final)
-- **Persistent Matches** - Results saved to prevent re-matching on navigation
+### For Designers
+- **Application System**: Multi-step application with portfolio review
+- **Dashboard**: Manage project requests and track opportunities
+- **Profile Management**: Showcase your skills and experience
+- **Approval Process**: Quality-focused admission ensures client satisfaction
 
-### 💳 Flexible Payment System
-- **LemonSqueezy Integration** - Secure payment processing
-- **Match-Based Credits** - 1 credit = 1 designer unlock
-- **Package Options**: Starter ($5/3), Growth ($15/10), Scale ($30/25)
-- **Instant Credit Application** via webhook
+### For Admins
+- **Designer Management**: Approve applications and manage profiles
+- **System Monitoring**: Health checks and performance metrics
+- **Content Management**: Blog system for design tips and insights
 
-### 👨‍💼 Multi-User System
-- **Client Portal** - Brief creation, match viewing, designer unlocking
-- **Designer Portal** - Profile management, application system, approval workflow
-- **Admin Dashboard** - Designer approval, performance monitoring, system management
+## 🏗️ Architecture
 
-### 🚀 Performance Optimized
-- **Speed Optimization** - Sub-50ms instant matches using embeddings
-- **Database Caching** - Pre-computed vectors and materialized views
-- **Progressive Loading** - Animated feedback during AI analysis
-- **Streaming Support** - SSE for real-time match updates
+### Centralized Services (8-Phase Architecture)
+- **DataService**: Database operations with caching
+- **ErrorManager**: Structured error handling and monitoring
+- **RequestPipeline**: Middleware architecture with auth
+- **ConfigManager**: Centralized configuration management
+- **BusinessRules**: Business logic consolidation
+- **LoggingService**: Structured logging with correlation IDs
+- **OTPService**: Unified OTP management
+- **EmailService**: Template-based email system
 
-## 🏗️ Technical Architecture
+### Technology Stack
+- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Backend**: Next.js API Routes with serverless architecture
+- **Database**: Supabase (PostgreSQL) with Row Level Security
+- **AI**: DeepSeek for intelligent matching
+- **Payments**: LemonSqueezy integration
+- **Email**: Resend with professional templates
+- **Deployment**: Vercel with edge optimization
 
-### Frontend
-- **Next.js 14** with App Router
-- **TypeScript** for type safety
-- **Tailwind CSS** with custom design system
-- **React Server Components** for optimal performance
-
-### Backend
-- **Supabase** - PostgreSQL database with real-time features
-- **DeepSeek AI** - Advanced language model for matching
-- **LemonSqueezy** - Payment processing and webhook handling
-- **Resend** - Email notifications and templates
-
-### Database Schema
-```sql
--- Core Tables
-designers (is_approved, is_verified, categories, styles, etc.)
-clients (email, match_credits, created_at)
-briefs (design_category, timeline_type, budget_range, etc.)
-matches (score, reasons[], status, created_at)
-client_designers (tracks unlocked relationships)
-
--- Performance Tables
-designer_embeddings (vector similarity for fast matching)
-match_cache (AI analysis caching)
-designer_quick_stats (materialized view for dashboard)
-```
-
-## 🎨 Design Categories
-
-1. **Branding & Logo Design** - Brand identity, logo creation, style guides
-2. **Web & Mobile Design** - UI/UX, responsive design, app interfaces
-3. **Social Media Graphics** - Posts, stories, promotional content
-4. **Motion Graphics** - Animations, video editing, kinetic typography
-5. **Photography & Video** - Product shots, marketing videos, content creation
-6. **Presentations** - Pitch decks, corporate presentations, infographics
-
-## 🔧 Development Setup
+## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Supabase account with project setup
-- DeepSeek API key
-- LemonSqueezy store setup
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- Environment variables (see `.env.example`)
 
-### Environment Variables
+### Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/onedesigner.git
+   cd onedesigner
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Fill in your Supabase, DeepSeek, and other API keys
+   ```
+
+4. **Run database migrations**
+   ```bash
+   # Apply Supabase migrations in order (001-008)
+   # Use 007_speed_optimization_tables_fixed.sql
+   ```
+
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+### Feature Flags
+All centralized services are enabled by default in production:
 ```bash
-# AI & Database
-DEEPSEEK_API_KEY=your_deepseek_key
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_key
-
-# Authentication & Security
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=https://onedesigner.app
-
-# Payment & Email
-LEMONSQUEEZY_API_KEY=your_lemonsqueezy_key
-RESEND_API_KEY=your_resend_key
-
-# Performance
-CRON_SECRET=your_cron_secret
+USE_NEW_DATA_SERVICE=true
+USE_ERROR_MANAGER=true
+USE_REQUEST_PIPELINE=true
+USE_CONFIG_MANAGER=true
+USE_BUSINESS_RULES=true
+USE_CENTRALIZED_LOGGING=true
+USE_OTP_SERVICE=true
+USE_EMAIL_SERVICE=true
 ```
 
-### Installation
+## 📚 Documentation
+
+- **Main Documentation**: `/CLAUDE.md` - Complete system overview
+- **API Documentation**: `/src/app/api/CLAUDE.md` - API routes and patterns
+- **Core Services**: `/src/lib/core/CLAUDE.md` - Centralized architecture
+- **Components**: `/src/components/CLAUDE.md` - React component system
+- **Database**: `/supabase/CLAUDE.md` - Schema and optimization
+- **Configuration**: `/src/config/CLAUDE.md` - Settings management
+
+## 🧪 Testing
+
 ```bash
-# Clone repository
-git clone https://github.com/osamakhalil/OneDesigner.git
-cd OneDesigner
+# Run all test suites
+./test/test-data-service.sh
+./test/test-error-manager.sh
+./test/test-pipeline.sh
+# ... other test scripts
 
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your keys
-
-# Run database migrations
-# Execute migration files 001-008 in order via Supabase SQL editor
-
-# Start development server
-npm run dev
-```
-
-### Available Scripts
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run typecheck    # Run TypeScript checks
+# Test specific flows
+./test/test-ai-matching-flow.sh
+./test/test-auth-security.sh
 ```
 
 ## 🚀 Deployment
 
-### Production Deployment (Vercel)
+### Vercel Deployment
 ```bash
 # Build and deploy
-git add .
-git commit -m "Your changes"
-git push origin main
+npm run build
+vercel --prod
+
+# If Vercel link is lost
+vercel link --project onedesigner2 --yes
 vercel --prod
 ```
 
-### Database Migrations
-Execute SQL migrations in order:
-1. `001_initial_schema.sql` - Core tables
-2. `002_add_client_credits.sql` - Credit system
-3. `003_enhance_designers.sql` - Designer profiles
-4. `004_match_improvements.sql` - Match system
-5. `005_brief_enhancements.sql` - Enhanced brief fields
-6. `006_performance_indexes.sql` - Database optimization
-7. `007_speed_optimization_tables_fixed.sql` - Embeddings & cache
-8. `008_track_profile_edits.sql` - Profile edit tracking
+### Environment Configuration
+- **Production**: All phases active with real API keys
+- **Staging**: Mirror production with test data
+- **Development**: Local environment with hot reload
 
-## 📊 Key Metrics & Performance
+## 🔧 API Endpoints
 
-- **Match Speed**: <50ms for instant phase, ~2s for complete AI analysis
-- **Accuracy**: 85%+ satisfaction rate with AI-suggested matches
-- **Designer Pool**: Pre-vetted, approved designers across 6 categories
-- **Credit Utilization**: Average 2.3 matches per client before finding ideal designer
+### Core Routes
+- `/api/match/find` - AI-powered designer matching
+- `/api/client/briefs` - Project brief management
+- `/api/designer/apply` - Designer applications
+- `/api/admin/designers` - Designer approval workflow
 
-## 🔐 Security & Authentication
+### Authentication
+- `/api/auth/client/*` - Client authentication
+- `/api/auth/designer/*` - Designer authentication
+- `/api/auth/admin/*` - Admin authentication
 
-- **Session-based Auth** with secure HTTP-only cookies
-- **OTP Verification** for email-based login
-- **Role-based Access** (Client, Designer, Admin)
-- **API Rate Limiting** and request validation
-- **Webhook Signature Verification** for payments
+### System
+- `/api/health` - System health and feature status
+- `/api/config` - Configuration management
+- `/api/cron/embeddings` - Background processing
 
-## 📱 Mobile Support
+## 💳 Credit System
 
-- **Fully Responsive** design across all breakpoints
-- **Touch-optimized** interfaces for mobile users
-- **Progressive Web App** capabilities
-- **Mobile-first** approach to UI/UX design
+### Packages
+- **Starter**: $5 for 3 matches
+- **Growth**: $15 for 10 matches
+- **Scale**: $30 for 25 matches
 
-## 🎯 Business Model
+### Payment Flow
+1. Client selects package → LemonSqueezy checkout
+2. Webhook processes payment → Credits added
+3. Client unlocks designers → Credits deducted
+4. Working requests initiated → Project collaboration
 
-- **Pay-per-Match** - Clients purchase credits to unlock designers
-- **Designer Vetting** - Quality control through admin approval process
-- **No Subscriptions** - Simple credit-based pricing
-- **Performance Tracking** - Data-driven matching improvements
+## 🔒 Security
 
-## 🛠️ Recent Updates (Latest Session)
+- **Authentication**: Session-based with secure HTTP-only cookies
+- **OTP Verification**: 6-digit codes with rate limiting
+- **Rate Limiting**: API throttling per endpoint
+- **Data Protection**: Sensitive data redaction and encryption
+- **SQL Injection**: Prepared statements via Supabase client
 
-✅ **Fixed Brief Submission Errors** - Added missing validation fields
-✅ **Corrected Match Display Issues** - Fixed database query problems  
-✅ **Unified Credit Display** - Consistent match credit information
-✅ **Implemented Persistent Matching** - Matches saved across navigation
-✅ **Added Find New Match** - Additional match discovery functionality
-✅ **Fixed TypeScript Errors** - Resolved null reference issues
-✅ **Enhanced UX Flow** - Improved user experience throughout
+## 📊 Performance
 
-## 📚 Documentation
+### Optimization Features
+- **3-Phase Matching**: Progressive improvement from <50ms to 2s
+- **Caching**: 5-minute TTL for database queries
+- **Pre-computation**: Hourly embedding generation
+- **Edge Deployment**: Vercel edge functions for low latency
 
-- **CLAUDE.md** - Comprehensive development knowledge base
-- **API Documentation** - Available in `/src/app/api/` endpoints
-- **Database Schema** - Documented in migration files
-- **Design System** - Centralized in `/src/lib/design-system/`
+### Monitoring
+- **Health Checks**: All services report status
+- **Correlation IDs**: Request tracking across services
+- **Performance Metrics**: Response times and cache hit rates
+- **Error Classification**: Structured error handling
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch
+3. Follow the centralized architecture patterns
+4. Add tests for new functionality
+5. Update relevant CLAUDE.md documentation
+6. Submit a pull request
 
-## 📄 License
+## 📝 License
 
-This project is proprietary software. All rights reserved.
+[License information]
+
+## 📞 Support
+
+- **Documentation**: Check component-specific CLAUDE.md files
+- **Issues**: GitHub Issues for bug reports
+- **Contact**: [Contact information]
 
 ---
 
-**Built with ❤️ for the creative community**
+**Built with ❤️ by the OneDesigner Team**
+
+*Last Updated: September 21, 2025*

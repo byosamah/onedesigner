@@ -15,7 +15,14 @@
     "db:migrate": "psql -h db.frwchtwxpnrlpzksupgm.supabase.co -U postgres -d postgres -f test/fix-missing-tables.sql",
     "check-env": "node scripts/check-env-production.mjs",
     "deploy": "./deploy.sh",
-    "postbuild": "echo '✅ Build completed successfully!'"
+    "postbuild": "echo '✅ Build completed successfully!'",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "cypress:headed": "cypress run --headed",
+    "cypress:record": "cypress run --record",
+    "test:e2e": "start-server-and-test dev http://localhost:3000 cypress:run",
+    "test:e2e:open": "start-server-and-test dev http://localhost:3000 cypress:open",
+    "test:e2e:record": "start-server-and-test dev http://localhost:3000 'cypress run --record'"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -24,14 +31,14 @@
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-slot": "^1.0.2",
     "@supabase/ssr": "^0.6.1",
-    "@supabase/supabase-js": "^2.39.8",
+    "@supabase/supabase-js": "^2.57.4",
     "@types/bcryptjs": "^2.4.6",
     "@types/uuid": "^10.0.0",
     "@vercel/analytics": "^1.2.2",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "dotenv": "^17.2.1",
+    "dotenv": "^17.2.2",
     "framer-motion": "^11.0.8",
     "jotai": "^2.7.0",
     "lucide-react": "^0.344.0",
@@ -60,6 +67,7 @@
     "@typescript-eslint/eslint-plugin": "^7.1.0",
     "@typescript-eslint/parser": "^7.1.0",
     "autoprefixer": "^10.4.18",
+    "cypress": "^15.2.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.1.3",
     "eslint-config-prettier": "^9.1.0",
@@ -67,6 +75,7 @@
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "prisma": "^5.11.0",
+    "start-server-and-test": "^2.1.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3"
   }

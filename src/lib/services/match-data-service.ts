@@ -24,7 +24,7 @@ export interface MatchWithFullDetails extends Match {
   client?: Client
   brief?: Brief
   unlocked?: boolean
-  messages_count?: number
+  request_count?: number
 }
 
 /**
@@ -92,7 +92,7 @@ export class MatchDataService extends DataService {
     expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiration
 
     const { error } = await this['supabase']
-      .from('designer_requests')
+      \.from\(['"`]project_requests['"`]\)
       .insert({
         match_id: matchId,
         designer_id: designerId,
@@ -360,22 +360,22 @@ export class MatchDataService extends DataService {
     // Check if unlocked
     const unlocked = match.status === 'unlocked' || match.status === 'accepted'
 
-    // Get message count if unlocked
-    let messages_count = 0
+    // Get working request count if unlocked
+    let request_count = 0
     if (unlocked) {
       const { count } = await this['supabase']
-        .from('messages')
+        .from('project_requests')
         .select('*', { count: 'exact', head: true })
         .eq('match_id', matchId)
 
-      messages_count = count || 0
+      request_count = count || 0
     }
 
     return {
       ...match,
       designer: match.designer!,
       unlocked,
-      messages_count
+      request_count
     } as MatchWithFullDetails
   }
 

@@ -9,6 +9,10 @@ import { WorkingRequestModal } from '@/components/modals/WorkingRequestModal'
 import { SuccessModal } from '@/lib/components/modals'
 import { SUCCESS_MESSAGES } from '@/lib/constants/messages'
 import { logger } from '@/lib/core/logging-service'
+// Import shared types (optional - components still work with inline types)
+import type { EnhancedMatch as SharedEnhancedMatch, ClientProfile as SharedClientProfile } from '@/lib/types/dashboard.types'
+// Import dual logger for backward-compatible logging
+import { dualLogger } from '@/lib/utils/dual-logger'
 
 interface EnhancedMatch {
   id: string

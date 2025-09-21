@@ -86,108 +86,120 @@ export async function PUT(request: NextRequest) {
       return apiResponse.serverError('Failed to update profile', error)
     }
 
-    // Handle related tables updates
+    // Handle related tables updates in parallel for better performance
+    const relatedTablePromises: Promise<any>[] = []
+
     if (profileData.styles !== undefined) {
-      // Delete existing styles
-      await supabase.from('designer_styles').delete().eq('designer_id', session.designerId)
-      
-      // Insert new styles (using style IDs from constants)
-      if (profileData.styles.length > 0) {
-        const styleRecords = profileData.styles.map((style: string) => ({
-          designer_id: session.designerId,
-          style
-        }))
-        await supabase.from('designer_styles').insert(styleRecords)
+      const stylesOperation = async () => {
+        // Delete existing styles
+        await supabase.from('designer_styles').delete().eq('designer_id', session.designerId)
+
+        // Insert new styles (using style IDs from constants)
+        if (profileData.styles.length > 0) {
+          const styleRecords = profileData.styles.map((style: string) => ({
+            designer_id: session.designerId,
+            style
+          }))
+          await supabase.from('designer_styles').insert(styleRecords)
+        }
       }
+      relatedTablePromises.push(stylesOperation())
     }
 
     if (profileData.projectTypes !== undefined) {
-      // Delete existing project types
-      await supabase.from('designer_project_types').delete().eq('designer_id', session.designerId)
-      
-      // Insert new project types (using type IDs from constants)
-      if (profileData.projectTypes.length > 0) {
-        const projectTypeRecords = profileData.projectTypes.map((projectType: string) => ({
-          designer_id: session.designerId,
-          project_type: projectType
-        }))
-        await supabase.from('designer_project_types').insert(projectTypeRecords)
+      const projectTypesOperation = async () => {
+        // Delete existing project types
+        await supabase.from('designer_project_types').delete().eq('designer_id', session.designerId)
+
+        // Insert new project types (using type IDs from constants)
+        if (profileData.projectTypes.length > 0) {
+          const projectTypeRecords = profileData.projectTypes.map((projectType: string) => ({
+            designer_id: session.designerId,
+            project_type: projectType
+          }))
+          await supabase.from('designer_project_types').insert(projectTypeRecords)
+        }
       }
+      relatedTablePromises.push(projectTypesOperation())
     }
 
     if (profileData.industries !== undefined) {
-      // Delete existing industries
-      await supabase.from('designer_industries').delete().eq('designer_id', session.designerId)
-      
-      // Insert new industries
-      if (profileData.industries.length > 0) {
-        const industryRecords = profileData.industries.map((industry: string) => ({
-          designer_id: session.designerId,
-          industry
-        }))
-        await supabase.from('designer_industries').insert(industryRecords)
+      const industriesOperation = async () => {
+        // Delete existing industries
+        await supabase.from('designer_industries').delete().eq('designer_id', session.designerId)
+
+        // Insert new industries
+        if (profileData.industries.length > 0) {
+          const industryRecords = profileData.industries.map((industry: string) => ({
+            designer_id: session.designerId,
+            industry
+          }))
+          await supabase.from('designer_industries').insert(industryRecords)
+        }
       }
+      relatedTablePromises.push(industriesOperation())
     }
 
     if (profileData.softwareSkills !== undefined) {
-      // Delete existing software skills
-      await supabase.from('designer_software_skills').delete().eq('designer_id', session.designerId)
-      
-      // Insert new software skills
-      if (profileData.softwareSkills.length > 0) {
-        const softwareRecords = profileData.softwareSkills.map((software: string) => ({
-          designer_id: session.designerId,
-          software
-        }))
-        await supabase.from('designer_software_skills').insert(softwareRecords)
+      const softwareOperation = async () => {
+        // Delete existing software skills
+        await supabase.from('designer_software_skills').delete().eq('designer_id', session.designerId)
+
+        // Insert new software skills
+        if (profileData.softwareSkills.length > 0) {
+          const softwareRecords = profileData.softwareSkills.map((software: string) => ({
+            designer_id: session.designerId,
+            software
+          }))
+          await supabase.from('designer_software_skills').insert(softwareRecords)
+        }
       }
+      relatedTablePromises.push(softwareOperation())
     }
-    
+
     if (profileData.specializations !== undefined) {
-      // Delete existing specializations
-      await supabase.from('designer_specializations').delete().eq('designer_id', session.designerId)
-      
-      // Insert new specializations
-      if (profileData.specializations.length > 0) {
-        const specializationRecords = profileData.specializations.map((specialization: string) => ({
-          designer_id: session.designerId,
-          specialization
-        }))
-        await supabase.from('designer_specializations').insert(specializationRecords)
+      const specializationsOperation = async () => {
+        // Delete existing specializations
+        await supabase.from('designer_specializations').delete().eq('designer_id', session.designerId)
+
+        // Insert new specializations
+        if (profileData.specializations.length > 0) {
+          const specializationRecords = profileData.specializations.map((specialization: string) => ({
+            designer_id: session.designerId,
+            specialization
+          }))
+          await supabase.from('designer_specializations').insert(specializationRecords)
+        }
       }
+      relatedTablePromises.push(specializationsOperation())
     }
 
-    // Fetch the updated profile with related data
-    const { data: updatedProfile } = await supabase
-      .from('designers')
-      .select('*')
-      .eq('id', session.designerId)
-      .single()
+    // Execute all related table updates in parallel
+    await Promise.all(relatedTablePromises)
 
-    const { data: styles } = await supabase
-      .from('designer_styles')
-      .select('style')
-      .eq('designer_id', session.designerId)
+    // Fetch the updated profile with related data in parallel
+    const [
+      profileResult,
+      stylesResult,
+      projectTypesResult,
+      industriesResult,
+      softwareSkillsResult,
+      specializationsResult
+    ] = await Promise.all([
+      supabase.from('designers').select('*').eq('id', session.designerId).single(),
+      supabase.from('designer_styles').select('style').eq('designer_id', session.designerId),
+      supabase.from('designer_project_types').select('project_type').eq('designer_id', session.designerId),
+      supabase.from('designer_industries').select('industry').eq('designer_id', session.designerId),
+      supabase.from('designer_software_skills').select('software').eq('designer_id', session.designerId),
+      supabase.from('designer_specializations').select('specialization').eq('designer_id', session.designerId)
+    ])
 
-    const { data: projectTypes } = await supabase
-      .from('designer_project_types')
-      .select('project_type')
-      .eq('designer_id', session.designerId)
-
-    const { data: industries } = await supabase
-      .from('designer_industries')
-      .select('industry')
-      .eq('designer_id', session.designerId)
-
-    const { data: softwareSkills } = await supabase
-      .from('designer_software_skills')
-      .select('software')
-      .eq('designer_id', session.designerId)
-      
-    const { data: specializations } = await supabase
-      .from('designer_specializations')
-      .select('specialization')
-      .eq('designer_id', session.designerId)
+    const updatedProfile = profileResult.data
+    const styles = stylesResult.data
+    const projectTypes = projectTypesResult.data
+    const industries = industriesResult.data
+    const softwareSkills = softwareSkillsResult.data
+    const specializations = specializationsResult.data
 
     logger.info('✅ Designer profile updated:', designer.id)
     logger.info('⚠️ Designer marked as unapproved after edit')
