@@ -22,6 +22,24 @@ export default function HomePage() {
       </div>
 
       <div className="text-center space-y-8 animate-fadeIn pt-16 sm:pt-0 flex-1 flex flex-col justify-center">
+        {/* Product Hunt Badge */}
+        <div className="flex justify-center mb-6">
+          <a
+            href="https://www.producthunt.com/products/onedesigner-1-0?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-onedesigner&#0045;1&#0045;0"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-transform duration-300 hover:scale-105"
+          >
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1018740&theme=light&t=1758528248153"
+              alt="OneDesigner 1.0 - One brief. One prefect designer match. | Product Hunt"
+              style={{ width: '250px', height: '54px' }}
+              width="250"
+              height="54"
+            />
+          </a>
+        </div>
+
         <div className="flex items-center justify-center gap-3 mb-4">
           <Logo theme={theme} size="large" />
         </div>
