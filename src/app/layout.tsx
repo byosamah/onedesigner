@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter, Bricolage_Grotesque } from 'next/font/google'
+import Script from 'next/script'
 import '@/styles/globals.css'
 import { SuppressExtensionWarnings } from '@/components/suppress-extensions-warnings'
 import { ThemeProvider } from '@/lib/contexts/theme-context'
@@ -30,6 +31,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <Script
+        data-website-id="68d10d1c0d0e4deea4a69fcb"
+        data-domain="onedesigner.app"
+        src="https://datafa.st/js/script.js"
+        strategy="afterInteractive"
+      />
       <body className={`${bricolageGrotesque.className} ${bricolageGrotesque.variable}`} suppressHydrationWarning>
         <SuppressExtensionWarnings />
         <ThemeProvider>

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-09-22T07:08:31.750Z",
+  "counts": {
+    "clients": 4,
+    "designers": 5,
+    "briefs": 4,
+    "matches": 2,
+    "project_requests": 1,
+    "client_designers": 1,
+    "designer_embeddings": 0,
+    "auth_tokens": 6,
+    "match_cache": 0,
+    "admins": null
+  },
+  "adminLocation": "not_found"
+}

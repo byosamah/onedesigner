@@ -1,0 +1,27 @@
+{
+  "timestamp": "2025-09-22T07:19:31.078Z",
+  "status": "success",
+  "tables": {
+    "clients": 1,
+    "designers": 0,
+    "briefs": 0,
+    "matches": 0,
+    "project_requests": 0,
+    "client_designers": 0,
+    "designer_embeddings": 0,
+    "auth_tokens": 0,
+    "match_cache": 0
+  },
+  "adminUser": {
+    "id": "ff0498ad-79dd-45ff-bf87-a6dc8d1c4897",
+    "email": "osamah96@gmail.com",
+    "name": null,
+    "company": null,
+    "website": null,
+    "customer_id": null,
+    "created_at": "2025-08-19T06:41:19.599225+00:00",
+    "updated_at": "2025-09-01T15:54:42.515181+00:00",
+    "match_credits": 9
+  },
+  "errors": []
+}
