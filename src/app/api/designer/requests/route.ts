@@ -35,16 +35,14 @@ export async function GET(request: NextRequest) {
     const { data: requests, error } = await supabase
       .from('project_requests')
       .select(`
-        id,
-        status,
-        sent_at,
+        *,
+        brief_snapshot,
+        response_deadline,
         viewed_at,
-        responded_at,
-        expires_at,
         matches (
           id,
           score,
-          personalized_reasons,
+          reasons,
           briefs (
             project_type,
             industry,
@@ -55,6 +53,7 @@ export async function GET(request: NextRequest) {
             requirements
           ),
           clients (
+            id,
             email,
             name,
             company
@@ -62,7 +61,7 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('designer_id', designerId)
-      .order('sent_at', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       logger.error('Error fetching requests:', error)
@@ -84,16 +83,26 @@ export async function GET(request: NextRequest) {
         .in('id', pendingIds)
     }
 
-    // Format the response
+    // Format the response to match the expected frontend structure
     const formattedRequests = requests?.map(request => ({
       id: request.id,
-      matchId: request.matches?.id,
+      matchId: request.match_id,
       status: request.status,
-      sentAt: request.sent_at,
+      sentAt: request.created_at,
       viewedAt: request.viewed_at,
-      respondedAt: request.responded_at,
-      expiresAt: request.expires_at,
-      brief: {
+      respondedAt: request.approved_at || request.rejected_at,
+      expiresAt: request.response_deadline,
+
+      // Use brief_snapshot if available, otherwise fall back to matches.briefs
+      brief: request.brief_snapshot ? {
+        designCategory: request.brief_snapshot.project_type || '',
+        projectDescription: request.brief_snapshot.requirements || request.brief_snapshot.project_description || '',
+        timeline: request.brief_snapshot.timeline || '',
+        budget: request.brief_snapshot.budget || '',
+        targetAudience: request.brief_snapshot.industry || '',
+        projectGoal: request.brief_snapshot.inspiration || '',
+        styleKeywords: request.brief_snapshot.styles || []
+      } : {
         designCategory: request.matches?.briefs?.project_type || '',
         projectDescription: request.matches?.briefs?.requirements || '',
         timeline: request.matches?.briefs?.timeline || '',
@@ -102,15 +111,18 @@ export async function GET(request: NextRequest) {
         projectGoal: request.matches?.briefs?.inspiration || '',
         styleKeywords: request.matches?.briefs?.styles || []
       },
+
       client: {
-        email: request.matches?.clients?.email || '',
-        name: request.matches?.clients?.name,
-        company: request.matches?.clients?.company,
+        id: request.clients?.id || request.matches?.clients?.id,
+        email: request.clients?.email || request.matches?.clients?.email || '',
+        name: request.clients?.name || request.matches?.clients?.name,
+        company: request.clients?.company || request.matches?.clients?.company,
       },
+
       match: {
-        score: request.matches?.score || 0,
-        personalizedReasons: request.matches?.personalized_reasons || [],
-        confidence: 'High', // Default values since these aren't in the database
+        score: request.matches?.score || request.brief_snapshot?.match_score || 0,
+        personalizedReasons: request.matches?.reasons || request.brief_snapshot?.match_reasons || [],
+        confidence: 'High',
         matchSummary: 'You are well-suited for this project based on your portfolio and experience.',
         uniqueValue: 'Your unique perspective and skills make you an ideal match.',
         potentialChallenges: [],
