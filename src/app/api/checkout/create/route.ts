@@ -81,12 +81,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Use default store ID if not configured (fallback for production)
+    const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148616'
+
     if (!process.env.LEMONSQUEEZY_STORE_ID) {
-      logger.error('❌ Missing LEMONSQUEEZY_STORE_ID')
-      return NextResponse.json(
-        { error: 'LemonSqueezy store ID not configured' },
-        { status: 500 }
-      )
+      logger.warn('⚠️ Using default LEMONSQUEEZY_STORE_ID:', storeId)
+      logger.warn('⚠️ Set LEMONSQUEEZY_STORE_ID environment variable for production')
     }
 
     if (!product.variantId) {
@@ -104,13 +104,13 @@ export async function POST(request: NextRequest) {
         attributes: {
           checkout_data: {
             email: email,
-            name: email.split('@')[0],
-            custom: {
-              client_id: clientId,
-              credits: product.credits.toString(),
-              match_id: matchId || 'none',
-              product_key: productKey
-            }
+            name: email.split('@')[0]
+          },
+          custom_data: {
+            client_id: clientId,
+            credits: product.credits.toString(),
+            match_id: matchId || 'none',
+            product_key: productKey
           },
           checkout_options: {
             embed: false,
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
           store: {
             data: {
               type: 'stores',
-              id: process.env.LEMONSQUEEZY_STORE_ID!.toString()
+              id: storeId.toString()
             }
           },
           variant: {
