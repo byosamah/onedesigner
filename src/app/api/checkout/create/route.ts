@@ -123,8 +123,6 @@ export async function POST(request: NextRequest) {
             description: `Get ${product.credits} designer matches for your projects`,
             media: [],
             redirect_url: `${baseUrl}/payment/success`,
-            receipt_button_text: 'View Your Matches',
-            receipt_link_url: `${baseUrl}/client/dashboard`,
             receipt_thank_you_note: 'Thanks for your purchase! Your credits have been added to your account.'
           }
         },
