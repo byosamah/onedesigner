@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/shared'
@@ -9,7 +9,7 @@ import { useTheme } from '@/lib/hooks'
 import { authService } from '@/lib/api'
 import { handleError } from '@/lib/errors'
 
-export default function ClientLoginPage() {
+function ClientLoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -160,5 +160,21 @@ export default function ClientLoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+// Wrapper component with Suspense
+export default function ClientLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">🔄</div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ClientLoginForm />
+    </Suspense>
   )
 }
