@@ -41,11 +41,11 @@ export async function GET(request: NextRequest) {
         viewed_at,
         responded_at,
         expires_at,
-        match:matches!project_requests_match_id_fkey (
+        matches (
           id,
           score,
           personalized_reasons,
-          brief:briefs!matches_brief_id_fkey (
+          briefs (
             project_type,
             industry,
             timeline,
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
             inspiration,
             requirements
           ),
-          client:clients!matches_client_id_fkey (
+          clients (
             email,
             name,
             company
@@ -87,29 +87,29 @@ export async function GET(request: NextRequest) {
     // Format the response
     const formattedRequests = requests?.map(request => ({
       id: request.id,
-      matchId: request.match?.id,
+      matchId: request.matches?.id,
       status: request.status,
       sentAt: request.sent_at,
       viewedAt: request.viewed_at,
       respondedAt: request.responded_at,
       expiresAt: request.expires_at,
       brief: {
-        designCategory: request.match?.brief?.project_type || '',
-        projectDescription: request.match?.brief?.requirements || '',
-        timeline: request.match?.brief?.timeline || '',
-        budget: request.match?.brief?.budget || '',
-        targetAudience: request.match?.brief?.industry || '',
-        projectGoal: request.match?.brief?.inspiration || '',
-        styleKeywords: request.match?.brief?.styles || []
+        designCategory: request.matches?.briefs?.project_type || '',
+        projectDescription: request.matches?.briefs?.requirements || '',
+        timeline: request.matches?.briefs?.timeline || '',
+        budget: request.matches?.briefs?.budget || '',
+        targetAudience: request.matches?.briefs?.industry || '',
+        projectGoal: request.matches?.briefs?.inspiration || '',
+        styleKeywords: request.matches?.briefs?.styles || []
       },
       client: {
-        email: request.match?.client?.email || '',
-        name: request.match?.client?.name,
-        company: request.match?.client?.company,
+        email: request.matches?.clients?.email || '',
+        name: request.matches?.clients?.name,
+        company: request.matches?.clients?.company,
       },
       match: {
-        score: request.match?.score || 0,
-        personalizedReasons: request.match?.personalized_reasons || [],
+        score: request.matches?.score || 0,
+        personalizedReasons: request.matches?.personalized_reasons || [],
         confidence: 'High', // Default values since these aren't in the database
         matchSummary: 'You are well-suited for this project based on your portfolio and experience.',
         uniqueValue: 'Your unique perspective and skills make you an ideal match.',
