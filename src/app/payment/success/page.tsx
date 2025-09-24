@@ -10,19 +10,54 @@ export default function PaymentSuccessPage() {
   const router = useRouter()
   const [isVerifying, setIsVerifying] = useState(true)
   const [lastBriefId, setLastBriefId] = useState<string | null>(null)
+  const [sessionValid, setSessionValid] = useState(false)
   const { theme, isDarkMode, toggleTheme } = useTheme()
 
   useEffect(() => {
-    // Get the last brief ID from sessionStorage
-    const briefId = sessionStorage.getItem('currentBriefId')
-    if (briefId) {
-      setLastBriefId(briefId)
+    // Verify session is still valid and restore if needed
+    const verifyAndRestoreSession = async () => {
+      try {
+        // Check if session is still valid
+        const response = await fetch('/api/auth/session')
+        if (response.ok) {
+          const sessionData = await response.json()
+          if (sessionData.client || sessionData.user) {
+            setSessionValid(true)
+          } else {
+            // Try to restore from localStorage if available
+            const storedEmail = localStorage.getItem('client_email')
+            if (storedEmail) {
+              // Redirect to login to re-authenticate
+              router.push(`/client/login?email=${encodeURIComponent(storedEmail)}&returnTo=${encodeURIComponent(window.location.pathname)}`)
+              return
+            }
+          }
+        } else {
+          // Session expired, check localStorage for email
+          const storedEmail = localStorage.getItem('client_email')
+          if (storedEmail) {
+            // Redirect to login with return URL
+            router.push(`/client/login?email=${encodeURIComponent(storedEmail)}&returnTo=${encodeURIComponent(window.location.pathname)}`)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('Error verifying session:', error)
+      }
+
+      // Get the last brief ID from sessionStorage
+      const briefId = sessionStorage.getItem('currentBriefId')
+      if (briefId) {
+        setLastBriefId(briefId)
+      }
+
+      // Simulate verification delay
+      setTimeout(() => {
+        setIsVerifying(false)
+      }, 2000)
     }
-    
-    // Simulate verification delay
-    setTimeout(() => {
-      setIsVerifying(false)
-    }, 2000)
+
+    verifyAndRestoreSession()
   }, [])
 
   return (

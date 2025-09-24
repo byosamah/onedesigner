@@ -51,9 +51,16 @@ export default function ClientVerifyPage() {
       if (data.success) {
         // Clear storage
         sessionStorage.removeItem('clientLoginEmail')
-        
-        // Redirect to client dashboard
-        router.push('/client/dashboard')
+
+        // Check if there's a return URL
+        const returnUrl = sessionStorage.getItem('returnUrl')
+        if (returnUrl) {
+          sessionStorage.removeItem('returnUrl')
+          router.push(returnUrl)
+        } else {
+          // Default redirect to client dashboard
+          router.push('/client/dashboard')
+        }
       }
     } catch (error) {
       logger.error('Verification error:', error)

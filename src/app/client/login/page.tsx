@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Navigation } from '@/components/shared'
 import { LoadingButton, FormInput } from '@/components/forms'
@@ -11,10 +11,25 @@ import { handleError } from '@/lib/errors'
 
 export default function ClientLoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const { theme, isDarkMode, toggleTheme } = useTheme()
+
+  useEffect(() => {
+    // Pre-fill email from URL if provided
+    const urlEmail = searchParams.get('email')
+    if (urlEmail) {
+      setEmail(decodeURIComponent(urlEmail))
+    }
+
+    // Store return URL if provided
+    const returnTo = searchParams.get('returnTo')
+    if (returnTo) {
+      sessionStorage.setItem('returnUrl', decodeURIComponent(returnTo))
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +52,9 @@ export default function ClientLoginPage() {
 
       // Store email for verification
       sessionStorage.setItem('clientLoginEmail', email)
-      
+      // Also store in localStorage for session restoration after payment
+      localStorage.setItem('client_email', email)
+
       // Redirect to OTP verification
       router.push('/client/login/verify')
     } catch (error) {

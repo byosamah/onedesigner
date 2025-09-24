@@ -106,8 +106,19 @@ export default function ClientDashboard() {
         })
       ])
 
-      if (!sessionResponse.ok || !matchesResponse.ok) {
-        throw new Error('Failed to fetch dashboard data')
+      if (!sessionResponse.ok) {
+        // Session expired or invalid
+        const storedEmail = localStorage.getItem('client_email')
+        if (storedEmail) {
+          // Redirect to login with return URL
+          router.push(`/client/login?email=${encodeURIComponent(storedEmail)}&returnTo=/client/dashboard`)
+          return
+        }
+        throw new Error('Session expired. Please log in again.')
+      }
+
+      if (!matchesResponse.ok) {
+        throw new Error('Failed to fetch matches')
       }
 
       const sessionData = await sessionResponse.json()

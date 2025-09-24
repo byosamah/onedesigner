@@ -115,7 +115,15 @@ export default function EnhancedMatchPage() {
           setClientData(clientSession.client || clientSession.user)
           logger.info('🏦 Client data loaded:', clientSession.client || clientSession.user)
         } else {
-          logger.info('❌ Client session not found')
+          logger.info('❌ Client session not found, checking for stored email')
+          // If no session but we have a stored email, prompt to re-login
+          const storedEmail = localStorage.getItem('client_email')
+          if (storedEmail) {
+            // Store current URL to return after login
+            sessionStorage.setItem('returnUrl', window.location.pathname)
+            // Don't throw error, just note that re-login may be needed
+            logger.info('📧 Stored email found, user may need to re-authenticate')
+          }
         }
       } catch (error) {
         logger.error('Error fetching client data:', error)
