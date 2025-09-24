@@ -19,6 +19,14 @@ export async function GET(request: NextRequest) {
     }
 
     const session = parseSessionCookie(sessionCookie.value)
+
+    if (!session || !session.designerId) {
+      return NextResponse.json(
+        { error: 'Invalid session' },
+        { status: 401 }
+      )
+    }
+
     const { designerId } = session
 
     const supabase = createServiceClient()

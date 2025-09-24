@@ -4,6 +4,7 @@ import Script from 'next/script'
 import '@/styles/globals.css'
 import { SuppressExtensionWarnings } from '@/components/suppress-extensions-warnings'
 import { ThemeProvider } from '@/lib/contexts/theme-context'
+import { NotificationBlocker } from '@/components/notification-blocker'
 
 const inter = Inter({ subsets: ['latin'] })
 const bricolageGrotesque = Bricolage_Grotesque({ 
@@ -22,6 +23,9 @@ export const metadata: Metadata = {
     shortcut: '/icon.svg',
     apple: '/icon.svg',
   },
+  other: {
+    'permissions-policy': 'notifications=()',
+  },
 }
 
 export default function RootLayout({
@@ -31,14 +35,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="permissions-policy" content="notifications=()" />
+      </head>
       <Script
         data-website-id="68d10d1c0d0e4deea4a69fcb"
         data-domain="onedesigner.app"
         src="https://datafa.st/js/script.js"
         strategy="afterInteractive"
       />
-      <body className={`${bricolageGrotesque.className} ${bricolageGrotesque.variable}`} suppressHydrationWarning>
+      <body className={`${bricolageGrotesque.className} ${bricolageGrotesque.variable}`} suppressHydrationWarning data-app="onedesigner">
         <SuppressExtensionWarnings />
+        <NotificationBlocker />
         <ThemeProvider>
           {children}
         </ThemeProvider>

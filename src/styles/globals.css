@@ -24,6 +24,41 @@
   ::selection {
     @apply bg-black text-white;
   }
+
+  /* Block intrusive notification overlays */
+  .notification-overlay,
+  .toast-overlay,
+  .alert-overlay,
+  .popup-overlay,
+  [class*="notification"][style*="position: fixed"],
+  [class*="toast"][style*="position: fixed"],
+  [class*="alert"][style*="position: fixed"],
+  .swal2-container,
+  .toast-container:not([data-app="onedesigner"]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Hide promotional notification content */
+  [data-content*="competitor" i],
+  [data-content*="hired" i],
+  [data-content*="revenue" i],
+  [data-content*="portfolio browsing" i],
+  [data-content*="analysis paralysis" i],
+  [data-content*="canva" i],
+  [data-content*="truth bomb" i] {
+    display: none !important;
+  }
+
+  /* Block fixed position promotional elements on mobile */
+  @media (max-width: 768px) {
+    div[style*="position: fixed"]:not([data-app="onedesigner"]),
+    div[style*="position: absolute"]:not([data-app="onedesigner"]) {
+      display: none !important;
+    }
+  }
 }
 
 @layer components {
