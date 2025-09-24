@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use default store ID if not configured (fallback for production)
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148616'
+    // Use correct store ID fallback (matches the actual LemonSqueezy store)
+    const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148628'
 
     if (!process.env.LEMONSQUEEZY_STORE_ID) {
       logger.warn('⚠️ Using default LEMONSQUEEZY_STORE_ID:', storeId)
