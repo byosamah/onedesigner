@@ -60,15 +60,25 @@ export async function POST(request: NextRequest) {
     switch (eventType) {
       case 'order_created': {
         const order = event.data
-        // Custom data is in meta.custom_data for webhooks
-        const customData = event.meta?.custom_data
-        
+
+        // CRITICAL FIX: Custom data is in checkout_data.custom, not meta.custom_data
+        // Try multiple locations for backward compatibility
+        const customData =
+          order.attributes?.checkout_data?.custom || // Primary location
+          event.meta?.custom_data || // Legacy location
+          order.attributes?.custom // Alternative location
+
+        // Enhanced debugging
         logger.info('📦 Processing order:', order.id)
-        logger.info('📝 Custom data from webhook:', customData)
-        
+        logger.info('🔍 Full order attributes:', JSON.stringify(order.attributes, null, 2))
+        logger.info('📝 Extracted custom data:', JSON.stringify(customData, null, 2))
+        logger.info('📧 Customer email:', order.attributes?.user_email)
+
         if (!customData?.client_id || !customData?.credits) {
           logger.error('❌ Missing custom data in webhook')
-          logger.error('Meta:', event.meta)
+          logger.error('Order attributes:', JSON.stringify(order.attributes, null, 2))
+          logger.error('Event meta:', JSON.stringify(event.meta, null, 2))
+          logger.error('Looking for client_id and credits in custom data')
           break
         }
 
@@ -85,8 +95,10 @@ export async function POST(request: NextRequest) {
         }
 
         const credits = parseInt(customData.credits)
-        
+        logger.info(`💰 Parsed credits to add: ${credits}`)
+
         // Record payment FIRST - this will fail if order_id already exists (UNIQUE constraint)
+        logger.info('📝 Recording payment to database...')
         const { error: paymentError } = await supabase
           .from('payments')
           .insert({
@@ -99,7 +111,7 @@ export async function POST(request: NextRequest) {
             credits_purchased: credits,
             lemonsqueezy_data: order
           })
-        
+
         if (paymentError) {
           // If it's a duplicate key error, the order was already processed
           if (paymentError.code === '23505' || paymentError.message?.includes('duplicate')) {
@@ -109,18 +121,40 @@ export async function POST(request: NextRequest) {
           logger.error('Failed to record payment:', paymentError)
           throw new Error('Failed to record payment')
         }
-        
+
         logger.info(`✅ Payment recorded: Order ${order.id} for ${credits} credits`)
 
         // Now add credits using CENTRALIZED DataService method
+        logger.info('💳 Adding credits to client account...')
+        logger.info(`Client ID: ${customData.client_id}, Credits to add: ${credits}`)
+
         try {
           // Import DataService singleton
           const { DataService } = await import('@/lib/services/data-service')
           const dataService = DataService.getInstance()
-          
+
+          // Get current credits before adding
+          const { data: clientBefore } = await supabase
+            .from('clients')
+            .select('match_credits')
+            .eq('id', customData.client_id)
+            .single()
+
+          logger.info(`Current credits before addition: ${clientBefore?.match_credits || 0}`)
+
           // Add credits using centralized method
           await dataService.addCredits(customData.client_id, credits)
-          
+
+          // Verify credits were added
+          const { data: clientAfter } = await supabase
+            .from('clients')
+            .select('match_credits')
+            .eq('id', customData.client_id)
+            .single()
+
+          logger.info(`✅ Credits after addition: ${clientAfter?.match_credits || 0}`)
+          logger.info(`🎉 Successfully added ${credits} credits to client ${customData.client_id}`)
+
         } catch (creditError) {
           logger.error('Failed to add credits:', creditError)
           // Rollback the payment record since credits couldn't be added
