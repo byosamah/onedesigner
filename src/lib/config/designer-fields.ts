@@ -216,11 +216,11 @@ export const DESIGNER_FIELDS: DesignerField[] = [
     editableAfterApproval: true,
     requiresReapproval: false,
     options: [
-      { value: 'immediate', label: 'Immediately available' },
-      { value: '1_week', label: 'Available in 1 week' },
-      { value: '2_weeks', label: 'Available in 2 weeks' },
-      { value: '1_month', label: 'Available in 1 month' },
-      { value: 'not_available', label: 'Not currently available' }
+      { value: 'immediate', label: 'Immediate' },
+      { value: '1-2weeks', label: '1-2 weeks' },
+      { value: '2-4weeks', label: '2-4 weeks' },
+      { value: '1-2months', label: '1+ months' },
+      { value: 'unavailable', label: 'Unavailable' }
     ],
     validation: {
       required: true
