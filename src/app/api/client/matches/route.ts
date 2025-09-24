@@ -10,10 +10,14 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    // Get briefId from query params if provided
+    const { searchParams } = new URL(request.url)
+    const briefId = searchParams.get('briefId')
+
     // Get client session
     const cookieStore = cookies()
     const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
-    
+
     if (!sessionCookie) {
       return apiResponse.unauthorized()
     }
@@ -32,8 +36,8 @@ export async function GET(request: NextRequest) {
 
     const supabase = createServiceClient()
 
-    // Fetch all matches for this client
-    const { data: matches, error } = await supabase
+    // Build the query
+    let query = supabase
       .from('matches')
       .select(`
         id,
@@ -43,9 +47,18 @@ export async function GET(request: NextRequest) {
         personalized_reasons,
         created_at,
         designer_id,
-        brief_id
+        brief_id,
+        client_id
       `)
       .eq('client_id', clientId)
+
+    // Add briefId filter if provided
+    if (briefId) {
+      query = query.eq('brief_id', briefId)
+    }
+
+    // Fetch matches
+    const { data: matches, error } = await query
       .order('created_at', { ascending: false })
     
     if (error) {

@@ -75,23 +75,62 @@ export default function EnhancedMatchPage() {
         throw new Error('Invalid brief ID')
       }
 
+      // First, check if we have existing matches for this brief
+      logger.info('📡 Checking for existing matches...')
+      const existingMatchesResponse = await fetch(`/api/client/matches?briefId=${briefId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include'
+      })
+
+      if (existingMatchesResponse.ok) {
+        const existingData = await existingMatchesResponse.json()
+
+        // If we have existing matches for this brief, use them instead of generating new ones
+        if (existingData.matches && existingData.matches.length > 0) {
+          const briefMatches = existingData.matches.filter((m: any) => m.brief_id === briefId)
+
+          if (briefMatches.length > 0) {
+            logger.info('✅ Found existing matches for this brief, loading them...')
+            setMatches(briefMatches)
+
+            // Get brief data
+            if (briefMatches[0].brief) {
+              setBriefData(briefMatches[0].brief)
+            }
+
+            // Skip the AI matching since we have saved matches
+            setTimeout(() => {
+              setIsLoading(false)
+            }, 1000)
+
+            return // Exit early, don't generate new matches
+          }
+        }
+      }
+
+      // Only generate new matches if we don't have existing ones
+      logger.info('📡 No existing matches found, generating new ones...')
+
       // Simulate progressive loading while fetching
       setTimeout(() => setCurrentPhase('instant'), 500)
       setTimeout(() => setCurrentPhase('refined'), 1500)
       setTimeout(() => setCurrentPhase('final'), 2500)
 
-      // Use regular API with AI matching
-      logger.info('📡 Making API request to /api/match with briefId:', briefId)
-      const response = await fetch('/api/match', {
+      // Use optimized API that saves matches to database
+      logger.info('📡 Making API request to /api/match/optimized with briefId:', briefId)
+      const response = await fetch('/api/match/optimized', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ briefId }),
+        body: JSON.stringify({ brief_id: briefId }), // Note: optimized endpoint uses brief_id
       })
 
       logger.info('📡 Response status:', response.status)
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         logger.error('❌ API Error:', errorData)
@@ -99,13 +138,13 @@ export default function EnhancedMatchPage() {
       }
 
       const data = await response.json()
-      
-      // Show only the first match
+
+      // Show only the first match (optimized endpoint returns top matches)
       if (data.matches && data.matches.length > 0) {
         setMatches([data.matches[0]])
       }
-      
-      setBriefData(data.briefData || null)
+
+      setBriefData(data.brief || null)
       
       // Always get client data for credits info
       try {
