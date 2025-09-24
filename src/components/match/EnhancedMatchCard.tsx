@@ -6,6 +6,7 @@ import { LoadingButton } from '@/components/shared'
 import { PRICING_PACKAGES } from '@/lib/constants'
 import { WorkingRequestModal } from '@/components/modals/WorkingRequestModal'
 import { logger } from '@/lib/core/logging-service'
+import { getAvailabilityDisplay } from '@/lib/utils/availability'
 
 interface MatchData {
   id: string
@@ -260,14 +261,11 @@ export function EnhancedMatchCard({ match, isDarkMode, onUnlock, onFindNewMatch,
           theme={theme} 
         />
         {match.designer.availability && (
-          <ProfileHighlight 
+          <ProfileHighlight
             icon="✅"
-            label="Availability" 
-            value={match.designer.availability === 'immediate' ? 'Available Now' : 
-                   match.designer.availability === 'within_week' ? 'Within a Week' :
-                   match.designer.availability === 'within_month' ? 'Within a Month' :
-                   match.designer.availability} 
-            theme={theme} 
+            label="Availability"
+            value={getAvailabilityDisplay(match.designer.availability)}
+            theme={theme}
           />
         )}
         {match.designer.styles && match.designer.styles.length > 0 && (
