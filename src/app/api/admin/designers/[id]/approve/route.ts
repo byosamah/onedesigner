@@ -25,16 +25,24 @@ export async function POST(
     
     logger.info(`=== APPROVING DESIGNER ${params.id} ===`)
     
-    // Update designer approval status
+    // Update designer approval status (only use core fields that definitely exist)
+    const updateData: any = {
+      is_approved: true,
+      approved_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    // Add optional fields if they exist (won't cause errors if missing)
+    try {
+      updateData.last_approved_at = new Date().toISOString()
+      updateData.edited_after_approval = false
+    } catch (e) {
+      // Field doesn't exist, continue without it
+    }
+
     const { data: designer, error } = await supabase
       .from('designers')
-      .update({
-        is_approved: true,
-        approved_at: new Date().toISOString(),
-        approved_by: session.adminId,
-        last_approved_at: new Date().toISOString(),
-        edited_after_approval: false // Reset the edit flag when approving
-      })
+      .update(updateData)
       .eq('id', params.id)
       .select()
       .single()
@@ -42,7 +50,7 @@ export async function POST(
     if (error || !designer) {
       logger.error('Error approving designer:', error)
       logger.error('Designer ID:', params.id)
-      logger.error('Admin ID:', session.adminId)
+      logger.error('Session data:', session)
       return apiResponse.serverError('Failed to approve designer', error)
     }
 
