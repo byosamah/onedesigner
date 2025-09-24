@@ -18,6 +18,14 @@ export async function POST(request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value)
+
+    if (!session || !session.clientId) {
+      return NextResponse.json(
+        { error: 'Invalid session' },
+        { status: 401 }
+      )
+    }
+
     const { clientId } = session
 
     const body = await request.json()

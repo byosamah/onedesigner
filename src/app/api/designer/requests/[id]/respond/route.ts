@@ -23,6 +23,14 @@ export async function POST(
     }
 
     const session = JSON.parse(sessionCookie.value)
+
+    if (!session || !session.designerId) {
+      return NextResponse.json(
+        { error: 'Invalid session' },
+        { status: 401 }
+      )
+    }
+
     const { designerId } = session
 
     const { response, message } = await request.json()

@@ -21,6 +21,15 @@ export async function GET(_request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value)
+
+    if (!session || !session.clientId) {
+      return NextResponse.json({
+        authenticated: false,
+        user: null,
+        client: null
+      })
+    }
+
     const { clientId } = session
 
     // Get client data from database

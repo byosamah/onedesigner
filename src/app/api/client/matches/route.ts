@@ -19,6 +19,11 @@ export async function GET(request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value)
+
+    if (!session || !session.clientId) {
+      return apiResponse.error('Invalid session')
+    }
+
     const { clientId } = session
 
     if (!clientId) {
