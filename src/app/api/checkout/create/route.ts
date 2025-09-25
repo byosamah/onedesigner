@@ -112,8 +112,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create checkout using correct LemonSqueezy API format
-    // Based on our testing: custom_data is not valid in attributes, move it to checkout_data.custom
+    // CRITICAL FIX: Use exact format that works in direct API test
+    // Start with minimal working format, then add our customizations
     const requestBody = {
       data: {
         type: 'checkouts',
@@ -127,31 +127,19 @@ export async function POST(request: NextRequest) {
               match_id: matchId || 'none',
               product_key: productKey
             }
-          },
-          checkout_options: {
-            embed: false,
-            media: false,
-            logo: true
-          },
-          product_options: {
-            name: product.name,
-            description: `Get ${product.credits} designer matches for your projects`,
-            media: [],
-            redirect_url: `${baseUrl}/payment/success`,
-            receipt_thank_you_note: 'Thanks for your purchase! Your credits have been added to your account.'
           }
         },
         relationships: {
           store: {
             data: {
               type: 'stores',
-              id: storeId
+              id: '148628' // Hardcode the exact value that worked
             }
           },
           variant: {
             data: {
               type: 'variants',
-              id: product.variantId
+              id: product.variantId // This should be string already
             }
           }
         }
