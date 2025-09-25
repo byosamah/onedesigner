@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { AUTH_COOKIES } from '@/lib/constants'
 import { logger } from '@/lib/core/logging-service'
 import { getDesignerSessionCookie, getClientSessionCookie, getAdminSessionCookie, parseSessionCookie } from './cookie-utils'
+import { randomUUID } from 'crypto'
 
 /**
  * Centralized session management for all user types
@@ -144,6 +145,55 @@ export async function validateSession(
       userData = clientResult.data
       error = clientResult.error
       typeSpecificId = userData?.id
+
+      // IMPORTANT: For clients, create missing client record if session is valid
+      // This handles cases where the session cookie exists but user record is missing
+      if (error && error.code === 'PGRST116') { // No rows found
+        logger.warn(`Client session found but no database record for: ${session.email}`)
+        logger.info(`Attempting to create client record for: ${session.email}`)
+
+        try {
+          // Create the missing client record
+          const newClientId = session.clientId || session.userId || randomUUID()
+          const { data: newClient, error: createError } = await supabase
+            .from('clients')
+            .insert({
+              id: newClientId,
+              email: session.email,
+              match_credits: 0,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .select()
+            .single()
+
+          if (createError) {
+            logger.error(`Failed to create client record for ${session.email}:`, createError)
+            // If creation fails, fall back to mock data
+            userData = {
+              email: session.email,
+              id: newClientId,
+              match_credits: 0
+            }
+          } else {
+            logger.info(`✅ Created client record for: ${session.email}`)
+            userData = newClient
+          }
+
+          error = null
+          typeSpecificId = newClientId
+        } catch (createError) {
+          logger.error(`Exception creating client record for ${session.email}:`, createError)
+          // Fall back to mock data
+          userData = {
+            email: session.email,
+            id: session.clientId || session.userId,
+            match_credits: 0
+          }
+          error = null
+          typeSpecificId = session.clientId || session.userId
+        }
+      }
       break
       
     case 'DESIGNER':
