@@ -27,21 +27,24 @@ export async function POST(request: NextRequest) {
     logger.info('🎯 Webhook received at:', new Date().toISOString())
     const body = await request.text()
     const signature = request.headers.get('x-signature') || ''
-    // HOTFIX: Use fallback webhook secret if env var is missing
-    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || 'rzm_webhook_23983@#FKL)9L!1'
+    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
 
-    // Verify webhook signature - MANDATORY for security
+    // CRITICAL: Webhook secret MUST be properly configured
     if (!secret) {
-      logger.error('🚨 SECURITY ALERT: No webhook secret available!')
+      logger.error('🚨 CRITICAL: LEMONSQUEEZY_WEBHOOK_SECRET environment variable not set!')
+      logger.error('🚨 This will prevent all payments from adding credits to client accounts!')
+      logger.error('🚨 Set LEMONSQUEEZY_WEBHOOK_SECRET in Vercel dashboard to match LemonSqueezy webhook secret')
       return NextResponse.json(
-        { error: 'Webhook secret not configured' },
+        {
+          error: 'Webhook secret not configured',
+          details: 'LEMONSQUEEZY_WEBHOOK_SECRET environment variable missing',
+          impact: 'Payments will complete but credits will not be added to accounts'
+        },
         { status: 500 }
       )
     }
 
-    if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) {
-      logger.warn('⚠️ WARNING: Using fallback LEMONSQUEEZY_WEBHOOK_SECRET - set environment variable!')
-    }
+    logger.info('✅ Webhook secret loaded from environment variable')
 
     if (!verifyWebhookSignature(body, signature, secret)) {
       logger.error('🚨 SECURITY ALERT: Webhook signature verification failed')
@@ -160,14 +163,36 @@ export async function POST(request: NextRequest) {
           logger.info(`✅ Credits after addition: ${clientAfter?.match_credits || 0}`)
           logger.info(`🎉 Successfully added ${credits} credits to client ${customData.client_id}`)
 
-        } catch (creditError) {
-          logger.error('Failed to add credits:', creditError)
+        } catch (creditError: any) {
+          logger.error('❌ CRITICAL: Failed to add credits to client account')
+          logger.error(`❌ Client ID: ${customData.client_id}`)
+          logger.error(`❌ Credits to add: ${credits}`)
+          logger.error(`❌ Error details:`, creditError)
+
+          // Check if client exists
+          const { data: clientExists } = await supabase
+            .from('clients')
+            .select('id, email')
+            .eq('id', customData.client_id)
+            .single()
+
+          if (!clientExists) {
+            logger.error(`❌ ROOT CAUSE: Client with ID ${customData.client_id} does not exist in database!`)
+            logger.error(`❌ This means the client_id sent to LemonSqueezy doesn't match any real client`)
+            logger.error(`❌ Check the checkout creation process and session management`)
+          } else {
+            logger.error(`❌ Client exists (${clientExists.email}) but credit addition still failed`)
+            logger.error(`❌ This might be a database permissions or DataService issue`)
+          }
+
           // Rollback the payment record since credits couldn't be added
           await supabase
             .from('payments')
             .delete()
             .eq('order_id', order.id)
-          throw new Error('Failed to add credits to client')
+
+          logger.error(`❌ Payment record rolled back for order ${order.id}`)
+          throw new Error(`Failed to add credits to client: ${creditError.message || 'Unknown error'}`)
         }
 
         // If there's a specific match to unlock
