@@ -27,15 +27,20 @@ export async function POST(request: NextRequest) {
     logger.info('🎯 Webhook received at:', new Date().toISOString())
     const body = await request.text()
     const signature = request.headers.get('x-signature') || ''
-    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
+    // HOTFIX: Use fallback webhook secret if env var is missing
+    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || 'rzm_webhook_23983@#FKL)9L!1'
 
     // Verify webhook signature - MANDATORY for security
     if (!secret) {
-      logger.error('🚨 SECURITY ALERT: LEMONSQUEEZY_WEBHOOK_SECRET not configured!')
+      logger.error('🚨 SECURITY ALERT: No webhook secret available!')
       return NextResponse.json(
         { error: 'Webhook secret not configured' },
         { status: 500 }
       )
+    }
+
+    if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) {
+      logger.warn('⚠️ WARNING: Using fallback LEMONSQUEEZY_WEBHOOK_SECRET - set environment variable!')
     }
 
     if (!verifyWebhookSignature(body, signature, secret)) {

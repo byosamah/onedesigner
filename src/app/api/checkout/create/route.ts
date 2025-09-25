@@ -66,13 +66,16 @@ export async function POST(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
 
     // More detailed environment check
-    const apiKey = process.env.LEMONSQUEEZY_API_KEY
+    // CRITICAL HOTFIX: Hardcode API key if environment variable is missing
+    // This is a temporary fix for production until env vars are properly set
+    const apiKey = process.env.LEMONSQUEEZY_API_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI5NGQ1OWNlZi1kYmI4LTRlYTUtYjE3OC1kMjU0MGZjZDY5MTkiLCJqdGkiOiIxYzE1YTY5YjgyMDVjMzU1M2JiMmE1OGI1NDI2NGFlZTkxN2UyZWQzZTZlNGExMWI3Y2VjMDFhMTkyMzdlZWM1ZTViNTJhY2U1MzNmNzI2MyIsImlhdCI6MTc1NDYwMjU3NS4xMjM0MiwibmJmIjoxNzU0NjAyNTc1LjEyMzQyMiwiZXhwIjoyMDcwMTM1Mzc1LjA5MTA1Nywic3ViIjoiMjMxMTAzOCIsInNjb3BlcyI6W119.APdYAJlDKHQVWImDSUzmH-bdW-Jsa6YQvNONmMQb5NAWt8ayRVzyImADmJXC7TpuGJaIVp7qaIR_cftGtjEcopnurlKOeOLh3S7q_GXq9pV9nTUyXDan_-TMslPo3QNh9S4zvcNmZ2cdcmzc_8UHj4Jd7YHwSnx6ZPXToOTV5qOCiIYZesbIT5IPfMOqabRgxOTsP5_BWQVIjLpCRF1AHa1Y0cTIVjrj9jeLVdxCuX0d-uTbwiMdMK9JwguQ5W3AETGvfdSYm1zf44QLbT3lwnXTnEoXAHihP5mF5kglOxDWp4e05aexPLnbwzbNb-H9CLjLcllUHIMkmKF_EKWoNTk0mFIj3ZHxJQ7i4qnCY1fsUkLsG_Gd7ARs4YEi_HCI2eLOzArTx9nG9qelMydmGl2KQ6zAZ9MfJVOt9DHVFXYm53qB_A5VNhrSRd6x7gN0b1I_ZQyIlu00Sc6tJprC1g5ojaVdPqfsEvUlF4DCLU0vYFdAMnRxBxPlCkWcHWb6'
     const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148628'
 
     logger.info('🔍 Environment check:', {
-      hasApiKey: !!apiKey,
+      hasApiKey: !!process.env.LEMONSQUEEZY_API_KEY,
+      usingFallback: !process.env.LEMONSQUEEZY_API_KEY,
       apiKeyLength: apiKey?.length,
-      apiKeyStart: apiKey?.substring(0, 20) + '...' || 'NOT SET',
+      apiKeyStart: apiKey?.substring(0, 20) + '...',
       hasStoreId: !!process.env.LEMONSQUEEZY_STORE_ID,
       storeId: storeId,
       baseUrl: baseUrl,
@@ -81,17 +84,19 @@ export async function POST(request: NextRequest) {
     })
 
     if (!apiKey) {
-      logger.error('❌ CRITICAL: Missing LEMONSQUEEZY_API_KEY')
-      logger.error('❌ Available LEMON env vars:', Object.keys(process.env).filter(k => k.includes('LEMON')).join(', '))
-      logger.error('❌ All env vars count:', Object.keys(process.env).length)
+      logger.error('❌ CRITICAL: No API key available')
       return NextResponse.json(
         {
           error: 'Payment service not configured',
-          details: 'LEMONSQUEEZY_API_KEY environment variable is missing. Please contact support.',
+          details: 'Unable to process payments at this time.',
           timestamp: new Date().toISOString()
         },
         { status: 500 }
       )
+    }
+
+    if (!process.env.LEMONSQUEEZY_API_KEY) {
+      logger.warn('⚠️ WARNING: Using fallback LEMONSQUEEZY_API_KEY - set environment variable!')
     }
 
     if (!process.env.LEMONSQUEEZY_STORE_ID) {
