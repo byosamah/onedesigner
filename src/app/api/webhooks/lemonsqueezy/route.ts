@@ -27,18 +27,25 @@ export async function POST(request: NextRequest) {
     logger.info('🎯 Webhook received at:', new Date().toISOString())
     const body = await request.text()
     const signature = request.headers.get('x-signature') || ''
-    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET
+    // CRITICAL FIX: Use the correct webhook secret provided by user
+    // This secret MUST match exactly what's configured in LemonSqueezy dashboard
+    const secret = process.env.LEMONSQUEEZY_WEBHOOK_SECRET || 'rzm_webhook_23983@#FKL)9L!1'
 
-    // CRITICAL: Webhook secret MUST be properly configured
+    // Enhanced logging for webhook secret configuration
+    if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) {
+      logger.warn('⚠️ Using hardcoded LEMONSQUEEZY_WEBHOOK_SECRET - should set environment variable')
+      logger.warn('⚠️ Secret source: hardcoded fallback (rzm_webhook_23983@#FKL)9L!1)')
+    } else {
+      logger.info('✅ Using LEMONSQUEEZY_WEBHOOK_SECRET from environment variable')
+    }
+
     if (!secret) {
-      logger.error('🚨 CRITICAL: LEMONSQUEEZY_WEBHOOK_SECRET environment variable not set!')
-      logger.error('🚨 This will prevent all payments from adding credits to client accounts!')
-      logger.error('🚨 Set LEMONSQUEEZY_WEBHOOK_SECRET in Vercel dashboard to match LemonSqueezy webhook secret')
+      logger.error('🚨 CRITICAL: No webhook secret available at all!')
       return NextResponse.json(
         {
           error: 'Webhook secret not configured',
-          details: 'LEMONSQUEEZY_WEBHOOK_SECRET environment variable missing',
-          impact: 'Payments will complete but credits will not be added to accounts'
+          details: 'No webhook secret found',
+          impact: 'Cannot verify webhook authenticity'
         },
         { status: 500 }
       )
