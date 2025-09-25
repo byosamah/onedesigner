@@ -64,25 +64,35 @@ export async function POST(request: NextRequest) {
 
     // Verify environment variables
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://onedesigner.app'
+
+    // More detailed environment check
+    const apiKey = process.env.LEMONSQUEEZY_API_KEY
+    const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148628'
+
     logger.info('🔍 Environment check:', {
-      hasApiKey: !!process.env.LEMONSQUEEZY_API_KEY,
-      apiKeyStart: process.env.LEMONSQUEEZY_API_KEY?.substring(0, 20) + '...',
+      hasApiKey: !!apiKey,
+      apiKeyLength: apiKey?.length,
+      apiKeyStart: apiKey?.substring(0, 20) + '...' || 'NOT SET',
       hasStoreId: !!process.env.LEMONSQUEEZY_STORE_ID,
-      storeId: process.env.LEMONSQUEEZY_STORE_ID,
-      baseUrl: baseUrl
+      storeId: storeId,
+      baseUrl: baseUrl,
+      nodeEnv: process.env.NODE_ENV,
+      apiEndpoint: API_ENDPOINTS.LEMONSQUEEZY
     })
 
-    if (!process.env.LEMONSQUEEZY_API_KEY) {
-      logger.error('❌ Missing LEMONSQUEEZY_API_KEY')
-      logger.error('❌ Available env vars:', Object.keys(process.env).filter(k => k.includes('LEMON')))
+    if (!apiKey) {
+      logger.error('❌ CRITICAL: Missing LEMONSQUEEZY_API_KEY')
+      logger.error('❌ Available LEMON env vars:', Object.keys(process.env).filter(k => k.includes('LEMON')).join(', '))
+      logger.error('❌ All env vars count:', Object.keys(process.env).length)
       return NextResponse.json(
-        { error: 'LemonSqueezy API key not configured', details: 'LEMONSQUEEZY_API_KEY environment variable not found' },
+        {
+          error: 'Payment service not configured',
+          details: 'LEMONSQUEEZY_API_KEY environment variable is missing. Please contact support.',
+          timestamp: new Date().toISOString()
+        },
         { status: 500 }
       )
     }
-
-    // Use correct store ID fallback (matches the actual LemonSqueezy store)
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID || '148628'
 
     if (!process.env.LEMONSQUEEZY_STORE_ID) {
       logger.warn('⚠️ Using default LEMONSQUEEZY_STORE_ID:', storeId)
@@ -147,18 +157,24 @@ export async function POST(request: NextRequest) {
 
     let response
     try {
-      response = await fetch(`${API_ENDPOINTS.LEMONSQUEEZY}/checkouts`, {
+      const apiUrl = `${API_ENDPOINTS.LEMONSQUEEZY}/checkouts`
+      logger.info('📡 Making request to:', apiUrl)
+
+      response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Accept': 'application/vnd.api+json',
           'Content-Type': 'application/vnd.api+json',
         },
         body: JSON.stringify(requestBody)
       })
-    } catch (fetchError) {
+    } catch (fetchError: any) {
       logger.error('❌ Fetch failed:', fetchError)
-      throw new Error(`Network error: ${fetchError}`)
+      logger.error('❌ Fetch error type:', fetchError?.name)
+      logger.error('❌ Fetch error message:', fetchError?.message)
+      logger.error('❌ Fetch error cause:', fetchError?.cause)
+      throw new Error(`Network error: ${fetchError?.message || 'Failed to connect to LemonSqueezy'}`)
     }
 
     logger.info('✅ LemonSqueezy response status:', response.status)
