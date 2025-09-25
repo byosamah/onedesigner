@@ -145,13 +145,13 @@ export async function POST(request: NextRequest) {
           store: {
             data: {
               type: 'stores',
-              id: storeId.toString()
+              id: storeId
             }
           },
           variant: {
             data: {
               type: 'variants',
-              id: product.variantId.toString()
+              id: product.variantId
             }
           }
         }
@@ -160,10 +160,23 @@ export async function POST(request: NextRequest) {
 
     logger.info('🚀 Creating checkout with payload:', JSON.stringify(requestBody, null, 2))
 
+    // Additional debugging
+    logger.info('🔍 Store ID type and value:', {
+      storeId: storeId,
+      storeIdType: typeof storeId,
+      variantId: product.variantId,
+      variantIdType: typeof product.variantId
+    })
+
     let response
     try {
       const apiUrl = `${API_ENDPOINTS.LEMONSQUEEZY}/checkouts`
       logger.info('📡 Making request to:', apiUrl)
+      logger.info('📡 Request headers:', {
+        'Authorization': `Bearer ${apiKey.substring(0, 20)}...`,
+        'Accept': 'application/vnd.api+json',
+        'Content-Type': 'application/vnd.api+json'
+      })
 
       response = await fetch(apiUrl, {
         method: 'POST',
