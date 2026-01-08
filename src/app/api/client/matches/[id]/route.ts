@@ -1,0 +1,139 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { AUTH_COOKIES } from '@/lib/constants'
+import { logger } from '@/lib/core/logging-service'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Get client session
+    const cookieStore = cookies()
+    const sessionCookie = cookieStore.get(AUTH_COOKIES.CLIENT)
+    
+    if (!sessionCookie) {
+      return apiResponse.unauthorized()
+    }
+
+    const session = JSON.parse(sessionCookie.value)
+    const { clientId } = session
+
+    if (!clientId) {
+      return apiResponse.error('Client ID not found')
+    }
+
+    const supabase = createServiceClient()
+
+    // Fetch the specific match
+    const { data: match, error } = await supabase
+      .from('matches')
+      .select(`
+        id,
+        score,
+        status,
+        reasons,
+        personalized_reasons,
+        created_at,
+        designer:designers!matches_designer_id_fkey(
+          id,
+          first_name,
+          last_initial,
+          last_name,
+          title,
+          city,
+          country,
+          email,
+          phone,
+          website_url,
+          portfolio_url,
+          linkedin_url,
+          dribbble_url,
+          behance_url,
+          bio,
+          years_experience,
+          rating,
+          total_projects,
+          availability,
+          styles,
+          industries,
+          avatar_url,
+          tools
+        ),
+        brief:briefs!matches_brief_id_fkey(
+          project_type,
+          company_name,
+          budget,
+          timeline,
+          details
+        )
+      `)
+      .eq('id', params.id)
+      .eq('client_id', clientId)
+      .single()
+
+    // Get portfolio images from the tools array field (temporary storage)
+    let portfolioImages = []
+    if (match && match.designer && Array.isArray(match.designer.tools)) {
+      portfolioImages = match.designer.tools
+    }
+
+    if (error || !match) {
+      logger.error('Error fetching match:', error)
+      return apiResponse.notFound('Match')
+    }
+
+    // Map database field names to frontend expectations
+    if (match.designer) {
+      const designer = match.designer
+      match.designer = {
+        ...designer,
+        firstName: designer.first_name,
+        lastName: designer.last_name || designer.last_initial,
+        lastInitial: designer.last_initial,
+        yearsExperience: designer.years_experience,
+        totalProjects: designer.total_projects,
+        profilePicture: designer.avatar_url || null,
+        portfolioImages: portfolioImages,
+        // Map URL fields properly
+        portfolioUrl: designer.portfolio_url || designer.website_url,
+        linkedinUrl: designer.linkedin_url,
+        dribbbleUrl: designer.dribbble_url,
+        behanceUrl: designer.behance_url
+      }
+    }
+
+    // Hide contact info for locked matches
+    if (match.status === 'pending' || match.status === 'declined') {
+      const { email, phone, portfolioUrl, linkedinUrl, dribbbleUrl, behanceUrl, ...safeDesigner } = match.designer
+      match.designer = {
+        ...safeDesigner,
+        email: '***',
+        phone: '***', 
+        portfolioUrl: '***',
+        linkedinUrl: '***',
+        dribbbleUrl: '***',
+        behanceUrl: '***'
+      }
+    }
+
+    // Get client credits
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
+      .select('match_credits')
+      .eq('id', clientId)
+      .single()
+
+    const credits = client?.match_credits || 0
+
+    return apiResponse.success({
+      success: true,
+      match,
+      credits
+    })
+  } catch (error) {
+    return handleApiError(error, 'client/matches/[id]')
+  }
+}

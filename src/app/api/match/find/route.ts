@@ -1,0 +1,437 @@
+import { NextRequest } from 'next/server'
+import { createServiceClient } from '@/lib/supabase/server'
+import { createAIProvider } from '@/lib/ai'
+import { AI_CONFIG } from '@/lib/ai/config'
+import { apiResponse, handleApiError } from '@/lib/api/responses'
+import { 
+  calculateEnhancedRelevanceScore, 
+  Designer, 
+  Brief, 
+  ClientPreferences 
+} from '@/lib/matching/enhanced-scoring'
+import { emailService } from '@/lib/core/email-service'
+import { 
+  generateMatchExplanation, 
+  generateKeyStrengths,
+  generateQuickStats 
+} from '@/lib/matching/explanation-generator'
+
+// Helper to get client preferences
+async function getClientPreferences(supabase: any, clientId: string): Promise<ClientPreferences | null> {
+  const { data } = await supabase
+    .from('client_preferences')
+    .select('*')
+    .eq('client_id', clientId)
+    .single()
+  
+  return data
+}
+
+import { OptimizedMatcher } from '@/lib/matching/optimized-matcher'
+import { logger } from '@/lib/core/logging-service'
+
+// Streaming endpoint for progressive match results
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { briefId, streaming = false } = body
+
+    if (!briefId) {
+      return apiResponse.error('Brief ID is required')
+    }
+
+    const supabase = createServiceClient()
+
+    // Get the brief with client info
+    const { data: brief, error: briefError } = await supabase
+      .from('briefs')
+      .select('*, client:clients(*)')
+      .eq('id', briefId)
+      .single()
+
+    if (briefError || !brief) {
+      return apiResponse.notFound('Brief')
+    }
+
+    // Get all previously unlocked designers for this client from client_designers table
+    const { data: unlockedDesigners } = await supabase
+      .from('client_designers')
+      .select('designer_id')
+      .eq('client_id', brief.client_id)
+    
+    // Also get all previously matched designers (as backup/compatibility)
+    const { data: previousMatches } = await supabase
+      .from('matches')
+      .select('designer_id')
+      .eq('client_id', brief.client_id)
+    
+    // Combine both lists and remove duplicates
+    const unlockedIds = unlockedDesigners?.map(d => d.designer_id) || []
+    const matchedIds = previousMatches?.map(m => m.designer_id) || []
+    const excludedDesignerIds = [...new Set([...unlockedIds, ...matchedIds])]
+    
+    logger.info(`Excluding ${excludedDesignerIds.length} designers (${unlockedIds.length} unlocked, ${matchedIds.length} matched)`)
+
+    // Get all available designers excluding previously matched ones
+    // Only include designers that are both verified AND approved
+    let designersQuery = supabase
+      .from('designers')
+      .select('id, first_name, last_name, email, is_verified, is_approved, availability, *')
+      .eq('is_verified', true)
+      .eq('is_approved', true)
+      .neq('availability', 'busy')
+    
+    if (excludedDesignerIds.length > 0) {
+      designersQuery = designersQuery.not('id', 'in', `(${excludedDesignerIds.join(',')})`)
+    }
+
+    const { data: designers, error: designersError } = await designersQuery
+    
+    // Debug logging
+    logger.info('=== MATCH DEBUG INFO ===')
+    logger.info('Query filters: is_verified=true, is_approved=true')
+    logger.info('Available designers found:', designers?.length || 0)
+    if (designers && designers.length > 0) {
+      designers.forEach(d => {
+        logger.info(`- Name: ${d.first_name} ${d.last_name}`)
+        logger.info(`  Title: ${d.title}`)
+        logger.info(`  Location: ${d.city}, ${d.country}`)
+        logger.info(`  Status: verified=${d.is_verified}, approved=${d.is_approved}`)
+      })
+    }
+
+    if (designersError || !designers || designers.length === 0) {
+      // Check if there are any approved designers at all
+      const { data: totalApprovedDesigners } = await supabase
+        .from('designers')
+        .select('id')
+        .eq('is_verified', true)
+        .eq('is_approved', true)
+        .neq('availability', 'busy')
+      
+      const totalApproved = totalApprovedDesigners?.length || 0
+      
+      if (totalApproved > 0 && excludedDesignerIds.length >= totalApproved) {
+        // Client has unlocked all approved designers
+        return apiResponse.notFound('Designers')
+      } else {
+        // No approved designers available (they haven't been approved yet)
+        return apiResponse.notFound('Designers')
+      }
+    }
+
+    logger.info(`Found ${designers.length} verified and approved designers`)
+
+    // Get client preferences for AI context
+    const clientPrefs = await getClientPreferences(supabase, brief.client_id)
+    
+    // Let AI analyze ALL eligible designers without pre-filtering bias
+    // Only do basic filtering for availability and approval status
+    const eligibleDesigners = designers.filter(d => 
+      d.availability !== 'unavailable' && 
+      d.is_approved === true &&
+      d.is_verified === true
+    )
+    
+    logger.info(`${eligibleDesigners.length} eligible designers will be analyzed by AI`)
+
+    // Initialize AI provider - required for matching
+    let aiProvider = null
+    
+    try {
+      aiProvider = createAIProvider()
+    } catch (error: any) {
+      logger.error('AI provider initialization failed:', error.message)
+      return apiResponse.serverError('AI matching service is not configured')
+    }
+    
+    // Analyze matches with AI - no rate limits on DeepSeek
+    let matchResults = []
+    
+    // Process ALL eligible designers through AI for thorough analysis
+    // DeepSeek has no rate limits - we can analyze all designers
+    const maxAnalyze = Math.min(eligibleDesigners.length, 50) // Increased cap since no rate limits
+    
+    logger.info(`AI will analyze ${maxAnalyze} designers to find the best match`)
+    
+    // Process designers in parallel batches for faster results
+    const batchSize = 5
+    for (let i = 0; i < maxAnalyze; i += batchSize) {
+      const batch = eligibleDesigners.slice(i, Math.min(i + batchSize, maxAnalyze))
+      
+      // Analyze batch in parallel
+      const batchPromises = batch.map(async (designer, idx) => {
+        try {
+          logger.info(`AI analyzing designer ${i + idx + 1}/${maxAnalyze}: ${designer.first_name} ${designer.last_name}`)
+          
+          const matchResult = await aiProvider.analyzeMatch(designer, brief)
+          
+          // Only add matches that the AI considers viable (50+ score)
+          if (matchResult.score >= 50) {
+            logger.info(`  -> Match score: ${matchResult.score} (${matchResult.confidence} confidence)`)
+            return matchResult
+          } else {
+            logger.info(`  -> Poor match: ${matchResult.score} - ${matchResult.matchSummary}`)
+            return null
+          }
+        } catch (error: any) {
+          logger.error(`AI matching failed for designer ${designer.id}:`, error.message)
+          return null
+        }
+      })
+      
+      // Wait for batch to complete
+      const batchResults = await Promise.all(batchPromises)
+      
+      // Add successful matches
+      matchResults.push(...batchResults.filter(result => result !== null))
+      
+      logger.info(`Batch ${Math.floor(i/batchSize) + 1} complete. Total matches so far: ${matchResults.length}`)
+    }
+    
+    // If no matches found after AI analysis, return error
+    if (matchResults.length === 0) {
+      logger.info('No suitable matches found after AI analysis')
+      return apiResponse.error('No suitable designers found for your requirements. Please try adjusting your brief or contact support.')
+    }
+    
+    // Sort by final score and get the best match
+    const sortedMatches = matchResults.sort((a, b) => b.score - a.score)
+    const bestMatch = sortedMatches[0]
+    
+    logger.info(`\n=== MATCH RESULTS ===`)
+    logger.info(`Best match: ${bestMatch.designer.first_name} ${bestMatch.designer.last_name}`)
+    logger.info(`Score: ${bestMatch.score}% (${bestMatch.confidence || 'medium'} confidence)`)
+    logger.info(`AI Analysis: ${bestMatch.aiAnalyzed ? 'Complete' : 'Fallback'}`)
+    if (bestMatch.matchSummary) {
+      logger.info(`Summary: ${bestMatch.matchSummary}`)
+    }
+    logger.info(`Total matches found: ${matchResults.length}`)
+    logger.info(`Other matches:`, sortedMatches.slice(1, 4).map(m => 
+      `${m.designer.first_name} ${m.designer.last_name} (${m.score}%)`
+    ))
+    
+    // Create match record
+    const { data: match, error: matchError } = await supabase
+      .from('matches')
+      .insert({
+        brief_id: briefId,
+        designer_id: bestMatch.designer.id,
+        client_id: brief.client_id, // Add the client_id from the brief
+        score: bestMatch.score,
+        reasons: bestMatch.reasons,
+        personalized_reasons: bestMatch.personalizedReasons,
+        status: 'pending'
+      })
+      .select()
+      .single()
+
+    let finalMatch = match
+    
+    if (matchError) {
+      logger.error('Error creating match:', matchError)
+      
+      // Check if it's a unique constraint error (duplicate match)
+      if (matchError.code === '23505') {
+        // Get the existing match
+        const { data: existingMatch } = await supabase
+          .from('matches')
+          .select('*')
+          .eq('brief_id', briefId)
+          .eq('designer_id', bestMatch.designer.id)
+          .single()
+          
+        if (existingMatch) {
+          logger.info('Using existing match:', existingMatch.id)
+          finalMatch = existingMatch // Use the existing match
+        }
+      } else {
+        throw matchError
+      }
+    }
+
+    // Create designer request with expiration date
+    if (finalMatch) {
+      // Set expiration to 7 days from now
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + 7)
+      
+      const { error: requestError } = await supabase
+        .from('project_requests')
+        .insert({
+          match_id: finalMatch.id,
+          designer_id: bestMatch.designer.id,
+          status: 'pending',
+          expires_at: expiresAt.toISOString()
+        })
+      
+      if (requestError) {
+        logger.error('Error creating designer request:', requestError)
+      } else {
+        // Send email notification to designer using centralized EmailService
+        try {
+          // Use the designer-request template with Marc Lou style
+          await emailService.sendTemplatedEmail('designer-request', {
+            to: bestMatch.designer.email,
+            variables: {
+              projectType: brief.project_type,
+              industry: brief.industry,
+              timeline: brief.timeline,
+              budget: brief.budget || 'Not specified',
+              requestUrl: `${process.env.NEXT_PUBLIC_APP_URL}/designer/dashboard`
+            },
+            tags: {
+              type: 'designer-notification',
+              matchId: finalMatch.id,
+              designerId: bestMatch.designer.id
+            }
+          })
+          logger.info('Designer notification email sent via centralized EmailService')
+        } catch (emailError) {
+          logger.error('Failed to send designer notification:', emailError)
+        }
+      }
+    }
+
+    // Send email notification to client about their match (only for high-quality matches)
+    if (finalMatch && brief.client?.email && bestMatch.score >= 70) {
+      try {
+        // Use the centralized EmailService with the match-found template
+        await emailService.sendTemplatedEmail('match-found', {
+          to: brief.client.email,
+          variables: {
+            score: bestMatch.score,
+            designerName: `${bestMatch.designer.first_name} ${bestMatch.designer.last_name[0]}.`,
+            designerTitle: bestMatch.designer.title || 'Designer',
+            experience: `${bestMatch.designer.years_experience || 'Several'} years`,
+            matchUrl: `${process.env.NEXT_PUBLIC_APP_URL}/match/${finalMatch.id}`
+          },
+          tags: {
+            type: 'match-notification',
+            matchId: finalMatch.id,
+            briefId: briefId
+          }
+        })
+        logger.info('Client match notification email sent via centralized EmailService')
+      } catch (emailError) {
+        logger.error('Failed to send client match notification:', emailError)
+      }
+    }
+
+
+    // Check if match is already unlocked
+    const isUnlocked = finalMatch?.status === 'unlocked' || finalMatch?.status === 'accepted'
+
+    // Create match analytics record
+    if (finalMatch?.id) {
+      await supabase
+        .from('audit_logs')
+        .insert({
+          match_id: finalMatch.id,
+          client_id: brief.client_id,
+          designer_id: bestMatch.designer.id,
+          match_score: bestMatch.score,
+          ai_confidence: bestMatch.confidence || 'medium',
+          match_reasons: bestMatch.personalizedReasons || bestMatch.reasons,
+          alternative_designers: sortedMatches.slice(1, 4).map(m => ({
+            id: m.designer.id,
+            score: m.score,
+            name: `${m.designer.first_name} ${m.designer.last_name}`
+          }))
+        })
+    }
+
+    // Generate match explanation
+    const matchExplanation = generateMatchExplanation({
+      designer: bestMatch.designer,
+      brief,
+      aiAnalysis: {
+        score: bestMatch.score,
+        confidence: bestMatch.confidence || 'medium',
+        reasons: bestMatch.personalizedReasons || bestMatch.reasons,
+        uniqueValue: bestMatch.uniqueValue,
+        challenges: bestMatch.challenges,
+        riskLevel: bestMatch.riskLevel,
+        matchSummary: bestMatch.matchSummary
+      },
+      scores: bestMatch.designer.scoreBreakdown ? {
+        totalScore: bestMatch.score,
+        breakdown: bestMatch.designer.scoreBreakdown,
+        weights: {},
+        confidence: bestMatch.confidence || 'medium'
+      } : {
+        totalScore: bestMatch.score,
+        breakdown: {},
+        weights: {},
+        confidence: 'low'
+      },
+      clientPrefs: clientPrefs || undefined
+    })
+
+    // Generate key strengths
+    const keyStrengths = generateKeyStrengths(
+      bestMatch.designer,
+      brief,
+      {
+        score: bestMatch.score,
+        confidence: bestMatch.confidence || 'medium',
+        reasons: bestMatch.personalizedReasons || bestMatch.reasons
+      }
+    )
+
+    // Generate quick stats
+    const quickStats = generateQuickStats(bestMatch.designer, brief)
+
+    // Return the enhanced match
+    return apiResponse.success({
+      success: true,
+      match: {
+        id: finalMatch?.id || 'temp-id',
+        score: bestMatch.score,
+        confidence: bestMatch.confidence || 'medium',
+        reasons: bestMatch.reasons,
+        personalizedReasons: bestMatch.personalizedReasons,
+        matchExplanation,
+        keyStrengths,
+        quickStats,
+        uniqueValue: bestMatch.uniqueValue,
+        challenges: bestMatch.challenges || [],
+        riskLevel: bestMatch.riskLevel || 'low',
+        matchSummary: bestMatch.matchSummary,
+        designer: {
+          id: bestMatch.designer.id,
+          firstName: bestMatch.designer.first_name || 'Designer',
+          lastInitial: bestMatch.designer.last_initial || (bestMatch.designer.last_name ? bestMatch.designer.last_name.charAt(0).toUpperCase() : ''),
+          lastName: bestMatch.designer.last_name,
+          title: bestMatch.designer.title || 'Designer',
+          city: bestMatch.designer.city || 'Unknown',
+          country: bestMatch.designer.country || '',
+          yearsExperience: bestMatch.designer.years_experience || 0,
+          rating: bestMatch.designer.rating || 4.5,
+          totalProjects: bestMatch.designer.total_projects || 0,
+          avatarUrl: bestMatch.designer.avatar_url,
+          styles: bestMatch.designer.styles || [],
+          industries: bestMatch.designer.industries || [],
+          specializations: bestMatch.designer.specializations || [],
+          communicationStyle: bestMatch.designer.communication_style,
+          teamSize: bestMatch.designer.team_size,
+          avgClientSatisfaction: bestMatch.designer.avg_client_satisfaction,
+          onTimeDeliveryRate: bestMatch.designer.on_time_delivery_rate,
+          projectCompletionRate: bestMatch.designer.project_completion_rate,
+          email: isUnlocked ? bestMatch.designer.email : null,
+          phone: isUnlocked ? bestMatch.designer.phone : null,
+          website: isUnlocked ? bestMatch.designer.website_url : null,
+          calendly_url: isUnlocked ? bestMatch.designer.calendly_url : null
+        },
+        alternativeOptions: sortedMatches.slice(1, 4).map(m => ({
+          designer_id: m.designer.id,
+          name: `${m.designer.first_name} ${m.designer.last_name}`,
+          score: m.score,
+          uniqueStrength: m.uniqueValue || `${m.designer.years_experience}+ years in ${m.designer.industries?.[0] || 'design'}`
+        }))
+      }
+    })
+  } catch (error) {
+    return handleApiError(error, 'match/find')
+  }
+}
